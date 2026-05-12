@@ -1,0 +1,12 @@
+node_modules/
+.env
+.DS_Store
+dist/
+build/
+.cache/
+*.log
+package-lock.json
+# Ignore any temp or backup files
+*~
+*.swp
+{backend/
