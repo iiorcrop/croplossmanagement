@@ -16,6 +16,6 @@ RUN mkdir -p logs
 RUN addgroup -g 1001 -S nodejs && adduser -S nodeuser -u 1001
 USER nodeuser
 
-EXPOSE 5000
+EXPOSE 7070
 
 CMD ["node", "server.js"]
