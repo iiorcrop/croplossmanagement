@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import api from '../utils/api';
 
 // Initial data for the demonstration
 const INITIAL_DATA = {
@@ -17,8 +18,8 @@ const INITIAL_DATA = {
     { id: 2, name: 'Entomology', description: 'The study of insects and their relationship to agriculture and the environment.', code: 'ENTO', status: 'Active', color: '#f43f5e' },
   ],
   seasons: [
-    { id: 1, name: 'Kharif 2024-25', status: 'Active', startDate: '2024-06-01', endDate: '2024-10-30', color: '#f97316' },
-    { id: 2, name: 'Rabi 2023-24', status: 'Closed', startDate: '2023-11-01', endDate: '2024-03-31', color: '#64748b' },
+    { id: 1, name: 'Kharif 2025-26', status: 'Active', startDate: '2024-06-01', endDate: '2024-10-30', color: '#f97316' },
+    { id: 2, name: 'Rabi 2025-26', status: 'Closed', startDate: '2023-11-01', endDate: '2024-03-31', color: '#64748b' },
   ],
   'soil-types': [
     { id: 1, name: 'Black Soil', description: 'Rich in metals such as Iron, Magnesium, and Aluminum.', fertility: 'High', status: 'Active', color: '#334155' },
@@ -86,7 +87,9 @@ export default function MasterData() {
   const handleReset = () => {
     if (window.confirm('Reset this category to default data? All custom entries will be lost.')) {
       localStorage.removeItem(`master_data_v3_${type}`);
-      setData(INITIAL_DATA[type] || []);
+      const defData = INITIAL_DATA[type] || [];
+      setData(defData);
+      api.put(`/master-data/${type}`, { value: defData.map(i => i.name || i) }).catch(console.error);
       toast.success('Reset successful');
     }
   };
@@ -129,6 +132,7 @@ export default function MasterData() {
     }
     setData(updated);
     localStorage.setItem(`master_data_v3_${type}`, JSON.stringify(updated));
+    api.put(`/master-data/${type}`, { value: updated.map(i => i.name || i) }).catch(console.error);
     setShowModal(false);
   };
 
@@ -137,6 +141,7 @@ export default function MasterData() {
     const updated = data.filter(i => String(i.id) !== String(id));
     setData(updated);
     localStorage.setItem(`master_data_v3_${type}`, JSON.stringify(updated));
+    api.put(`/master-data/${type}`, { value: updated.map(i => i.name || i) }).catch(console.error);
     toast.success('Deleted successfully');
   };
 

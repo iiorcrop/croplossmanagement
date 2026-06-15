@@ -1,0 +1,254 @@
+/* SunflowerEntomologyForm.css */
+
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+.sf-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card (Location) ────────────────────── */
+.sf-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sf-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f3f4f6;
+  padding-bottom: 12px;
+}
+.sf-card-header h4 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* ── Grid for location fields ───────────── */
+.sf-location-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.sf-field label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  margin-bottom: 6px;
+}
+.sf-field input.sf-input,
+.sf-field select.sf-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 0.95rem;
+  color: #1f2937;
+  transition: all 0.2s ease;
+}
+.sf-field input.sf-input:focus,
+.sf-field select.sf-input:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
+}
+.sf-field input.sf-input:disabled,
+.sf-field select.sf-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ── Section styling ───────────────────── */
+.sf-section {
+  background: #fffdf5;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.sf-section-title {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* ── Pest Subcard ──────────────────────── */
+.sf-pest-subcard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.sf-pest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #d1d5db;
+}
+.sf-pest-select {
+  max-width: 300px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* ── Yield grid ─────────────────────────── */
+.sf-yield-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.sf-highlight {
+  background-color: #fffbeb !important;
+  border-color: #fcd34d !important;
+}
+
+/* ── Buttons ───────────────────────────── */
+.sf-btn {
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sf-btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+.sf-btn-outline {
+  background: #ffffff;
+  border: 1px solid #f59e0b;
+  color: #d97706;
+  padding: 8px 16px;
+}
+.sf-btn-outline:hover:not(:disabled) {
+  background: #fffbeb;
+  color: #b45309;
+}
+.sf-btn-add {
+  background: #f59e0b;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+}
+.sf-btn-add:hover {
+  background: #d97706;
+}
+.sf-btn-full {
+  width: 100%;
+  font-size: 1rem;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.sf-btn-danger {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  padding: 8px 16px;
+}
+.sf-btn-danger:hover:not(:disabled) {
+  background: #fca5a5;
+  color: #b91c1c;
+}
+
+/* ── Image grid ─────────────────────────── */
+.sf-image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+.sf-image-thumb {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.sf-image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sf-img-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.sf-img-remove:hover {
+  background: #dc2626;
+}
+.sf-file-input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  cursor: pointer;
+  color: #4b5563;
+}
+.sf-file-input:focus {
+  outline: none;
+  border-color: #f59e0b;
+}
+
+/* ── Responsive tweaks ─────────────────── */
+@media (max-width: 768px) {
+  .sf-card {
+    padding: 16px;
+  }
+  .sf-location-grid,
+  .sf-yield-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -2,6 +2,8 @@ const CROPS = ['castor', 'sunflower', 'safflower', 'sesame', 'niger', 'linseed']
 const ROLES = ['super_admin', 'crop_head', 'center_user'];
 const DISCIPLINES = ['Pathology', 'Entomology', 'Both'];
 
+const SEASONS = ['Kharif 2024-25', 'Rabi 2023-24'];
+
 const SOIL_TYPES = ['Black', 'Red', 'Sandy loam', 'Alluvial', 'Clay', 'Loam', 'Sandy clay loam'];
 
 const PREVIOUS_CROPS = ['Castor', 'Cotton', 'Maize', 'Pigeon Pea', 'Groundnut',
@@ -151,7 +153,7 @@ const STATUS = {
 };
 
 module.exports = {
-  CROPS, ROLES, DISCIPLINES, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES,
+  CROPS, ROLES, DISCIPLINES, SEASONS, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES,
   SOWING_DATES, CROP_STAGES, PERCENT_OPTIONS, VARIETIES, RAW_COLUMNS, getColumns, STATUS,
   INDIA_STATES_DISTRICTS,
 };

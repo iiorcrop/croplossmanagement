@@ -16,10 +16,10 @@ const userSchema = new mongoose.Schema({
   centerPI:       { type: String, trim: true, default: '' }, // Principal Investigator
 
   // Crops this center_user can enter data for
-  assignedCrops: [{ type: String, enum: CROPS }],
+  assignedCrops: [{ type: String }],
 
   // Crops this crop_head reviews (receives alerts for)
-  reviewCrops: [{ type: String, enum: CROPS }],
+  reviewCrops: [{ type: String }],
 
   isActive:      { type: Boolean, default: true },
   lastLogin:     { type: Date },

@@ -5,8 +5,11 @@ import { useAuth } from '../context/AuthContext';
 import { entriesAPI } from '../utils/api';
 import { Alert, Spinner } from '../components/common';
 import ObservationTable, { blankRow } from '../components/common/ObservationTable';
-import { CROPS, DISCIPLINES, CROP_EMOJI, CROP_LABEL, SEASONS } from '../utils/constants';
-import axios from 'axios';
+import { CROP_EMOJI, CROP_LABEL, SEASONS } from '../utils/constants';
+import api from '../utils/api';
+import CastorEntomologyForm from '../components/castor/CastorEntomologyForm';
+import SunflowerEntomologyForm from '../components/sunflower/SunflowerEntomologyForm';
+import SunflowerPathologyForm from '../components/sunflower/SunflowerPathologyForm';
 
 // --- Stepper Component ---
 const Stepper = ({ currentStep, steps }) => (
@@ -37,6 +40,8 @@ export default function EntryForm() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmit] = useState(false);
+  const [masterData, setMasterData] = useState(null);
+  const [loadingMaster, setLoadingMaster] = useState(true);
 
   const [form, setForm] = useState({
     crop: '',
@@ -59,15 +64,26 @@ export default function EntryForm() {
 
   // Fetch States on Load
   useEffect(() => {
-    axios.get('http://localhost:5000/api/locations/states')
+    api.get('/locations/states')
       .then(res => setAvailableStates(res.data.data))
       .catch(err => console.error('Failed to fetch states', err));
+  }, []);
+
+  // Fetch master data on mount
+  useEffect(() => {
+    api.get('/master-data')
+      .then(res => setMasterData(res.data.data))
+      .catch(err => {
+        console.error('Failed to fetch master data', err);
+        toast.error('Failed to load master data');
+      })
+      .finally(() => setLoadingMaster(false));
   }, []);
 
   // Fetch Districts when State changes
   useEffect(() => {
     if (form.state) {
-      axios.get(`http://localhost:5000/api/locations/districts/${encodeURIComponent(form.state)}`)
+      api.get(`/locations/districts/${encodeURIComponent(form.state)}`)
         .then(res => setAvailableDistricts(res.data.data))
         .catch(err => console.error('Failed to fetch districts', err));
     } else {
@@ -78,7 +94,7 @@ export default function EntryForm() {
   // Fetch Talukas when District changes
   useEffect(() => {
     if (form.state && form.district) {
-      axios.get(`http://localhost:5000/api/locations/talukas/${encodeURIComponent(form.state)}/${encodeURIComponent(form.district)}`)
+      api.get(`/locations/talukas/${encodeURIComponent(form.state)}/${encodeURIComponent(form.district)}`)
         .then(res => setAvailableTalukas(res.data.data))
         .catch(err => console.error('Failed to fetch talukas', err));
     } else {
@@ -125,9 +141,8 @@ export default function EntryForm() {
 
   const onCropChange = (crop) => {
     setField('crop', crop);
-    if (observations.length === 0 && crop) {
-      setObservations([blankRow(crop)]);
-    }
+    // Clear observations if crop changes to prevent mismatched fields
+    setObservations([]);
   };
 
   const validateStep = (step) => {
@@ -211,10 +226,10 @@ export default function EntryForm() {
     }
   };
 
-  if (loading) return <Spinner text="Loading entry…" />;
+  if (loading || loadingMaster) return <Spinner text="Loading…" />;
 
   const maxWilt = observations.length ? Math.max(0, ...observations.map(r => parseFloat(r.wilt) || 0)) : 0;
-  const availableCrops = isAdmin ? CROPS : (user?.assignedCrops || CROPS);
+  const availableCrops = isAdmin ? (masterData?.crops || []) : (user?.assignedCrops || masterData?.crops || []);
 
   return (
     <div className="entry-form-page">
@@ -248,24 +263,25 @@ export default function EntryForm() {
             <h3 className="step-title">📋 Basic Information</h3>
             <div className="form-grid grid-2">
               <div className="form-group">
-                <label className="form-label required">Crop</label>
-                <select className="form-control" value={form.crop} onChange={e => onCropChange(e.target.value)} disabled={!isEditable}>
-                  <option value="">— Select Crop —</option>
-                  {availableCrops.map(c => (
-                    <option key={c} value={c}>{CROP_EMOJI[c]} {CROP_LABEL(c)}</option>
-                  ))}
-                </select>
+<label className="form-label required">Crop</label>
+<select className="form-control" value={form.crop} onChange={e => onCropChange(e.target.value)} disabled={!isEditable}>
+  <option value="">— Select Crop —</option>
+  {availableCrops.map(c => (
+    <option key={c} value={c}>{CROP_EMOJI[c]} {CROP_LABEL(c)}</option>
+  ))}
+</select>
               </div>
               <div className="form-group">
                 <label className="form-label required">Discipline</label>
                 <select className="form-control" value={form.discipline} onChange={e => setField('discipline', e.target.value)} disabled={!isEditable}>
-                  {DISCIPLINES.map(d => <option key={d} value={d}>{d}</option>)}
+                  {(masterData?.disciplines || []).map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div className="form-group">
                 <label className="form-label required">Season</label>
                 <select className="form-control" value={form.season} onChange={e => setField('season', e.target.value)} disabled={!isEditable}>
-                  {SEASONS.map(s => <option key={s}>{s}</option>)}
+                  <option value="">— Select Season —</option>
+                  {(masterData?.seasons || []).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div className="form-group">
@@ -340,6 +356,34 @@ export default function EntryForm() {
             )}
 
             <div className="observation-table-container">
+            {form.crop === 'castor' && form.discipline === 'Entomology' ? (
+              <CastorEntomologyForm
+                rows={observations}
+                onChange={setObservations}
+                readOnly={!isEditable}
+                state={form.state}
+                district={form.district}
+                taluka={form.taluka}
+              />
+            ) : form.crop === 'sunflower' && form.discipline === 'Entomology' ? (
+              <SunflowerEntomologyForm
+                rows={observations}
+                onChange={setObservations}
+                readOnly={!isEditable}
+                state={form.state}
+                district={form.district}
+                taluka={form.taluka}
+              />
+            ) : form.crop === 'sunflower' && form.discipline === 'Pathology' ? (
+              <SunflowerPathologyForm
+                rows={observations}
+                onChange={setObservations}
+                readOnly={!isEditable}
+                state={form.state}
+                district={form.district}
+                taluka={form.taluka}
+              />
+            ) : (
               <ObservationTable
                 crop={form.crop}
                 discipline={form.discipline}
@@ -350,6 +394,7 @@ export default function EntryForm() {
                 district={form.district}
                 taluka={form.taluka}
               />
+            )}
             </div>
           </div>
         )}

@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
-const { CROPS } = require('../config/constants');
+const MasterData = require('../models/MasterData');
 
 const adminOnly = [protect, authorize('super_admin')];
 
@@ -63,10 +63,13 @@ router.post('/', ...adminOnly, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Center User must have at least one assigned crop.' });
     }
 
+    const md = await MasterData.findOne();
+    const allCrops = md ? md.crops : [];
+
     const user = await User.create({
       name, email, phone, password, role, designation: designation || '',
-      assignedCrops: role === 'super_admin' ? CROPS : (assignedCrops || []),
-      reviewCrops: role === 'crop_head' ? reviewCrops : (role === 'super_admin' ? CROPS : []),
+      assignedCrops: role === 'super_admin' ? allCrops : (assignedCrops || []),
+      reviewCrops: role === 'crop_head' ? reviewCrops : (role === 'super_admin' ? allCrops : []),
       centerName: centerName || '',
       centerState: centerState || '',
       centerDistrict: centerDistrict || '',
@@ -116,11 +119,14 @@ router.put('/:id', ...adminOnly, async (req, res, next) => {
     const { name, phone, role, assignedCrops, reviewCrops, centerName, centerState,
       centerDistrict, centerPI, isActive, notifyWhatsApp, notifyEmail, designation, password } = req.body;
 
+    const md = await MasterData.findOne();
+    const allCrops = md ? md.crops : [];
+
     const updates = {
       name, phone, role, centerName, centerState, centerDistrict, centerPI,
       isActive, notifyWhatsApp, notifyEmail, designation,
-      assignedCrops: role === 'super_admin' ? CROPS : (assignedCrops || []),
-      reviewCrops: role === 'crop_head' ? reviewCrops : (role === 'super_admin' ? CROPS : []),
+      assignedCrops: role === 'super_admin' ? allCrops : (assignedCrops || []),
+      reviewCrops: role === 'crop_head' ? reviewCrops : (role === 'super_admin' ? allCrops : []),
     };
 
     // Remove undefined

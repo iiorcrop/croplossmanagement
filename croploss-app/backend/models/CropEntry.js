@@ -7,36 +7,107 @@ const {
 // ── Single observation row (one row = one village/location) ────────────────
 const observationSchema = new mongoose.Schema({
   // Location info
-  location:  { type: String, required: true, trim: true },
-  latitude:  { type: Number },
+  location: { type: String, required: true, trim: true },
+  latitude: { type: Number },
   longitude: { type: Number },
 
   // Field info (all dropdowns)
-  soilType:         { type: String, enum: SOIL_TYPES, default: 'Black' },
-  previousCrop:     { type: String, enum: PREVIOUS_CROPS, default: 'Castor' },
-  variety:          { type: String, trim: true, default: '' },
+  soilType:         { type: mongoose.Schema.Types.Mixed, default: 'Black' },
+  previousCrop: { type: mongoose.Schema.Types.Mixed, default: 'Castor' },
+  variety: { type: String, trim: true, default: '' },
   irrigatedRainfed: { type: String, enum: IRRIGATION_TYPES, default: 'Irrigated' },
-  dateOfSowing:     { type: String, enum: SOWING_DATES },
-  stageOfCrop:      { type: String, enum: ['', ...CROP_STAGES], default: '' },
+  dateOfSowing: { type: String, enum: SOWING_DATES },
+  stageOfCrop: { type: String, enum: ['', ...CROP_STAGES], default: '' },
 
   // ── Disease fields (dynamic strings like "1-10%", ">50%") ──────────────────
-  wilt:          { type: mongoose.Schema.Types.Mixed, default: '-' },
-  rootRot:       { type: mongoose.Schema.Types.Mixed, default: '-' },
-  rust:          { type: mongoose.Schema.Types.Mixed, default: '-' },
-  cls:           { type: mongoose.Schema.Types.Mixed, default: '-' },
-  als:           { type: mongoose.Schema.Types.Mixed, default: '-' },
-  downyMildew:   { type: mongoose.Schema.Types.Mixed, default: '-' },
-  leafCurl:      { type: mongoose.Schema.Types.Mixed, default: '-' },
-  stemRot:       { type: mongoose.Schema.Types.Mixed, default: '-' },
+  wilt: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  rootRot: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  rust: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  cls: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  als: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  downyMildew: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  leafCurl: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  stemRot: { type: mongoose.Schema.Types.Mixed, default: '-' },
   powderyMildew: { type: mongoose.Schema.Types.Mixed, default: '-' },
 
-  // ── Insect pest fields ───────────────────────────────────────────────────
+  // ── Insect pest fields (generic) – retained for backward compatibility
   capsuleBorer: { type: mongoose.Schema.Types.Mixed, default: '-' },
-  semiLooper:   { type: mongoose.Schema.Types.Mixed, default: '-' },
-  jassids:      { type: mongoose.Schema.Types.Mixed, default: '-' },
-  whitefly:     { type: mongoose.Schema.Types.Mixed, default: '-' },
-  thrips:       { type: mongoose.Schema.Types.Mixed, default: '-' },
-  aphids:       { type: mongoose.Schema.Types.Mixed, default: '-' },
+  semiLooper: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  jassids: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  whitefly: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  thrips: { type: mongoose.Schema.Types.Mixed, default: '-' },
+  aphids: { type: mongoose.Schema.Types.Mixed, default: '-' },
+
+  // ── Castor Entomology specific fields
+  defoliators: [{
+    pestName: { type: String, default: '' },
+    larvaePerPlant: { type: String, default: '' },
+    leafAreaDamaged: { type: String, default: '' },
+    percentDefoliation: { type: String, default: '' },
+    severityCategory: { type: String, default: '' },
+  }],
+  capsuleSpikeBorers: [{
+    pestName: { type: String, default: '' },
+    spikesExamined: { type: String, default: '' },
+    spikesDamaged: { type: String, default: '' },
+    capsulesDamaged: { type: String, default: '' },
+    percentCapsuleDamage: { type: String, default: '' },
+  }],
+  suckingPests: [{
+    pestName: { type: String, default: '' },
+    insectCount: { type: String, default: '' },
+    yellowingSymptoms: { type: String, default: '' },
+    honeydewSymptoms: { type: String, default: '' },
+    percentAffectedPlants: { type: String, default: '' },
+  }],
+  rootPests: [{
+    pestName: { type: String, default: '' },
+    termiteCount: { type: String, default: '' },
+    whiteGrubCount: { type: String, default: '' },
+  }],
+  otherPests: [{
+    name: { type: String, default: '' },
+    observation: { type: String, default: '' },
+  }],
+  sunflowerPests: [{
+    pestName: { type: String, default: '' },
+    noOfInsects: { type: String, default: '' },
+    sndPercent: { type: String, default: '' },
+    leafCurlPercent: { type: String, default: '' },
+    defoliationPercent: { type: String, default: '' },
+    yellowingDryingPercent: { type: String, default: '' },
+    estimatedYieldLoss: { type: String, default: '' },
+    specificInformation: { type: String, default: '' },
+  }],
+  sunflowerPathology: {
+    village: { type: String, default: '' },
+    farmerName: { type: String, default: '' },
+    surveyDate: { type: Date },
+    previousCrop: { type: String, default: '' },
+    varietyHybrid: { type: String, default: '' },
+    areaHa: { type: String, default: '' },
+    noOfFieldsSurveyed: { type: String, default: '' },
+    diseases: [{
+      cropStage: { type: String, default: '' },
+      diseaseObserved: { type: String, default: '' },
+      totalPlantsObserved: { type: String, default: '' },
+      diseasedPlants: { type: String, default: '' },
+      diseaseIncidence: { type: String, default: '' },
+      diseaseSeverity: { type: String, default: '' },
+      diseaseRating: { type: String, default: '' },
+      headDiameter: { type: String, default: '' },
+      seedFilling: { type: String, default: '' },
+      estimatedYield: { type: String, default: '' },
+      expectedYield: { type: String, default: '' },
+      cropLoss: { type: String, default: '' },
+      remarks: { type: String, default: '' },
+    }],
+  },
+  yieldLoss: {
+    method1: { type: String, default: '' },
+    method2: { type: String, default: '' },
+    method3: { type: String, default: '' },
+  },
 
   remarks: { type: String, default: '' },
   otherVariety: { type: String, default: '' },
@@ -47,36 +118,36 @@ const observationSchema = new mongoose.Schema({
 // ── Workflow history log ────────────────────────────────────────────────────
 const workflowEventSchema = new mongoose.Schema({
   fromStatus: String,
-  toStatus:   String,
-  actorId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  actorName:  String,
-  comments:   String,
-  timestamp:  { type: Date, default: Date.now },
+  toStatus: String,
+  actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  actorName: String,
+  comments: String,
+  timestamp: { type: Date, default: Date.now },
 });
 
 // ── Main crop entry schema ─────────────────────────────────────────────────
 const cropEntrySchema = new mongoose.Schema({
   // Header
-  crop:       { type: String, enum: CROPS, required: true },
+  crop: { type: String, enum: CROPS, required: true },
   discipline: { type: String, enum: DISCIPLINES, required: true, default: 'Pathology' },
-  season:     { type: String, required: true },
-  year:       { type: Number, required: true },
+  season: { type: String, required: true },
+  year: { type: Number, required: true },
 
   // Survey info
-  state:      { type: String, required: true, trim: true },
-  district:   { type: String, required: true, trim: true },
-  taluka:     { type: String, trim: true, default: '' },
+  state: { type: String, required: true, trim: true },
+  district: { type: String, required: true, trim: true },
+  taluka: { type: String, trim: true, default: '' },
   surveyDate: { type: Date, required: true },
-  surveyorName:   { type: String, trim: true, default: '' },
-  surveyorDesig:  { type: String, trim: true, default: '' },
+  surveyorName: { type: String, trim: true, default: '' },
+  surveyorDesig: { type: String, trim: true, default: '' },
 
   // Center info (copied from user at time of entry)
-  centerName:  { type: String, required: true, trim: true },
+  centerName: { type: String, required: true, trim: true },
   centerState: { type: String, trim: true, default: '' },
   centerDistrict: { type: String, trim: true, default: '' },
 
   // Submitted by
-  submittedBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   submittedByName: { type: String },
 
   // Observation rows
@@ -88,21 +159,21 @@ const cropEntrySchema = new mongoose.Schema({
     enum: Object.values(STATUS),
     default: STATUS.DRAFT,
   },
-  submittedAt:  { type: Date },
-  reviewedBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  submittedAt: { type: Date },
+  reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   reviewedByName: { type: String },
-  reviewedAt:   { type: Date },
+  reviewedAt: { type: Date },
   reviewComments: { type: String, default: '' },
 
   correctionRequested: { type: Boolean, default: false },
-  correctionNote:      { type: String, default: '' },
+  correctionNote: { type: String, default: '' },
 
-  approvedBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   approvedByName: { type: String },
-  approvedAt:   { type: Date },
+  approvedAt: { type: Date },
 
-  rejectedBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  rejectedAt:   { type: Date },
+  rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  rejectedAt: { type: Date },
   rejectionReason: { type: String, default: '' },
 
   // Workflow history
@@ -110,10 +181,10 @@ const cropEntrySchema = new mongoose.Schema({
 
   // ── Computed summary stats ───────────────────────────────────────────────
   totalLocations: { type: Number, default: 0 },
-  avgWilt:        { type: Number, default: 0 },
-  avgRootRot:     { type: Number, default: 0 },
-  maxWilt:        { type: Number, default: 0 },
-  maxRootRot:     { type: Number, default: 0 },
+  avgWilt: { type: Number, default: 0 },
+  avgRootRot: { type: Number, default: 0 },
+  maxWilt: { type: Number, default: 0 },
+  maxRootRot: { type: Number, default: 0 },
 
   // Version (increments on each correction/resubmit)
   version: { type: Number, default: 1 },
@@ -128,12 +199,12 @@ cropEntrySchema.pre('save', function (next) {
 
     // Only compute if discipline is Pathology or Both
     if (this.discipline !== 'Entomology') {
-      const wilts   = obs.map(o => Number(o.wilt)    || 0);
-      const roots   = obs.map(o => Number(o.rootRot) || 0);
+      const wilts = obs.map(o => Number(o.wilt) || 0);
+      const roots = obs.map(o => Number(o.rootRot) || 0);
 
-      this.avgWilt    = +(wilts.reduce((a, b) => a + b, 0) / wilts.length).toFixed(2);
+      this.avgWilt = +(wilts.reduce((a, b) => a + b, 0) / wilts.length).toFixed(2);
       this.avgRootRot = +(roots.reduce((a, b) => a + b, 0) / roots.length).toFixed(2);
-      this.maxWilt    = Math.max(...wilts);
+      this.maxWilt = Math.max(...wilts);
       this.maxRootRot = Math.max(...roots);
     } else {
       this.avgWilt = this.avgRootRot = this.maxWilt = this.maxRootRot = 0;

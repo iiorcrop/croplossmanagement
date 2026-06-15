@@ -33,6 +33,7 @@ app.use('/api/users',     require('./routes/users'));
 app.use('/api/entries',   require('./routes/entries'));
 app.use('/api/locations', require('./routes/locations'));
 app.use('/api/settings',  require('./routes/settings'));
+app.use('/api/master-data', require('./routes/masterData'));
 
 app.get('/api/health', (req, res) => res.json({
   success: true,

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { usersAPI } from '../utils/api';
 import { RoleBadge, Avatar, CropTag, Modal, Spinner, EmptyState } from '../components/common';
-import { CROPS, CROP_EMOJI, CROP_LABEL, ROLE_LABELS, AV_COLORS } from '../utils/constants';
+import { CROP_EMOJI, CROP_LABEL, ROLE_LABELS, AV_COLORS } from '../utils/constants';
+import api from '../utils/api';
 
 const BLANK_FORM = {
   name:'',email:'',phone:'',password:'',designation:'',
@@ -19,11 +20,11 @@ function CropCheckboxGrid({ gridId, selected, onChange, label }) {
     <div>
       {label && <div style={{ fontSize:11,fontWeight:700,color:'var(--g8)',marginBottom:8,textTransform:'uppercase',letterSpacing:.5 }}>{label}</div>}
       <div className="crop-checkbox-grid">
-        {CROPS.map(c => (
+        {(window.masterDataCrops || []).map(c => (
           <label key={c} className={`crop-checkbox-item ${selected.includes(c)?'checked':''}`}>
             <input type="checkbox" checked={selected.includes(c)} onChange={()=>toggle(c)} style={{accentColor:'var(--g7)'}} />
-            <span style={{fontSize:15}}>{CROP_EMOJI[c]}</span>
-            {CROP_LABEL(c)}
+            <span style={{fontSize:15}}>{CROP_EMOJI[c] || '🌱'}</span>
+            {CROP_LABEL(c) || c}
           </label>
         ))}
       </div>
@@ -40,6 +41,7 @@ export default function Users() {
   const [form, setForm]         = useState(BLANK_FORM);
   const [saving, setSaving]     = useState(false);
   const [filters, setFilters]   = useState({ role:'', crop:'', status:'' });
+  const [masterData, setMasterData] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,6 +49,9 @@ export default function Users() {
       const res = await usersAPI.list(filters);
       setUsers(res.data.data);
       setStats(res.data.stats || {});
+      const mdRes = await api.get('/master-data');
+      setMasterData(mdRes.data.data);
+      window.masterDataCrops = mdRes.data.data.crops;
     } catch { toast.error('Failed to load users'); }
     finally { setLoading(false); }
   }, [filters]);
@@ -141,7 +146,7 @@ export default function Users() {
         </select>
         <select className="filter-control" value={filters.crop} onChange={e=>setFilters(f=>({...f,crop:e.target.value}))}>
           <option value="">All Crops</option>
-          {CROPS.map(c=><option key={c} value={c}>{CROP_EMOJI[c]} {CROP_LABEL(c)}</option>)}
+          {(masterData?.crops || []).map(c=><option key={c} value={c}>{CROP_EMOJI[c] || '🌱'} {CROP_LABEL(c) || c}</option>)}
         </select>
         <select className="filter-control" value={filters.status} onChange={e=>setFilters(f=>({...f,status:e.target.value}))}>
           <option value="">All Status</option>
