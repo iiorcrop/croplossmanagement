@@ -30,7 +30,7 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
 
   React.useEffect(() => {
     if (state && district && taluka) {
-      axios.get(`http://localhost:5000/api/locations/villages/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${encodeURIComponent(taluka)}`)
+      axios.get(`${process.env.REACT_APP_BASE_URL || '/api'}/locations/villages/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${encodeURIComponent(taluka)}`)
         .then(res => setAvailableVillages(res.data.data || []))
         .catch(err => console.error('Failed to fetch villages', err));
     } else {
