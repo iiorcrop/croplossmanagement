@@ -1092,6 +1092,38 @@
       try { localStorage.setItem('cropLossEntries', JSON.stringify(entries)); }
       catch(e) { console.warn('Failed to save entries', e); }
     }
+    // Normalize crop names case across entries and cropParams
+    (function normalizeCrops() {
+      let dirtyEntries = false;
+      let dirtyParams = false;
+      if (entries && entries.length) {
+        entries.forEach(e => {
+          if (e.crop) {
+            let clean = e.crop.trim();
+            clean = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+            if (e.crop !== clean) {
+              e.crop = clean;
+              dirtyEntries = true;
+            }
+          }
+        });
+        if (dirtyEntries) persistEntries();
+      }
+      if (cropParams) {
+        let newParams = {};
+        for (let key in cropParams) {
+          let cleanKey = key.trim();
+          cleanKey = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1).toLowerCase();
+          if (key !== cleanKey) dirtyParams = true;
+          newParams[cleanKey] = cropParams[key];
+        }
+        if (dirtyParams) {
+          cropParams = newParams;
+          persistCropParams();
+        }
+      }
+    })();
+
     // Render setup table on load
     renderSetup();
     updateBadge();
@@ -1740,6 +1772,7 @@
       var crop = document.getElementById('e-crop').value;
       var year = document.getElementById('e-year').value;
       if (!crop || !year) { showAlert('Please select a Crop and Year before saving.', 'warning'); return; }
+      crop = crop.trim().charAt(0).toUpperCase() + crop.trim().slice(1).toLowerCase();
       var iMin = parseFloat(document.getElementById('e-ins-min').value) || 0;
       var iMax = parseFloat(document.getElementById('e-ins-max').value) || iMin;
       var dMin = parseFloat(document.getElementById('e-dis-min').value) || 0;
@@ -2467,6 +2500,7 @@
     }
     function saveSetup() {
   var c = document.getElementById('s-crop').value.trim();
+  if (c) c = c.charAt(0).toUpperCase() + c.slice(1).toLowerCase();
   var p = parseFloat(document.getElementById('s-prod').value) || 0;
   var m = parseFloat(document.getElementById('s-msp').value) || 0;
   var per = document.getElementById('s-period').value.trim();
