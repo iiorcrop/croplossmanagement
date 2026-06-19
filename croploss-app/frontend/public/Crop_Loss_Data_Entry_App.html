@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ICAR-NCIPM Oilseed Crop Loss Assessment Portal</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -2436,8 +2437,12 @@ function fetchCropParamsFromUPAg(crop, year) {
     .catch(err => console.warn('UPAg fetch error:', err));
 }
 
-    // ── PDF Download Functions (Popup-Free Inline Printing) ────────────────────────────────────────────────
+    // ── PDF Download Functions (html2pdf direct download) ────────────────────────────────────────────────
     function downloadSingleReportPDF(sectionId, title) {
+      if (typeof html2pdf === 'undefined') {
+        alert('PDF library is still loading. Please wait a few seconds and try again.');
+        return;
+      }
       var section = document.getElementById(sectionId);
       if (!section) {
         alert('Report section not found. Please select a report type and crop first, then click PDF.');
@@ -2445,21 +2450,15 @@ function fetchCropParamsFromUPAg(crop, year) {
       }
       var reportName = (document.getElementById('final-report-name') || {}).value || title;
       
-      // Hide all body children
-      var originalStates = [];
-      for (var i = 0; i < document.body.children.length; i++) {
-        var el = document.body.children[i];
-        if (el.tagName !== 'SCRIPT') {
-          originalStates.push({ el: el, display: el.style.display });
-          el.style.display = 'none';
-        }
-      }
-
-      // Create print container
       var printDiv = document.createElement('div');
-      printDiv.id = 'print-container';
+      printDiv.style.position = 'absolute';
+      printDiv.style.left = '-9999px';
+      printDiv.style.top = '0';
+      printDiv.style.width = '1000px'; 
+      printDiv.style.background = '#fff';
+      
       printDiv.innerHTML = `
-        <div style="font-family:Arial,sans-serif;font-size:12px;color:#222;margin:24px 32px;">
+        <div style="font-family:Arial,sans-serif;font-size:12px;color:#222;padding:20px;background:#fff;">
           <h2 style="font-size:15px;color:#0e3c68;margin-bottom:12px;border-bottom:2px solid #0e3c68;padding-bottom:6px;">${reportName ? reportName + ' — ' : ''}${title}</h2>
           ${section.innerHTML}
         </div>
@@ -2467,35 +2466,46 @@ function fetchCropParamsFromUPAg(crop, year) {
       
       var style = document.createElement('style');
       style.innerHTML = `
-        @media print {
-          @page { margin: 10mm 15mm; }
-          body { background: #fff !important; }
-          .tbl { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-          .tbl th { background: #3b71a7 !important; color: #fff !important; padding: 7px 10px; text-align: left; font-size: 11px; vertical-align: middle; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .tbl td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; vertical-align: middle; }
-          .tbl tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .yellow-note { background: #fff8e1 !important; border-left: 4px solid #ffc107; padding: 8px 12px; margin-bottom: 12px; font-size: 10px; color: #665000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .tbl.overall-tbl { border-collapse: collapse; width: 100%; }
-          .tbl.overall-tbl th, .tbl.overall-tbl td { border: 1px solid #000 !important; padding: 5px 7px !important; text-align: center; font-size: 10px; }
-          .tbl.overall-tbl th { background: #dde6f0 !important; color: #000 !important; font-weight: bold; vertical-align: middle; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .tbl.overall-tbl td:first-child { text-align: left; font-weight: bold; }
-          .accordion-content { display: block !important; }
-          button, .fa-chevron-down { display: none !important; }
-        }
+        .tbl { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        .tbl th { background: #3b71a7 !important; color: #fff !important; padding: 7px 10px; text-align: left; font-size: 11px; vertical-align: middle; }
+        .tbl td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; vertical-align: middle; color:#000; }
+        .tbl tr:nth-child(even) { background: #f7f9fc !important; }
+        .yellow-note { background: #fff8e1 !important; border-left: 4px solid #ffc107; padding: 8px 12px; margin-bottom: 12px; font-size: 10px; color: #665000; }
+        .tbl.overall-tbl { border-collapse: collapse; width: 100%; }
+        .tbl.overall-tbl th, .tbl.overall-tbl td { border: 1px solid #000 !important; padding: 5px 7px !important; text-align: center; font-size: 10px; color:#000 !important; }
+        .tbl.overall-tbl th { background: #dde6f0 !important; color: #000 !important; font-weight: bold; vertical-align: middle; }
+        .tbl.overall-tbl td:first-child { text-align: left; font-weight: bold; }
+        .accordion-content { display: block !important; }
+        button, .fa-chevron-down { display: none !important; }
       `;
       printDiv.appendChild(style);
       document.body.appendChild(printDiv);
       
-      window.print();
+      var opt = {
+        margin:       10,
+        filename:     (title).replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
       
-      // Cleanup and restore
-      document.body.removeChild(printDiv);
-      for (var j = 0; j < originalStates.length; j++) {
-        originalStates[j].el.style.display = originalStates[j].display;
-      }
+      document.body.style.cursor = 'wait';
+      html2pdf().set(opt).from(printDiv).save().then(function() {
+        document.body.removeChild(printDiv);
+        document.body.style.cursor = 'default';
+      }).catch(function(err) {
+        console.error(err);
+        document.body.removeChild(printDiv);
+        document.body.style.cursor = 'default';
+        alert('An error occurred while generating PDF.');
+      });
     }
 
     function downloadAllReportsPDF() {
+      if (typeof html2pdf === 'undefined') {
+        alert('PDF library is still loading. Please wait a few seconds and try again.');
+        return;
+      }
       var reportName = (document.getElementById('final-report-name') || {}).value || 'Crop Loss Analysis Report';
       var selCropEl = document.getElementById('e-report-crop');
       var selCrop = selCropEl ? selCropEl.value : '';
@@ -2520,26 +2530,23 @@ function fetchCropParamsFromUPAg(crop, year) {
 
       var allHTML = '';
 
+      document.body.style.cursor = 'wait';
+
       function renderAndCollect(idx) {
         if (idx >= sectionIds.length) {
-          // All collected, now print inline
           var startY = (document.getElementById('e-year-range-start') || {}).value || '';
           var endY   = (document.getElementById('e-year-range-end')   || {}).value || '';
           var periodStr = startY && endY ? (startY + ' to ' + endY) : (startY || endY || '');
           
-          var originalStates = [];
-          for (var i = 0; i < document.body.children.length; i++) {
-            var el = document.body.children[i];
-            if (el.tagName !== 'SCRIPT') {
-              originalStates.push({ el: el, display: el.style.display });
-              el.style.display = 'none';
-            }
-          }
-
           var printDiv = document.createElement('div');
-          printDiv.id = 'print-container-all';
+          printDiv.style.position = 'absolute';
+          printDiv.style.left = '-9999px';
+          printDiv.style.top = '0';
+          printDiv.style.width = '1000px'; 
+          printDiv.style.background = '#fff';
+
           printDiv.innerHTML = `
-            <div style="font-family:Arial,sans-serif;font-size:12px;color:#222;margin:28px 36px;">
+            <div style="font-family:Arial,sans-serif;font-size:12px;color:#222;padding:20px;background:#fff;">
               <h1 style="font-size:18px;color:#0e3c68;text-align:center;margin-bottom:4px;">${reportName}</h1>
               <div style="font-size:11px;color:#666;text-align:center;margin-bottom:22px;">Crop: <strong>${selCrop}</strong>${periodStr ? ' &nbsp;|&nbsp; Period: ' + periodStr : ''} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
               ${allHTML}
@@ -2548,35 +2555,41 @@ function fetchCropParamsFromUPAg(crop, year) {
           
           var style = document.createElement('style');
           style.innerHTML = `
-            @media print {
-              @page { margin: 12mm 15mm; }
-              body { background: #fff !important; }
-              h2 { font-size:13px; color:#0e3c68; margin:22px 0 8px; border-bottom:2px solid #0e3c68; padding-bottom:5px; page-break-before:auto; }
-              .section-block { margin-bottom:28px; page-break-inside:avoid; }
-              .tbl { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-              .tbl th { background: #3b71a7 !important; color: #fff !important; padding: 7px 10px; text-align: left; font-size: 11px; vertical-align: middle; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-              .tbl td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; vertical-align: middle; }
-              .tbl tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-              .yellow-note { background: #fff8e1 !important; border-left: 4px solid #ffc107; padding: 8px 12px; margin-bottom: 12px; font-size: 10px; color: #665000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-              .accordion-content { display: block !important; }
-              button, .fa-chevron-down { display: none !important; }
-            }
+            h2 { font-size:13px; color:#0e3c68; margin:22px 0 8px; border-bottom:2px solid #0e3c68; padding-bottom:5px; }
+            .section-block { margin-bottom:28px; }
+            .tbl { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+            .tbl th { background: #3b71a7 !important; color: #fff !important; padding: 7px 10px; text-align: left; font-size: 11px; vertical-align: middle; }
+            .tbl td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; vertical-align: middle; color:#000; }
+            .tbl tr:nth-child(even) { background: #f7f9fc !important; }
+            .yellow-note { background: #fff8e1 !important; border-left: 4px solid #ffc107; padding: 8px 12px; margin-bottom: 12px; font-size: 10px; color: #665000; }
+            .accordion-content { display: block !important; }
+            button, .fa-chevron-down { display: none !important; }
+            .html2pdf__page-break { height: 0; page-break-before: always; }
           `;
           printDiv.appendChild(style);
           document.body.appendChild(printDiv);
           
-          // Restore original report type
           if (document.getElementById('e-report-type')) document.getElementById('e-report-type').value = originalType;
           renderReport();
           
-          setTimeout(function(){ 
-            window.print(); 
-            // Cleanup and restore
+          var opt = {
+            margin:       10,
+            filename:     'crop_loss_analysis_report.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+          };
+          
+          html2pdf().set(opt).from(printDiv).save().then(function() {
             document.body.removeChild(printDiv);
-            for (var j = 0; j < originalStates.length; j++) {
-              originalStates[j].el.style.display = originalStates[j].display;
-            }
-          }, 500);
+            document.body.style.cursor = 'default';
+          }).catch(function(err) {
+            console.error(err);
+            document.body.removeChild(printDiv);
+            document.body.style.cursor = 'default';
+            alert('An error occurred while generating PDF.');
+          });
+          
           return;
         }
         var sec = sectionIds[idx];
