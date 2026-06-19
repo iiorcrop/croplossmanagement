@@ -1583,8 +1583,8 @@
       if (t === 'setup') renderSetup();
     }
     function onCropChange() {
-  var c = document.getElementById('e-crop').value;
-  var y = document.getElementById('e-year').value;
+  var c = (document.getElementById('e-crop').value || '').trim();
+  var y = (document.getElementById('e-year').value || '').trim();
   
   var sub = document.getElementById('topbar-sub-text');
   if (sub) {
@@ -1596,14 +1596,27 @@
   }
 
   if (!c || !y) return;
-  // Find matching entry in cropParams where crop matches and period matches year
-  var key = c + '|' + y;
-  var params = cropParams[key] || {};
-  // Fallback to crop-only if year-specific not found
-  if (!params.prod && !params.msp) {
-    // try original structure where cropParams[c] may hold default values
-    params = cropParams[c] || {};
+  
+  var params = null;
+  var targetKey = (c + '|' + y).toLowerCase();
+  var targetCrop = c.toLowerCase();
+
+  // 1. Try exact or case-insensitive match for Crop + Year
+  var foundKey = Object.keys(cropParams).find(k => k.toLowerCase() === targetKey);
+  if (foundKey) {
+    params = cropParams[foundKey];
   }
+
+  // 2. Fallback to just Crop (no year)
+  if (!params || (!params.prod && !params.msp)) {
+    var foundCrop = Object.keys(cropParams).find(k => k.toLowerCase() === targetCrop);
+    if (foundCrop) {
+      params = cropParams[foundCrop];
+    }
+  }
+
+  params = params || {};
+
   document.getElementById('e-prod').value = params.prod || '';
   document.getElementById('e-msp').value = params.msp || '';
   recalc();
