@@ -1817,6 +1817,7 @@
             <label>Select Report</label>
             <select id="e-report-type" onchange="renderReport()" style="height:30px;border:1px solid #ccc;border-radius:6px;padding:0 8px;font-size:12px;max-width:180px;">
               <option value="general">General Overview</option>
+              <option value="overallreport">Overall Report</option>
               <option value="sec1">CROP & DATA OVERVIEW</option>
               <option value="sec2">CONSOLIDATED YIELD LOSS PERCENTAGE</option>
               <option value="sec3">MONETARY LOSS ESTIMATION</option>
@@ -1910,6 +1911,99 @@
           .ov-table td:first-child { font-weight: 500; width: 30%; }
           .yellow-note { background: #fff8e1; border-left: 4px solid #ffc107; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #665000; }
         </style>`;
+
+      if (reportType === 'overallreport') {
+        var cropsToReport = [...new Set(filtered.map(e => e.crop))].sort();
+        if (selC) cropsToReport = cropsToReport.filter(c => c === selC);
+
+        var summary = cropsToReport.map(crop => {
+          var rs = filtered.filter(e => e.crop === crop);
+          if(!rs.length) return null;
+          var pArr = rs.filter(r => r.prod > 0), mArr = rs.filter(r => r.msp > 0);
+          var prod = pArr.length ? pArr.reduce((s, r) => s + r.prod, 0) / pArr.length : ((cropParams[crop]||{}).prod || 0);
+          var msp = mArr.length ? mArr.reduce((s, r) => s + r.msp, 0) / mArr.length : ((cropParams[crop]||{}).msp || 0);
+          var val = calcVal(prod, msp);
+          
+          var iMin = avgAll(rs, 'ins_min'), iAvg = avgAll(rs, 'ins_avg'), iMax = avgAll(rs, 'ins_max');
+          var dMin = avgAll(rs, 'dis_min'), dAvg = avgAll(rs, 'dis_avg'), dMax = avgAll(rs, 'dis_max');
+          
+          return { crop, prod, msp, val, iMin, iAvg, iMax, dMin, dAvg, dMax,
+            ilMin: val * iMin / 100, ilAvg: val * iAvg / 100, ilMax: val * iMax / 100,
+            dlMin: val * dMin / 100, dlAvg: val * dAvg / 100, dlMax: val * dMax / 100,
+            tMin: val * (iMin + dMin) / 100, tAvg: val * (iAvg + dAvg) / 100 };
+        }).filter(x => x);
+
+        var tbodyHTML = summary.map(r => `
+          <tr>
+            <td>${r.crop}</td>
+            <td>${fmt(r.iMin,2)}</td><td>${fmt(r.iAvg,2)}</td><td>${fmt(r.iMax,2)}</td>
+            <td>${fmt(r.dMin,2)}</td><td>${fmt(r.dAvg,2)}</td><td>${fmt(r.dMax,2)}</td>
+            <td>${fmt(r.msp,2)}</td>
+            <td>${fmt(r.prod,3)}</td>
+            <td>${fmt(r.val,2)}</td>
+            <td>${fmt(r.ilMin,2)}</td><td>${fmt(r.ilAvg,2)}</td><td>${fmt(r.ilMax,2)}</td>
+            <td>${fmt(r.dlMin,2)}</td><td>${fmt(r.dlAvg,2)}</td><td>${fmt(r.dlMax,2)}</td>
+            <td>${fmt(r.tMin,2)}</td><td>${fmt(r.tAvg,2)}</td>
+          </tr>
+        `).join('');
+        
+        if(!tbodyHTML) tbodyHTML = '<tr><td colspan="18">No data</td></tr>';
+
+        var cropsList = summary.map(r => r.crop).join(', ');
+
+        rc.innerHTML = commonStyles + `
+        <style>
+          .tbl.overall-tbl { border-collapse: collapse; width: 100%; white-space: nowrap; font-size: 11px; margin-top:10px; }
+          .tbl.overall-tbl th, .tbl.overall-tbl td { border: 1px solid #000 !important; padding: 6px 8px !important; text-align: center; color: #000 !important; }
+          .tbl.overall-tbl th { background: #fff !important; font-weight: bold; vertical-align: middle; }
+          .tbl.overall-tbl td:first-child { text-align: left; font-weight: bold; }
+        </style>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span>OVERALL YIELD & MONETARY LOSS SUMMARY</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <button onclick="event.stopPropagation(); downloadSingleReportPDF('overall-card', 'Overall Summary Report')" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;"><i class="fa fa-file-pdf"></i> PDF</button>
+              <i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            </span>
+          </div>
+          <div class="accordion-content" id="overall-card" style="display:block; overflow-x:auto;">
+            <div style="font-size:12px; margin-bottom: 8px;">
+              This is summary of yield loss and monetary loss for ${cropsList}.
+            </div>
+            <table class="tbl overall-tbl">
+              <thead>
+                <tr>
+                  <th rowspan="3">Crop</th>
+                  <th colspan="6">Yield loss (%)</th>
+                  <th rowspan="3">Average<br>MSP<br>(Rs)</th>
+                  <th rowspan="3">Average<br>Yield (Lakh<br>Tonnes)</th>
+                  <th rowspan="3">Value of<br>produce<br>(Crores)</th>
+                  <th colspan="6">Monetary loss (₹ crores)</th>
+                  <th colspan="2">Total monetary loss (₹<br>crores)</th>
+                </tr>
+                <tr>
+                  <th colspan="3">Insect pests</th>
+                  <th colspan="3">Diseases</th>
+                  <th colspan="3">Insect pests</th>
+                  <th colspan="3">Diseases</th>
+                  <th rowspan="2">Min</th>
+                  <th rowspan="2">Avg</th>
+                </tr>
+                <tr>
+                  <th>Min</th><th>Avg</th><th>Max</th>
+                  <th>Min</th><th>Avg</th><th>Max</th>
+                  <th>Min</th><th>Avg</th><th>Max</th>
+                  <th>Min</th><th>Avg</th><th>Max</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tbodyHTML}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+        return;
+      }
 
       // If no crop is selected or reportType is general, prompt to select a crop or show aggregate
       if (reportType === 'general' || !selC) {
