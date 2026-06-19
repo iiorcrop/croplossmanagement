@@ -2513,7 +2513,16 @@ function fetchCropParamsFromUPAg(crop, year) {
     function fmt(v, d) { d = d || 4; return (v !== null && v !== undefined && !isNaN(v)) ? (+v).toFixed(d) : ''; }
     function fmtC(v) { return fmt(v, 4); }
     function calcVal(prod, msp) { return prod * msp * 10 * 1e5 / 1e7; }
-    function switchTab(t) { /* existing switchTab logic unchanged */ }
+    function switchTab(t) {
+        ['entry', 'records', 'report', 'setup'].forEach(p => {
+            document.getElementById('pg-' + p).style.display = p === t ? 'block' : 'none';
+            var tab = document.getElementById('tab-' + p);
+            if (tab) tab.classList.toggle('active', p === t);
+        });
+        if (t === 'records') renderRec();
+        if (t === 'report') renderReport();
+        if (t === 'setup') renderSetup();
+    }
 
     // ── CSV Download Helper ────────────────────────────────────────────────────────
     /**
