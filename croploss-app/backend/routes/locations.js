@@ -14,16 +14,16 @@ router.get('/states', (req, res) => {
 });
 
 // GET /api/locations/districts/:state
-// Returns list of districts for a given state
+// Returns list of districts for a given state (case-insensitive)
 router.get('/districts/:state', (req, res) => {
   try {
     const { state } = req.params;
-    const stateData = INDIA_GEOGRAPHY[state];
-    
-    if (!stateData) {
+    // Find matching state key ignoring case
+    const stateKey = Object.keys(INDIA_GEOGRAPHY).find(k => k.toLowerCase() === state.toLowerCase());
+    if (!stateKey) {
       return res.status(404).json({ success: false, message: 'State not found' });
     }
-    
+    const stateData = INDIA_GEOGRAPHY[stateKey];
     const districts = Object.keys(stateData).sort();
     res.json({ success: true, data: districts });
   } catch (error) {
@@ -32,21 +32,20 @@ router.get('/districts/:state', (req, res) => {
 });
 
 // GET /api/locations/talukas/:state/:district
-// Returns list of talukas for a given district
+// Returns list of talukas for a given district (case-insensitive)
 router.get('/talukas/:state/:district', (req, res) => {
   try {
     const { state, district } = req.params;
-    const stateData = INDIA_GEOGRAPHY[state];
-    
-    if (!stateData) {
+    const stateKey = Object.keys(INDIA_GEOGRAPHY).find(k => k.toLowerCase() === state.toLowerCase());
+    if (!stateKey) {
       return res.status(404).json({ success: false, message: 'State not found' });
     }
-    
-    const talukas = stateData[district];
-    if (!talukas) {
+    const stateData = INDIA_GEOGRAPHY[stateKey];
+    const districtKey = Object.keys(stateData).find(k => k.toLowerCase() === district.toLowerCase());
+    if (!districtKey) {
       return res.status(404).json({ success: false, message: 'District not found' });
     }
-    
+    const talukas = stateData[districtKey];
     res.json({ success: true, data: talukas.sort() });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to fetch talukas' });
@@ -67,7 +66,9 @@ router.get('/villages/:state/:district/:taluka', (req, res) => {
       "Kodad": ["Kodad", "Ganapavaram", "Gudi Banda", "Kapugallu", "Redlakunta", "Togarrai"]
     };
 
-    let villages = govtVillages[taluka];
+    // Find matching taluka key ignoring case
+    const talukaKey = Object.keys(govtVillages).find(k => k.toLowerCase() === taluka.toLowerCase());
+    let villages = govtVillages[talukaKey || taluka];
     
     if (!villages) {
       // Fallback generator for other talukas until official CSV is loaded

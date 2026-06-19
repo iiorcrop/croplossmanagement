@@ -71,4 +71,15 @@ export const entriesAPI = {
   }),
 };
 
+// ── Reports API ────────────────────────────────────────────────────────
+export const reportsAPI = {
+  cropLoss: (params) => api.get('/reports/crop-loss', { params }),
+};
+
+// ── Master Data API ──────────────────────────────────────────────────────
+export const masterDataAPI = {
+  get: () => api.get('/master-data'),
+  updateList: (key, value) => api.put(`/master-data/${key}`, { value }),
+};
+
 export default api;

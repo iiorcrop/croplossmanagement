@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-import { entriesAPI } from "../utils/api";
+import api, { entriesAPI } from "../utils/api";
 import { Alert, Spinner } from "../components/common";
 import ObservationTable, { blankRow } from "../components/common/ObservationTable";
-import { CROPS, DISCIPLINES, CROP_EMOJI, CROP_LABEL, SEASONS } from "../utils/constants";
-import axios from "axios";
+import { CROPS, DISCIPLINES, CROP_EMOJI, CROP_LABEL, SEASONS, IRRIGATION_TYPES, SOIL_TYPES } from "../utils/constants";
+import CastorEntomologyForm from "../components/castor/CastorEntomologyForm";
+import SunflowerEntomologyForm from "../components/sunflower/SunflowerEntomologyForm";
+import SunflowerPathologyForm from "../components/sunflower/SunflowerPathologyForm";
+// // import axios from "axios"; // removed unused import // removed unused import
 
 // --- Stepper Component ---
 const Stepper = ({ currentStep, steps }) => (
@@ -44,23 +47,34 @@ export default function EntryForm() {
     state: user?.centerState || "",
     district: "",
     taluka: "",
+    cultivar: "",
     surveyDate: new Date().toISOString().split("T")[0],
     surveyorName: user?.name || "",
     surveyorDesig: user?.designation || "",
     centerName: user?.centerName || "",
     centerState: user?.centerState || "",
+    majorCrops: [],
+    croppingSystem: [],
+    soilType: [],
+    agroEcologicalZone: [],
   });
 
   const [availableStates, setAvailableStates] = useState([]);
   const [availableDistricts, setAvailableDistricts] = useState([]);
   const [availableTalukas, setAvailableTalukas] = useState([]);
+  const [availableCultivars, setAvailableCultivars] = useState([]);
 
   // Fetch States on Load
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_BASE_URL || "/api"}/locations/states`)
-      .then((res) => setAvailableStates(res.data.data))
-      .catch((err) => console.error("Failed to fetch states", err));
+    api
+        .get(`/locations/states`)
+        .then((res) => setAvailableStates(res.data.data))
+        .catch((err) => console.error("Failed to fetch states", err));
+    // Fetch cultivars list on mount
+    api
+        .get(`/cultivars`)
+        .then((res) => setAvailableCultivars(res.data.data))
+        .catch((err) => console.error("Failed to fetch cultivars", err));
   }, []);
 
   // Fetch master data on mount
@@ -77,8 +91,8 @@ export default function EntryForm() {
   // Fetch Districts when State changes
   useEffect(() => {
     if (form.state) {
-      axios
-        .get(`${process.env.REACT_APP_BASE_URL || "/api"}/locations/districts/${encodeURIComponent(form.state)}`)
+      api
+        .get(`/locations/districts/${encodeURIComponent(form.state)}`)
         .then((res) => setAvailableDistricts(res.data.data))
         .catch((err) => console.error("Failed to fetch districts", err));
     } else {
@@ -89,10 +103,8 @@ export default function EntryForm() {
   // Fetch Talukas when District changes
   useEffect(() => {
     if (form.state && form.district) {
-      axios
-        .get(
-          `${process.env.REACT_APP_BASE_URL || "/api"}/locations/talukas/${encodeURIComponent(form.state)}/${encodeURIComponent(form.district)}`,
-        )
+      api
+        .get(`/locations/talukas/${encodeURIComponent(form.state)}/${encodeURIComponent(form.district)}`)
         .then((res) => setAvailableTalukas(res.data.data))
         .catch((err) => console.error("Failed to fetch talukas", err));
     } else {
@@ -120,6 +132,7 @@ export default function EntryForm() {
           state: e.state || "",
           district: e.district || "",
           taluka: e.taluka || "",
+          cultivar: e.cultivar || "",
           surveyDate: e.surveyDate ? new Date(e.surveyDate).toISOString().split("T")[0] : "",
           surveyorName: e.surveyorName || "",
           surveyorDesig: e.surveyorDesig || "",
@@ -146,9 +159,26 @@ export default function EntryForm() {
   };
 
   const validateStep = (step) => {
+    // Validation for new multi‑select fields
     if (step === 0) {
       if (!form.crop) {
         toast.error("Please select a crop");
+        return false;
+      }
+      if (form.majorCrops.length === 0) {
+        toast.error("Please select at least one major crop");
+        return false;
+      }
+      if (form.croppingSystem.length === 0) {
+        toast.error("Please select at least one cropping system");
+        return false;
+      }
+      if (form.soilType.length === 0) {
+        toast.error("Please select at least one soil type");
+        return false;
+      }
+      if (form.agroEcologicalZone.length === 0) {
+        toast.error("Please select at least one agro‑ecological zone");
         return false;
       }
       if (!form.discipline) {
@@ -175,6 +205,10 @@ export default function EntryForm() {
       }
       if (!form.taluka) {
         toast.error("Please select a taluka / block");
+        return false;
+      }
+      if (!form.cultivar) {
+        toast.error("Please select a cultivar");
         return false;
       }
     }
@@ -354,54 +388,161 @@ export default function EntryForm() {
           <div className="animate-fade-in">
             <h3 className="step-title">📍 Location & Surveyor</h3>
             <div className="form-grid grid-2">
-              <div className="form-group">
-                <label className="form-label required">State</label>
-                <select
-                  className="form-control"
-                  value={form.state}
-                  onChange={(e) => setForm({ ...form, state: e.target.value, district: "", taluka: "" })}
-                  disabled={!isEditable}
-                >
-                  <option value="">— Select State —</option>
-                  {availableStates.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label required">District</label>
-                <select
-                  className="form-control"
-                  value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value, taluka: "" })}
-                  disabled={!isEditable || !form.state}
-                >
-                  <option value="">— Select District —</option>
-                  {availableDistricts.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label required">Taluka / Block</label>
-                <select
-                  className="form-control"
-                  value={form.taluka}
-                  onChange={(e) => setForm({ ...form, taluka: e.target.value })}
-                  disabled={!isEditable || !form.district}
-                >
-                  <option value="">— Select Taluka —</option>
-                  {availableTalukas.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div className="form-group">
+                  <label className="form-label required">State</label>
+                  <select
+                    className="form-control"
+                    value={form.state}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '__ADD_NEW_STATE__') {
+                        const newVal = window.prompt('Enter new State name:');
+                        if (newVal && newVal.trim()) {
+                          setAvailableStates(prev => [...new Set([...prev, newVal.trim()])]);
+                          setForm({ ...form, state: newVal.trim(), district: "", taluka: "" });
+                        }
+                      } else {
+                        setForm({ ...form, state: val, district: "", taluka: "" });
+                      }
+                    }}
+                    disabled={!isEditable}
+                  >
+                    <option value="">— Select State —</option>
+                    {availableStates.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                    <option value="__ADD_NEW_STATE__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New State...</option>
+                  </select>
+                </div>
+                {/* District Dropdown */}
+                <div className="form-group">
+                  <label className="form-label required">District</label>
+                  <select
+                    className="form-control"
+                    value={form.district}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '__ADD_NEW_DISTRICT__') {
+                        const newVal = window.prompt('Enter new District name:');
+                        if (newVal && newVal.trim()) {
+                          setAvailableDistricts(prev => [...new Set([...prev, newVal.trim()])]);
+                          setForm({ ...form, district: newVal.trim(), taluka: "" });
+                        }
+                      } else {
+                        setForm({ ...form, district: val, taluka: "" });
+                      }
+                    }}
+                    disabled={!isEditable || !form.state}
+                  >
+                    <option value="">— Select District —</option>
+                    {availableDistricts.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                    <option value="__ADD_NEW_DISTRICT__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New District...</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label required">Taluka / Block</label>
+                  <select
+                    className="form-control"
+                    value={form.taluka}
+                    onChange={(e) => setForm({ ...form, taluka: e.target.value })}
+                    disabled={!isEditable || !form.district}
+                  >
+                    <option value="">— Select Taluka —</option>
+                    {availableTalukas.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                    <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Taluka...</option>
+                  </select>
+                </div>
+                {/* Cultivar Dropdown */}
+                <div className="form-group">
+                  <label className="form-label required">Cultivar</label>
+                  <select
+                    className="form-control"
+                    value={form.cultivar}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "__ADD_NEW__") {
+                        const newVal = window.prompt('Enter new Cultivar name:');
+                        if (newVal && newVal.trim()) {
+                          setAvailableCultivars(prev => [...new Set([...prev, newVal.trim()])]);
+                          setForm({ ...form, cultivar: newVal.trim() });
+                        }
+                      } else {
+                        setForm({ ...form, cultivar: val });
+                      }
+                    }}
+                    disabled={!isEditable}
+                  >
+                    <option value="">-- Select Cultivar --</option>
+                    {availableCultivars.map(c => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                    <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Cultivar...</option>
+                  </select>
+                </div>
+                {/* Major Crops */}
+                <div className="form-group">
+                  <label className="form-label required">Major Crops of the Zone</label>
+                  <select multiple className="form-control" value={form.majorCrops} onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                    setForm(f => ({ ...f, majorCrops: selected }));
+                  }} disabled={!isEditable}>
+                    <option value="" disabled>-- Select Crops --</option>
+                    {CROPS.map(c => (
+                      <option key={c} value={c}>{CROP_LABEL(c)} {CROP_EMOJI[c]}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Cropping System */}
+                <div className="form-group">
+                  <label className="form-label required">Cropping System</label>
+                  <select multiple className="form-control" value={form.croppingSystem} onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                    setForm(f => ({ ...f, croppingSystem: selected }));
+                  }} disabled={!isEditable}>
+                    <option value="" disabled>-- Select System --</option>
+                    {IRRIGATION_TYPES.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Soil Type */}
+                <div className="form-group">
+                  <label className="form-label required">Soil Type</label>
+                  <select multiple className="form-control" value={form.soilType} onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                    setForm(f => ({ ...f, soilType: selected }));
+                  }} disabled={!isEditable}>
+                    <option value="" disabled>-- Select Soil Type --</option>
+                    {SOIL_TYPES.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Agro-Ecological Zone */}
+                <div className="form-group">
+                  <label className="form-label required">Agro‑Ecological Zone</label>
+                  <select multiple className="form-control" value={form.agroEcologicalZone} onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                    setForm(f => ({ ...f, agroEcologicalZone: selected }));
+                  }} disabled={!isEditable}>
+                    <option value="" disabled>-- Select Zone --</option>
+                    {["Zone 1","Zone 2","Zone 3","Zone 4"].map(z => (
+                      <option key={z} value={z}>{z}</option>
+                    ))}
+                  </select>
+                </div>
               <div className="form-group">
                 <label className="form-label">Surveyor Name</label>
                 <input

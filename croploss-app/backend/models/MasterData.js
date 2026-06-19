@@ -11,6 +11,18 @@ const masterDataSchema = new mongoose.Schema({
   cropStages: [{ type: mongoose.Schema.Types.Mixed }],
   percentOptions: [{ type: mongoose.Schema.Types.Mixed }],
   varieties: { type: mongoose.Schema.Types.Mixed },
+  agroEcologicalZones: [{ type: mongoose.Schema.Types.Mixed }],
+  analysisMajorCrops: [{ type: mongoose.Schema.Types.Mixed }],
+  analysisCroppingSystems: [{ type: mongoose.Schema.Types.Mixed }],
+  analysisSoilTypes: [{ type: mongoose.Schema.Types.Mixed }],
+  centers: [{ type: mongoose.Schema.Types.Mixed }],
+  states: [{ type: mongoose.Schema.Types.Mixed }],
+  locations: [{ type: mongoose.Schema.Types.Mixed }],
+  cultivars: [{ type: mongoose.Schema.Types.Mixed }],
+  zonesList: [{ type: mongoose.Schema.Types.Mixed }],
+  years: [{ type: mongoose.Schema.Types.Mixed }],
+  pests: [{ type: mongoose.Schema.Types.Mixed }],
+  diseases: [{ type: mongoose.Schema.Types.Mixed }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('MasterData', masterDataSchema);

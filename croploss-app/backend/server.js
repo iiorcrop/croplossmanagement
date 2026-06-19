@@ -38,20 +38,16 @@ app.use("/api/", limiter);
 app.use("/api/auth/login", authLimiter);
 
 // ── Routes ────────────────────────────────────────────────────────────────
-<<<<<<< HEAD
 app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/users',     require('./routes/users'));
 app.use('/api/entries',   require('./routes/entries'));
 app.use('/api/locations', require('./routes/locations'));
 app.use('/api/settings',  require('./routes/settings'));
 app.use('/api/master-data', require('./routes/masterData'));
-=======
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/users", require("./routes/users"));
-app.use("/api/entries", require("./routes/entries"));
-app.use("/api/locations", require("./routes/locations"));
-app.use("/api/settings", require("./routes/settings"));
->>>>>>> f9c62cd1b1a7966c5bb612d2dbadaa376decb5fa
+app.use('/api/reports', require('./routes/report'));
+app.use('/api/analysis',  require('./routes/analysis'));
+app.use('/api/msp',       require('./routes/msp'));
+
 
 app.get("/api/health", (req, res) =>
   res.json({

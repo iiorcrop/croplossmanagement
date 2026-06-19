@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ICAR-NCIPM Oilseed Crop Loss Assessment Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      background: #f5f5f5;
+      color: #222
+    }
+
+    .topbar {
+      background: #1F4E79;
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .2)
+    }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: .2px
+    }
+
+    .topbar-sub {
+      font-size: 11px;
+      opacity: .8;
+      margin-top: 2px
+    }
+
+    .tabs {
+      background: #fff;
+      border-bottom: 2px solid #ddd;
+      display: flex;
+      padding: 0 24px;
+      gap: 0;
+      overflow-x: auto
+    }
+
+    .tab {
+      padding: 11px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      color: #555;
+      white-space: nowrap;
+      transition: all .15s;
+      user-select: none
+    }
+
+    .tab.active {
+      border-bottom-color: #1F4E79;
+      color: #1F4E79;
+      background: #f0f6fc
+    }
+
+    .tab:hover:not(.active) {
+      background: #f8f8f8;
+      color: #333
+    }
+
+    .content {
+      padding: 20px 24px;
+      max-width: 1400px;
+      margin: 0 auto
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .05)
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee
+    }
+
+    .card-title i {
+      color: #2E75B6;
+      font-size: 15px
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px
+    }
+
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+    /* Multi-select checkbox dropdown */
+    .multi-select-dropdown { position: relative; width: 100%; }
+    .multi-select-header {
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #222;
+      user-select: none;
+    }
+    .multi-select-header::after { content: "▼"; font-size: 10px; color: #888; margin-left: 8px; flex-shrink: 0; }
+    .multi-select-options {
+      display: none;
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      border: 1px solid #ccc;
+      background: #fff;
+      z-index: 9999;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 6px;
+      padding: 4px 0;
+    }
+    .multi-select-dropdown.open .multi-select-options { display: block; }
+    .multi-select-options label {
+      display: flex !important;
+      align-items: center !important;
+      flex-direction: row !important;
+      padding: 7px 12px !important;
+      cursor: pointer;
+      margin: 0 !important;
+      font-size: 13px !important;
+      font-weight: normal !important;
+      color: #333;
+      gap: 8px;
+      height: auto !important;
+      min-height: 32px;
+    }
+    .multi-select-options label:hover { background: #f0f4ff; }
+    .multi-select-options input[type="checkbox"] {
+      width: 15px !important;
+      height: 15px !important;
+      min-width: 15px !important;
+      min-height: 15px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      flex-shrink: 0;
+      cursor: pointer;
+      accent-color: #2E75B6;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .multi-select-add-btn {
+      padding: 8px 12px;
+      color: #6A1B9A;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-top: 1px solid #eee;
+      display: block;
+      text-decoration: none;
+    }
+    .multi-select-add-btn:hover { background: #f9f0ff; }
+    /* Add new inline input row */
+    .add-new-row {
+      display: none;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .add-new-row input {
+      flex: 1;
+      padding: 5px 8px !important;
+      border: 1px solid #ccc !important;
+      border-radius: 5px !important;
+      font-size: 13px !important;
+      height: 32px !important;
+      width: auto !important;
+      min-width: 0;
+    }
+    .add-new-row .btn {
+      height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .checkbox-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #444
+    }
+
+    .fg input,
+    .fg select,
+    .fg textarea {
+      height: 34px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 0 10px;
+      font-size: 13px;
+      width: 100%;
+      background: #fff;
+      color: #222;
+      transition: border .15s
+    }
+    /* Override: don't apply input styles to checkboxes inside multi-select */
+    .multi-select-options input[type="checkbox"] {
+      height: 15px !important;
+      width: 15px !important;
+      min-width: 15px !important;
+      border: 1px solid #aaa !important;
+      border-radius: 3px !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+    }
+
+    .fg textarea {
+      height: 54px;
+      padding: 6px 10px;
+      resize: none
+    }
+
+    .fg input:focus,
+    .fg select:focus {
+      outline: none;
+      border-color: #2E75B6;
+      box-shadow: 0 0 0 3px rgba(46, 117, 182, .12)
+    }
+
+    .fg .readonly {
+      background: #f8f9fa;
+      color: #666;
+      cursor: not-allowed
+    }
+
+    .fg .calc {
+      background: #EBF3FB;
+      color: #1F4E79;
+      font-weight: 600;
+      cursor: not-allowed
+    }
+
+    .fg .total-field {
+      background: #FFF2CC;
+      color: #7F3F00;
+      font-weight: 700;
+      cursor: not-allowed;
+      border-color: #F0C040
+    }
+
+    .fg .hint {
+      font-size: 11px;
+      color: #888;
+      margin-top: 1px
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+      padding: 0 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #333;
+      transition: all .15s
+    }
+
+    .btn:hover {
+      background: #f0f0f0
+    }
+
+    .btn-primary {
+      background: #1F4E79;
+      color: #fff;
+      border-color: #1F4E79
+    }
+
+    .btn-primary:hover {
+      background: #16375a
+    }
+
+    .btn-success {
+      background: #375623;
+      color: #fff;
+      border-color: #375623
+    }
+
+    .btn-success:hover {
+      background: #274018
+    }
+
+    .btn-danger {
+      background: #FCEBEB;
+      color: #A32D2D;
+      border-color: #F09595
+    }
+
+    .btn-danger:hover {
+      background: #F7C1C1
+    }
+
+    .btn-sm {
+      height: 28px;
+      padding: 0 10px;
+      font-size: 12px
+    }
+
+    .btn-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600
+    }
+
+    .b-blue {
+      background: #E6F1FB;
+      color: #185FA5
+    }
+
+    .b-green {
+      background: #EAF3DE;
+      color: #3B6D11
+    }
+
+    .b-amber {
+      background: #FAEEDA;
+      color: #854F0B
+    }
+
+    .b-red {
+      background: #FCEBEB;
+      color: #A32D2D
+    }
+
+    .b-gray {
+      background: #f0f0f0;
+      color: #555
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px
+    }
+
+    .metric {
+      background: #EBF3FB;
+      border-radius: 8px;
+      padding: 14px 16px;
+      border-left: 4px solid #2E75B6
+    }
+
+    .metric .m-label {
+      font-size: 11px;
+      color: #444;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .4px
+    }
+
+    .metric .m-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1F4E79;
+      margin: 4px 0 2px
+    }
+
+    .metric .m-sub {
+      font-size: 11px;
+      color: #777
+    }
+
+    .metric.red {
+      background: #FCEBEB;
+      border-left-color: #A32D2D
+    }
+
+    .metric.red .m-val {
+      color: #A32D2D
+    }
+
+    .metric.green {
+      background: #EAF3DE;
+      border-left-color: #375623
+    }
+
+    .metric.green .m-val {
+      color: #375623
+    }
+
+    .metric.amber {
+      background: #FAEEDA;
+      border-left-color: #854F0B
+    }
+
+    .metric.amber .m-val {
+      color: #854F0B
+    }
+
+    .tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px
+    }
+
+    .tbl th {
+      background: #1F4E79;
+      color: #fff;
+      padding: 8px 10px;
+      font-size: 11px;
+      white-space: nowrap;
+      text-align: center;
+      border: 1px solid #16375a
+    }
+
+    .tbl th.ins {
+      background: #2E75B6;
+      border-color: #185FA5
+    }
+
+    .tbl th.dis {
+      background: #375623;
+      border-color: #274018
+    }
+
+    .tbl th.tot {
+      background: #7F3F00;
+      border-color: #5c2e00
+    }
+
+    .tbl td {
+      padding: 7px 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      vertical-align: middle
+    }
+
+    .tbl tr:nth-child(even) td {
+      background: #f8f9fa
+    }
+
+    .tbl tr:hover td {
+      background: #EBF3FB
+    }
+
+    .tbl td.lcell {
+      text-align: left
+    }
+
+    .tbl tr.totrow td {
+      background: #FFF2CC;
+      font-weight: 700;
+      color: #7F3F00;
+      border-color: #F0C040
+    }
+
+    .tbl td.red-bold {
+      font-weight: 700;
+      color: #A32D2D
+    }
+
+    .alert {
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px
+    }
+
+    .alert-success {
+      background: #EAF3DE;
+      color: #375623;
+      border: 1px solid #97C459
+    }
+
+    .alert-warning {
+      background: #FAEEDA;
+      color: #854F0B;
+      border: 1px solid #EF9F27
+    }
+
+    .alert-info {
+      background: #EBF3FB;
+      color: #185FA5;
+      border: 1px solid #85B7EB
+    }
+
+    .empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: #aaa
+    }
+
+    .empty i {
+      font-size: 44px;
+      margin-bottom: 12px;
+      display: block
+    }
+
+    hr.div {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 14px 0
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 6px
+    }
+
+    .prog-wrap {
+      background: #e9ecef;
+      border-radius: 4px;
+      height: 5px;
+      margin-top: 5px
+    }
+
+    .prog-bar {
+      height: 100%;
+      background: #2E75B6;
+      border-radius: 4px;
+      transition: width .3s
+    }
+
+    .sect-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1F4E79;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin: 14px 0 8px;
+      padding: 5px 10px;
+      background: #EBF3FB;
+      border-radius: 4px;
+      border-left: 4px solid #2E75B6
+    }
+
+    .note-box {
+      background: #FAEEDA;
+      border: 1px solid #EF9F27;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #854F0B;
+      margin-top: 10px
+    }
+
+    .note-box strong {
+      font-weight: 700
+    }
+
+    .tag {
+      display: inline-block;
+      background: #f0f0f0;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #555;
+      margin: 2px
+    }
+
+    @media(max-width:600px) {
+      .form-grid {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">🌱 ICAR-IIOR | Oilseed CropLoss Portal</div>
+      <div class="topbar-sub" id="topbar-sub-text">Data Entry & Automatic Report Generation · 2020–2027</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="badge b-blue" id="top-badge">0 records</span>
+      <button class="btn btn-sm" style="background:#fff;color:#1F4E79;border-color:#fff" onclick="switchTab('report')">
+        <i class="fa fa-chart-bar"></i> View Report</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="tab-entry" onclick="switchTab('entry')"><i class="fa fa-pen-to-square"></i> Data Entry
+    </div>
+    <div class="tab" id="tab-records" onclick="switchTab('records')"><i class="fa fa-table"></i> Records <span
+        class="badge b-blue" id="rc-badge">0</span></div>
+    <div class="tab" id="tab-report" onclick="switchTab('report')"><i class="fa fa-chart-bar"></i> Auto Report</div>
+    <div class="tab" id="tab-setup" onclick="switchTab('setup')"><i class="fa fa-gear"></i> Crop Setup</div>
+  </div>
+  <!-- Data entry tab -->
+  <div id="pg-entry" class="content">
+    <div id="entry-alert"></div>
+    <div class="card">
+      <div class="card-title"><i class="fa fa-building"></i> Centre & Crop Identification</div>
+      <div class="form-grid">
+        <div class="fg">
+          <label>Reporting Centre / Institution</label>
+          <select id="e-centre" onchange="handleDynamicSelect(this, 'centers', 'new-centre-ui')">
+            <option value="">-- Select Centre --</option>
+            <option>RARS Palem</option>
+            <option>SDAU Gujarat</option>
+            <option>ZARS UAS Bengaluru</option>
+            <option>Dr. BRC ARS Mandor</option>
+            <option>TNAU Coimbatore</option>
+            <option value="other">Other</option>
+            <option value="___add_new___" style="color:#6A1B9A; font-weight:bold;">➕ Add New Centre...</option>
+          </select>
+          <div id="new-centre-ui" class="add-new-row">
+            <input type="text" id="new-centre-input" placeholder="Type new centre...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOption('e-centre', 'centers', 'new-centre-input', 'new-centre-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOption('e-centre', 'new-centre-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>State</label>
+          <select id="e-state" onchange="handleDynamicSelect(this, 'states', 'new-state-ui')">
+            <option value="">-- Select State --</option>
+          </select>
+          <div id="new-state-ui" class="add-new-row">
+            <input type="text" id="new-state-input" placeholder="Type new state...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOption('e-state', 'states', 'new-state-input', 'new-state-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOption('e-state', 'new-state-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Agro-ecological Zone</label>
+          <select id="e-zone" onchange="handleDynamicSelect(this, 'zonesList', 'new-zone-ui')">
+            <option value="">-- Select Zone --</option>
+            <option>Southern Telangana Zone</option>
+            <option>Northern Gujarat Zone</option>
+            <option>Western Dry Plains</option>
+            <option>Southern Agro-climatic Zone</option>
+            <option>Zone-V</option>
+            <option value="___add_new___" style="color:#6A1B9A; font-weight:bold;">➕ Add New Zone...</option>
+          </select>
+          <div id="new-zone-ui" class="add-new-row">
+            <input type="text" id="new-zone-input" placeholder="Type new zone...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOption('e-zone', 'zonesList', 'new-zone-input', 'new-zone-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOption('e-zone', 'new-zone-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg"><label>Crop <span style="color:red">*</span></label>
+          <select id="e-crop" onchange="onCropChange(); handleDynamicSelect(this, 'crops', 'new-crop-ui')">
+            <option value="">-- Select crop --</option>
+            <option>Castor</option>
+            <option>Sunflower</option>
+            <option>Linseed</option>
+            <option>Sesame</option>
+            <option>Safflower</option>
+            <option>Niger</option>
+            <option>Other</option>
+            <option value="___add_new___" style="color:#6A1B9A; font-weight:bold;">➕ Add New Crop...</option>
+          </select>
+          <div id="new-crop-ui" class="add-new-row">
+            <input type="text" id="new-crop-input" placeholder="Type new crop...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOption('e-crop', 'crops', 'new-crop-input', 'new-crop-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOption('e-crop', 'new-crop-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg"><label>Year <span style="color:red">*</span></label>
+          <select id="e-year" onchange="onCropChange(); handleDynamicSelect(this, 'years', 'new-year-ui')">
+            <option value="">-- Select year --</option>
+            <option>2020-21</option>
+            <option>2021-22</option>
+            <option>2022-23</option>
+            <option>2023-24</option>
+            <option>2024-25</option>
+            <option value="___add_new___" style="color:#6A1B9A; font-weight:bold;">➕ Add New Year...</option>
+          </select>
+          <div id="new-year-ui" class="add-new-row">
+            <input type="text" id="new-year-input" placeholder="Type new year (e.g. 2025-26)...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOption('e-year', 'years', 'new-year-input', 'new-year-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOption('e-year', 'new-year-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg"><label>Season</label>
+          <div class="multi-select-dropdown" id="e-season">
+            <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
+              <span class="header-text">-- Select Season --</span>
+            </div>
+            <div class="multi-select-options">
+              <label><input type="checkbox" value="Kharif" onchange="updateMultiHeader('e-season')"> Kharif</label>
+              <label><input type="checkbox" value="Rabi" onchange="updateMultiHeader('e-season')"> Rabi</label>
+              <label><input type="checkbox" value="Both" onchange="updateMultiHeader('e-season')"> Both</label>
+              <label><input type="checkbox" value="NA" onchange="updateMultiHeader('e-season')"> NA</label>
+              <a class="multi-select-add-btn" onclick="showAddUIMulti('e-season', 'new-season-ui')">➕ Add New Season...</a>
+            </div>
+          </div>
+          <div id="new-season-ui" class="add-new-row">
+            <input type="text" id="new-season-input" placeholder="Type new season...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('e-season', 'seasons', 'new-season-input', 'new-season-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('e-season', 'new-season-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Cultivar / Variety</label>
+          <div class="multi-select-dropdown" id="e-cultivar">
+            <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
+              <span class="header-text">-- Select Cultivar --</span>
+            </div>
+            <div class="multi-select-options">
+              <label><input type="checkbox" value="PCH-111" onchange="updateMultiHeaderGeneric('e-cultivar', 'Cultivar')"> PCH-111</label>
+              <label><input type="checkbox" value="GCH-4" onchange="updateMultiHeaderGeneric('e-cultivar', 'Cultivar')"> GCH-4</label>
+              <label><input type="checkbox" value="Other" onchange="updateMultiHeaderGeneric('e-cultivar', 'Cultivar')"> Other</label>
+              <a class="multi-select-add-btn" onclick="showAddUIMulti('e-cultivar', 'new-cultivar-ui')">➕ Add New Cultivar...</a>
+            </div>
+          </div>
+          <div id="new-cultivar-ui" class="add-new-row">
+            <input type="text" id="new-cultivar-input" placeholder="Type new cultivar...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('e-cultivar', 'cultivars', 'new-cultivar-input', 'new-cultivar-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('e-cultivar', 'new-cultivar-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg"><label>Area Affected (ha)</label><input type="number" id="e-area" placeholder="e.g. 250"
+            step="any" min="0"></div>
+        <div class="fg">
+          <label>Location</label>
+          <div class="multi-select-dropdown" id="e-location">
+            <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
+              <span class="header-text">-- Select Location --</span>
+            </div>
+            <div class="multi-select-options">
+              <label><input type="checkbox" value="Mahabubnagar" onchange="updateMultiHeader('e-location')"> Mahabubnagar</label>
+              <label><input type="checkbox" value="Nagarkurnool" onchange="updateMultiHeader('e-location')"> Nagarkurnool</label>
+              <label><input type="checkbox" value="Coimbatore" onchange="updateMultiHeader('e-location')"> Coimbatore</label>
+              <label><input type="checkbox" value="Other" onchange="updateMultiHeader('e-location')"> Other</label>
+              <a class="multi-select-add-btn" onclick="showAddUIMulti('e-location', 'new-location-ui')">➕ Add New Location...</a>
+            </div>
+          </div>
+          <div id="new-location-ui" class="add-new-row">
+            <input type="text" id="new-location-input" placeholder="Type new location...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('e-location', 'locations', 'new-location-input', 'new-location-ui')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('e-location', 'new-location-ui')">Cancel</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Monetary loss (INR/ha)</label>
+          <input type="number" id="e-mon" placeholder="e.g. 150" step="0.01" min="0">
+        </div>
+        <div class="fg">
+          <label>Management</label>
+          <select id="e-mgmt" style="height:36px; border:1px solid #ccc; border-radius:6px; padding:0 12px;">
+            <option value="">-- Select --</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+            <option value="NA">NA</option>
+          </select>
+        </div>
+        <div class="fg" style="grid-column: 1 / -1;">
+          <label>Remarks</label>
+          <input type="text" id="e-remarks" placeholder="Any additional notes...">
+        </div>
+      </div>
+    </div>
+  
+    <div class="card">
+      <div class="card-title"><i class="fa fa-bug"></i> Insect Pest Yield Loss (%)</div>
+      <div class="form-grid">
+        <div class="fg" style="grid-column: 1 / -1;">
+          <div id="pest-rows-container"></div>
+          <button type="button" class="btn btn-outline" style="margin-top:10px; font-size:12px;" onclick="addPestRow()">➕ Add Pest Record</button>
+        </div>
+        <input type="hidden" id="e-ins-pests">
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Min loss (%)</label><input type="number" id="e-ins-min" class="calc" readonly><span class="hint">Sum of min losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Max loss (%)</label><input type="number" id="e-ins-max" class="calc" readonly><span class="hint">Sum of max losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Avg loss (%) — computed</label><input type="number" id="e-ins-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span>
+          <div class="prog-wrap">
+            <div class="prog-bar" id="pb-ins" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa fa-leaf"></i> Disease Yield Loss (%)</div>
+      <div class="form-grid">
+        <div class="fg" style="grid-column: 1 / -1;">
+          <div id="disease-rows-container"></div>
+          <button type="button" class="btn btn-outline" style="margin-top:10px; font-size:12px;" onclick="addDiseaseRow()">➕ Add Disease Record</button>
+        </div>
+        <input type="hidden" id="e-dis-names">
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Min loss (%)</label><input type="number" id="e-dis-min" class="calc" readonly><span class="hint">Sum of min losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Max loss (%)</label><input type="number" id="e-dis-max" class="calc" readonly><span class="hint">Sum of max losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Avg loss (%) — computed</label><input type="number" id="e-dis-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span>
+          <div class="prog-wrap">
+            <div class="prog-bar" id="pb-dis" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Nematodes Yield Loss -->
+    <div class="card">
+      <div class="card-title"><i class="fa fa-worm"></i> Nematodes Yield Loss (%)</div>
+      <div class="form-grid">
+        <div class="fg"><label>Nematode Name</label><div id="nem-container" style="width:100%;"></div><span class="hint">Name of nematode species / type</span></div>
+        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-nem-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to nematodes</span></div>
+        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-nem-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to nematodes</span></div>
+        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-nem-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+      </div>
+    </div>
+    <!-- Weeds Yield Loss -->
+    <div class="card">
+      <div class="card-title"><i class="fa fa-seedling"></i> Weeds Yield Loss (%)</div>
+      <div class="form-grid">
+        <div class="fg"><label>Weed Name</label><div id="weed-container" style="width:100%;"></div><span class="hint">Name of weed species / type</span></div>
+        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-weed-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to weeds</span></div>
+        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-weed-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to weeds</span></div>
+        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-weed-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+      </div>
+    </div>
+    <!-- Mites Yield Loss -->
+    <div class="card">
+      <div class="card-title"><i class="fa fa-spider"></i> Mites Yield Loss (%)</div>
+      <div class="form-grid">
+        <div class="fg"><label>Mite Name</label><div id="mite-container" style="width:100%;"></div><span class="hint">Name of mite species / type</span></div>
+        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-mite-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to mites</span></div>
+        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-mite-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to mites</span></div>
+        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-mite-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+      </div>
+    </div>
+    <!-- Rodents Yield Loss -->
+    <div class="card">
+      <div class="card-title"><i class="fa fa-paw"></i> Rodents Yield Loss (%)</div>
+      <div class="form-grid">
+        <div class="fg"><label>Rodent Name</label><div id="rod-container" style="width:100%;"></div><span class="hint">Name of rodent species / type</span></div>
+        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-rod-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to rodents</span></div>
+        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-rod-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to rodents</span></div>
+        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-rod-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+      </div>
+    </div>
+    <!-- Vertebrate Yield Loss -->
+    <div class="card">
+      <div class="card-title"><i class="fa fa-crow"></i> Vertebrate Yield Loss (%)</div>
+      <div class="form-grid">
+        <div class="fg"><label>Vertebrate Name</label><div id="vert-container" style="width:100%;"></div><span class="hint">Name of vertebrate species / type</span></div>
+        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-vert-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to vertebrates</span></div>
+        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-vert-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to vertebrates</span></div>
+        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-vert-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa fa-indian-rupee-sign"></i> Economic Data & Monetary Loss Calculation</div>
+      <div class="sect-label">Input: Production & Price Data</div>
+      <div class="form-grid">
+        <div class="fg"><label>Production (Lakh Tonnes) — Year-wise</label><input type="number" id="e-prod"
+            placeholder="e.g. 17.982" step="0.001" min="0" oninput="recalc()"><span class="hint">Year-wise avg from UPAg portal</span></div>
+        <div class="fg"><label>Average MSP / Price (Rs/Quintal)</label><input type="number" id="e-msp"
+            placeholder="e.g. 5967.33" step="0.01" min="0" oninput="recalc()"><span class="hint">From CACP, GoI (or
+            market avg)</span></div>
+        <div class="fg"><label>Value of Produce (₹ Crores) — computed</label><input class="calc" readonly
+            id="e-val"><span class="hint">= Prod (LT) × MSP (Rs/Qt) × 10</span></div>
+      </div>
+      <div class="sect-label">Output: Computed Monetary Losses (₹ Crores)</div>
+      <div class="form-grid">
+        <div class="fg"><label style="color:#2E75B6">Insect loss — Minimum (₹ Cr)</label><input class="calc" readonly
+            id="r-il-min"><span class="hint">= Value × Ins Min% ÷ 100</span></div>
+        <div class="fg"><label style="color:#2E75B6">Insect loss — Average (₹ Cr)</label><input class="calc" readonly
+            id="r-il-avg"><span class="hint">= Value × Ins Avg% ÷ 100</span></div>
+        <div class="fg"><label style="color:#2E75B6">Insect loss — Maximum (₹ Cr)</label><input class="calc" readonly
+            id="r-il-max"><span class="hint">= Value × Ins Max% ÷ 100</span></div>
+        <div class="fg"><label style="color:#375623">Disease loss — Minimum (₹ Cr)</label><input class="calc" readonly
+            id="r-dl-min"></div>
+        <div class="fg"><label style="color:#375623">Disease loss — Average (₹ Cr)</label><input class="calc" readonly
+            id="r-dl-avg"></div>
+        <div class="fg"><label style="color:#375623">Disease loss — Maximum (₹ Cr)</label><input class="calc" readonly
+            id="r-dl-max"></div>
+        <div class="fg"><label style="color:#7F3F00;font-size:13px;font-weight:700">▶ TOTAL loss — Min (₹
+            Cr)</label><input class="total-field" readonly id="r-tot-min"></div>
+        <div class="fg"><label style="color:#7F3F00;font-size:13px;font-weight:700">▶ TOTAL loss — Avg (₹
+            Cr)</label><input class="total-field" readonly id="r-tot-avg"></div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn btn-primary" onclick="saveEntry()"><i class="fa fa-floppy-disk"></i> Save Record</button>
+        <button class="btn" onclick="clearForm()"><i class="fa fa-rotate"></i> Clear Form</button>
+        <button class="btn btn-success" onclick="loadSample()"><i class="fa fa-download"></i> Load 10 sample
+          records</button>
+      </div>
+    </div>
+  </div>
+  <!-- Records tab -->
+  <div id="pg-records" class="content" style="display:none">
+    <div class="card">
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div class="card-title" style="margin-bottom:0;border:none;padding-bottom:0"><i class="fa fa-table"></i> All
+          submitted records</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="f-crop" onchange="renderRec()"
+            style="height:30px;border:1px solid #ccc;border-radius:6px;padding:0 8px;font-size:12px">
+            <option value="">All crops</option>
+            <option>Castor</option>
+            <option>Sunflower</option>
+            <option>Linseed</option>
+            <option>Sesame</option>
+            <option>Safflower</option>
+          </select>
+          <select id="f-year" onchange="renderRec()"
+            style="height:30px;border:1px solid #ccc;border-radius:6px;padding:0 8px;font-size:12px">
+            <option value="">All years</option>
+            <option>2020-21</option>
+            <option>2021-22</option>
+            <option>2022-23</option>
+            <option>2023-24</option>
+            <option>2024-25</option>
+          </select>
+          <button class="btn btn-sm btn-danger"
+            onclick="if(confirm('Clear all records?')){entries=[];persistEntries();updateBadge();renderRec();}"><i
+              class="fa fa-trash"></i> Clear all</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl" style="min-width:1200px">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Crop</th>
+              <th>Year</th>
+              <th>Centre</th>
+              <th>State</th>
+              <th class="ins">Ins Min%</th>
+              <th class="ins">Ins Avg%</th>
+              <th class="ins">Ins Max%</th>
+              <th class="dis">Dis Min%</th>
+              <th class="dis">Dis Avg%</th>
+              <th class="dis">Dis Max%</th>
+              <th>Prod(LT)</th>
+              <th>MSP</th>
+              <th>Val(Cr)</th>
+              <th class="ins">Ins Min(Cr)</th>
+              <th class="ins">Ins Avg(Cr)</th>
+              <th class="ins">Ins Max(Cr)</th>
+              <th class="dis">Dis Min(Cr)</th>
+              <th class="dis">Dis Avg(Cr)</th>
+              <th class="dis">Dis Max(Cr)</th>
+              <th class="tot">Total Min</th>
+              <th class="tot">Total Avg</th>
+              <th>Mgmt</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rec-body"></tbody>
+        </table>
+      </div>
+      <div id="rec-empty" class="empty"><i class="fa fa-database"></i>No records yet. Use the Data Entry tab to add
+        data.</div>
+    </div>
+  </div>
+  <!-- Report tab -->
+  <div id="pg-report" class="content" style="display:none">
+    <div id="report-html"></div>
+  </div>
+  <!-- Setup tab -->
+  <div id="pg-setup" class="content" style="display:none">
+    <div class="card">
+      <div class="card-title"><i class="fa fa-gear"></i> Default crop economic parameters</div>
+      <div class="alert alert-info"><i class="fa fa-circle-info"></i> These values auto-fill when you select a crop in
+        the Data Entry form. Edit to match your current reporting period.</div>
+      <div class="table-wrap">
+        <table class="tbl" id="setup-tbl">
+          <thead>
+            <tr>
+              <th style="text-align:left">Crop</th>
+              <th>Avg Production (Lakh Tonnes)</th>
+              <th>Avg MSP (Rs/Quintal)</th>
+              <th>Period</th>
+              <th>Computed Value (₹ Crores)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="setup-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa fa-plus-circle"></i> Add / update crop parameter</div>
+      <div class="form-grid">
+        <div class="fg"><label>Crop name</label><input type="text" id="s-crop" placeholder="e.g. Sesame"></div>
+        <div class="fg"><label>Avg production (Lakh Tonnes)</label><input type="number" id="s-prod" step="0.001"
+            placeholder="e.g. 8.296"></div>
+        <div class="fg"><label>Avg MSP / price (Rs/Quintal)</label><input type="number" id="s-msp" step="0.01"
+            placeholder="e.g. 7978.8"></div>
+        <div class="fg"><label>Period</label><input type="text" id="s-period" placeholder="e.g. 2024-25"></div>
+      </div>
+      <div class="btn-actions"><button class="btn btn-primary" onclick="saveSetup()"><i class="fa fa-floppy-disk"></i>
+          Save / Update parameter</button></div>
+    </div>
+  </div>
+  <script>
+    var entries = [];
+    var cropParams = {};
+    
+    // Load persisted entries if any
+    try {
+      var storedEntries = localStorage.getItem('cropLossEntries');
+      if (storedEntries) entries = JSON.parse(storedEntries);
+    } catch(e) { console.warn('Failed to load stored entries', e); }
+
+    // Load persisted parameters if any
+    try {
+      var storedParams = localStorage.getItem('cropParams');
+      if (storedParams) cropParams = JSON.parse(storedParams);
+    } catch(e) { console.warn('Failed to load stored cropParams', e); }
+    
+    // Helper to persist entries
+    function persistEntries() {
+      try { localStorage.setItem('cropLossEntries', JSON.stringify(entries)); }
+      catch(e) { console.warn('Failed to save entries', e); }
+    }
+    // Render setup table on load
+    renderSetup();
+    updateBadge();
+    renderRec();
+    // Load persisted parameters if any
+    try {
+      var stored = localStorage.getItem('cropParams');
+      if (stored) cropParams = JSON.parse(stored);
+    } catch(e) { console.warn('Failed to load stored cropParams', e); }
+    // Helper to persist current cropParams
+    function persistCropParams(){
+      try { localStorage.setItem('cropParams', JSON.stringify(cropParams)); }
+      catch(e){ console.warn('Failed to save cropParams', e); }
+    } // User will add crop-year data via the Setup tab
+    var indianStates = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"];
+    var masterDataCache = null;
+    async function fetchMasterData() {
+      var token = localStorage.getItem('croploss_token');
+      if (!token) return;
+      try {
+        var res = await fetch('/api/master-data', { headers: { 'Authorization': 'Bearer ' + token } });
+        var json = await res.json();
+        if (json.success) masterDataCache = json.data;
+      } catch(e) { console.error('Error fetching DB', e); }
+    }
+
+    async function saveToDB(key, value) {
+      var token = localStorage.getItem('croploss_token');
+      if (!token) return;
+      try {
+        await fetch('/api/master-data/' + key + '/append', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ value: value })
+        });
+      } catch (err) { console.error('Failed to save to DB', err); }
+    }
+
+    function populateStateSelect() {
+      var sel = document.getElementById('e-state');
+      sel.innerHTML = '<option value="">-- Select State --</option>';
+      indianStates.forEach(function (st) {
+        var opt = document.createElement('option');
+        opt.value = st; opt.textContent = st; sel.appendChild(opt);
+      });
+      var list = (masterDataCache && masterDataCache.states) ? masterDataCache.states : JSON.parse(localStorage.getItem('states') || '[]');
+      list.forEach(function(val) {
+        if (![...sel.options].some(o => o.value === val)) {
+          var opt = document.createElement('option');
+          opt.value = val; opt.textContent = val; sel.appendChild(opt);
+        }
+      });
+      var addOpt = document.createElement('option');
+      addOpt.value = '___add_new___';
+      addOpt.textContent = '➕ Add New State...';
+      addOpt.style.color = '#6A1B9A';
+      addOpt.style.fontWeight = 'bold';
+      sel.appendChild(addOpt);
+    }
+    function handleDynamicSelect(sel, dbKey, uiId) {
+      if (sel.value === '___add_new___') {
+        sel.style.display = 'none';
+        var ui = document.getElementById(uiId);
+        ui.style.display = 'flex';
+        var inp = ui.querySelector('input');
+        inp.value = '';
+        inp.focus();
+      }
+    }
+    function updateMultiHeader(id) {
+      var container = document.getElementById(id);
+      var checked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+      var headerText = container.querySelector('.header-text');
+      if (checked.length > 0) {
+        headerText.textContent = checked.join(', ');
+      } else {
+        headerText.textContent = '-- Select ' + (id === 'e-season' ? 'Season' : 'Location') + ' --';
+      }
+    }
+    function updateMultiHeaderGeneric(id, label) {
+      var container = document.getElementById(id);
+      var checked = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+      var headerText = container.querySelector('.header-text');
+      headerText.textContent = checked.length > 0 ? checked.join(', ') : '-- Select ' + label + ' --';
+    }
+    function showAddUIMulti(selId, uiId) {
+      var container = document.getElementById(selId);
+      container.classList.remove('open');
+      container.style.display = 'none';
+      var ui = document.getElementById(uiId);
+      ui.style.display = 'flex';
+      var inp = ui.querySelector('input');
+      inp.value = '';
+      inp.focus();
+    }
+    function cancelNewOptionMulti(selId, uiId) {
+      var container = document.getElementById(selId);
+      var ui = document.getElementById(uiId);
+      ui.style.display = 'none';
+      container.style.display = 'block';
+    }
+    async function commitNewOptionMulti(selId, dbKey, inputId, uiId) {
+      var container = document.getElementById(selId);
+      var ui = document.getElementById(uiId);
+      var inp = document.getElementById(inputId);
+      var newVal = inp.value.trim();
+      
+      if (newVal !== '') {
+        var list = JSON.parse(localStorage.getItem(dbKey) || '[]');
+        if (!list.includes(newVal)) {
+          list.push(newVal);
+          localStorage.setItem(dbKey, JSON.stringify(list));
+        }
+        await saveToDB(dbKey, newVal);
+        var optionsContainer = container.querySelector('.multi-select-options');
+        var existingValues = Array.from(optionsContainer.querySelectorAll('input[type="checkbox"]')).map(cb => cb.value);
+        if (!existingValues.includes(newVal)) {
+          var label = document.createElement('label');
+          var l = 'Location';
+          if (selId.includes('cultivar')) l = 'Cultivar';
+          else if (selId.includes('disease')) l = 'Disease';
+          else if (selId.includes('pest')) l = 'Pest';
+          else if (selId.includes('nem')) l = 'Nematode';
+          else if (selId.includes('weed')) l = 'Weed';
+          else if (selId.includes('mite')) l = 'Mite';
+          else if (selId.includes('rod')) l = 'Rodent';
+          else if (selId.includes('vert')) l = 'Vertebrate';
+          else if (selId.includes('season')) l = 'Season';
+          
+          var onchangeFn = "updateMultiHeaderGeneric('" + selId + "', '" + l + "')";
+          label.innerHTML = '<input type="checkbox" value="' + newVal + '" onchange="' + onchangeFn + '"> ' + newVal;
+          var addBtn = optionsContainer.querySelector('.multi-select-add-btn');
+          optionsContainer.insertBefore(label, addBtn);
+        }
+        var cb = optionsContainer.querySelector('input[type="checkbox"][value="' + newVal + '"]');
+        if (cb) cb.checked = true;
+        if (selId === 'e-cultivar') {
+          updateMultiHeaderGeneric(selId, 'Cultivar');
+        } else {
+          updateMultiHeader(selId);
+        }
+      }
+      ui.style.display = 'none';
+      container.style.display = 'block';
+    }
+    document.addEventListener('click', function(e) {
+      document.querySelectorAll('.multi-select-dropdown').forEach(function(dropdown) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('open');
+        }
+      });
+    });
+    function cancelNewOption(selId, uiId) {
+      var sel = document.getElementById(selId);
+      var ui = document.getElementById(uiId);
+      ui.style.display = 'none';
+      sel.style.display = 'block';
+      if (sel.multiple) {
+        Array.from(sel.options).forEach(o => { if (o.value === '___add_new___') o.selected = false; });
+      } else {
+        sel.value = '';
+      }
+    }
+    async function commitNewOption(selId, dbKey, inputId, uiId) {
+      var sel = document.getElementById(selId);
+      var ui = document.getElementById(uiId);
+      var inp = document.getElementById(inputId);
+      var newVal = inp.value.trim();
+      
+      if (newVal !== '') {
+        // Save to localStorage
+        var list = JSON.parse(localStorage.getItem(dbKey) || '[]');
+        if (!list.includes(newVal)) {
+          list.push(newVal);
+          localStorage.setItem(dbKey, JSON.stringify(list));
+        }
+        await saveToDB(dbKey, newVal);
+        
+        // Add to select if not already there
+        var exists = [...sel.options].some(o => o.value === newVal);
+        if (!exists) {
+          var opt = document.createElement('option');
+          opt.value = newVal;
+          opt.textContent = newVal;
+          // Insert before the last option (the "Add New..." option)
+          var lastOpt = sel.options[sel.options.length - 1];
+          if (lastOpt && lastOpt.value === '___add_new___') {
+            sel.insertBefore(opt, lastOpt);
+          } else {
+            sel.appendChild(opt);
+          }
+        }
+        
+        // Select the new value
+        sel.value = newVal;
+      } else {
+        sel.value = '';
+      }
+      
+      // Restore select visibility
+      ui.style.display = 'none';
+      sel.style.display = '';
+      
+      // Trigger dependent logic
+      if (selId === 'e-crop' || selId === 'e-year') {
+        onCropChange();
+      }
+    }
+    function loadDynamicSelectOptions(selId, dbKey, isMultiSelectCheckbox = false) {
+      var container = document.getElementById(selId);
+      if (!container) return;
+      var list = (masterDataCache && masterDataCache[dbKey]) ? masterDataCache[dbKey] : JSON.parse(localStorage.getItem(dbKey) || '[]');
+      
+      if (isMultiSelectCheckbox) {
+        var optionsContainer = container.querySelector('.multi-select-options');
+        var existingValues = Array.from(optionsContainer.querySelectorAll('input[type="checkbox"]')).map(cb => cb.value);
+        var onchangeFn = (selId === 'e-cultivar')
+          ? "updateMultiHeaderGeneric('" + selId + "', 'Cultivar')"
+          : "updateMultiHeader('" + selId + "')";
+        list.forEach(function(val) {
+          if (!existingValues.includes(val)) {
+            var label = document.createElement('label');
+            label.innerHTML = '<input type="checkbox" value="' + val + '" onchange="' + onchangeFn + '"> ' + val;
+            var addBtn = optionsContainer.querySelector('.multi-select-add-btn');
+            optionsContainer.insertBefore(label, addBtn);
+          }
+        });
+
+      } else {
+        list.forEach(function(val) {
+          if (![...container.options].some(o => o.value === val)) {
+            var opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            if (container.options.length > 0) {
+              container.insertBefore(opt, container.options[container.options.length - 1]);
+            } else {
+              container.appendChild(opt);
+            }
+          }
+        });
+      }
+    }
+    window.addEventListener('load', async function() {
+      await fetchMasterData();
+      populateStateSelect();
+      loadDynamicSelectOptions('e-centre', 'centers');
+      loadDynamicSelectOptions('e-zone', 'zonesList');
+      loadDynamicSelectOptions('e-cultivar', 'cultivars');
+      loadDynamicSelectOptions('e-location', 'locations', true);
+      loadDynamicSelectOptions('e-crop', 'crops');
+      loadDynamicSelectOptions('e-year', 'years');
+      loadDynamicSelectOptions('e-season', 'seasons', true);
+      loadDynamicSelectOptions('e-cultivar', 'cultivars', true);
+      
+      // Initialize with one pest row
+      if (document.getElementById('pest-rows-container').children.length === 0) {
+        addPestRow();
+      }
+      
+      // Initialize with one disease row
+      if (document.getElementById('disease-rows-container').children.length === 0) {
+        addDiseaseRow();
+      }
+      
+      // Initialize extra pest name dropdowns
+      initExtraPests();
+    });
+    
+    function initExtraPests() {
+      var categories = [
+        { id: 'nem', name: 'Nematode', dbKey: 'nematodes' },
+        { id: 'weed', name: 'Weed', dbKey: 'weeds' },
+        { id: 'mite', name: 'Mite', dbKey: 'mites' },
+        { id: 'rod', name: 'Rodent', dbKey: 'rodents' },
+        { id: 'vert', name: 'Vertebrate', dbKey: 'vertebrates' }
+      ];
+      categories.forEach(function(cat) {
+        var container = document.getElementById(cat.id + '-container');
+        if (!container) return;
+        var list = (masterDataCache && masterDataCache[cat.dbKey]) ? masterDataCache[cat.dbKey] : JSON.parse(localStorage.getItem(cat.dbKey) || '[]');
+        var optionsHtml = '';
+        list.forEach(function(val) {
+          optionsHtml += '<label><input type="checkbox" value="' + val + '" onchange="updateMultiHeaderGeneric(\'sel-' + cat.id + '\', \'' + cat.name + '\')"> ' + val + '</label>';
+        });
+        optionsHtml += '<a class="multi-select-add-btn" onclick="showAddUIMulti(\'sel-' + cat.id + '\', \'ui-' + cat.id + '\')">➕ Add New ' + cat.name + '...</a>';
+        
+        container.innerHTML = `
+          <div class="multi-select-dropdown ${cat.id}-name-select" id="sel-${cat.id}">
+            <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
+              <span class="header-text">-- Select ${cat.name} --</span>
+            </div>
+            <div class="multi-select-options">
+              ${optionsHtml}
+            </div>
+          </div>
+          <div id="ui-${cat.id}" class="add-new-row">
+            <input type="text" id="input-${cat.id}" placeholder="Type new ${cat.name.toLowerCase()}...">
+            <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('sel-${cat.id}', '${cat.dbKey}', 'input-${cat.id}', 'ui-${cat.id}')">Add</button>
+            <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('sel-${cat.id}', 'ui-${cat.id}')">Cancel</button>
+          </div>
+        `;
+      });
+    }
+
+    function addPestRow(data = {name: '', min: '', max: ''}) {
+      var container = document.getElementById('pest-rows-container');
+      var rowId = 'pest-row-' + Date.now() + Math.random().toString().substring(2, 6);
+      
+      var optionsHtml = '';
+      var list = (masterDataCache && masterDataCache.pests) ? masterDataCache.pests : JSON.parse(localStorage.getItem('pests') || '[]');
+      var selectedArr = data.name ? data.name.split(',').map(s=>s.trim()) : [];
+      list.forEach(function(val) {
+        var isChecked = selectedArr.includes(val) ? 'checked' : '';
+        optionsHtml += '<label><input type="checkbox" value="' + val + '" onchange="updateMultiHeaderGeneric(\'sel-' + rowId + '\', \'Pest\'); recalcPests();" ' + isChecked + '> ' + val + '</label>';
+      });
+      optionsHtml += '<a class="multi-select-add-btn" onclick="showAddUIMulti(\'sel-' + rowId + '\', \'ui-' + rowId + '\')">➕ Add New Pest...</a>';
+
+      var headerText = selectedArr.length > 0 ? selectedArr.join(', ') : '-- Select Pest --';
+
+      var rowHtml = `
+        <div class="form-grid pest-row" id="${rowId}" style="align-items: center; background:#f9f9f9; padding:10px; border-radius:6px; border:1px solid #eee; margin-bottom:10px;">
+          <div class="fg" style="flex:2;">
+            <label>Pest Name</label>
+            <div class="multi-select-dropdown pest-name-select" id="sel-${rowId}">
+              <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="header-text">${headerText}</span>
+              </div>
+              <div class="multi-select-options">
+                ${optionsHtml}
+              </div>
+            </div>
+            <div id="ui-${rowId}" class="add-new-row">
+              <input type="text" id="input-${rowId}" placeholder="Type new pest...">
+              <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('sel-${rowId}', 'pests', 'input-${rowId}', 'ui-${rowId}'); recalcPests();">Add</button>
+              <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('sel-${rowId}', 'ui-${rowId}')">Cancel</button>
+            </div>
+          </div>
+          <div class="fg"><label>Min loss (%)</label><input type="number" class="pest-min" placeholder="e.g. 2" step="0.01" min="0" max="100" value="${data.min}" oninput="recalcPests()"></div>
+          <div class="fg"><label>Max loss (%)</label><input type="number" class="pest-max" placeholder="e.g. 5" step="0.01" min="0" max="100" value="${data.max}" oninput="recalcPests()"></div>
+          <div class="fg"><label>Avg loss (%)</label><input type="number" class="pest-avg calc" readonly value="${data.min !== '' && data.max !== '' ? fmt((Number(data.min)+Number(data.max))/2, 2) : ''}"></div>
+          <div class="fg" style="max-width: 40px; margin-top:20px;"><button class="btn btn-danger btn-sm" onclick="document.getElementById('${rowId}').remove(); recalcPests();"><i class="fa fa-trash"></i></button></div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    function recalcPests() {
+      var container = document.getElementById('pest-rows-container');
+      var rows = container.querySelectorAll('.pest-row');
+      var totalMin = 0, totalMax = 0, pestNames = [];
+      
+      rows.forEach(r => {
+        var min = parseFloat(r.querySelector('.pest-min').value) || 0;
+        var max = parseFloat(r.querySelector('.pest-max').value) || 0;
+        var pestNameContainer = r.querySelector('.pest-name-select');
+        var pestNameArr = Array.from(pestNameContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        if (pestNameArr.length > 0) pestNames.push(...pestNameArr);
+        
+        if (max === 0 && min > 0) max = min;
+        var avg = (min + max) / 2;
+        r.querySelector('.pest-avg').value = fmt(avg, 2);
+        
+        totalMin += min;
+        totalMax += max;
+      });
+      
+      document.getElementById('e-ins-pests').value = pestNames.length > 0 ? pestNames.join(', ') : '';
+      document.getElementById('e-ins-min').value = fmt(Math.min(100, totalMin), 2);
+      document.getElementById('e-ins-max').value = fmt(Math.min(100, totalMax), 2);
+      recalc();
+    }
+    
+    function addDiseaseRow(data = {name: '', min: '', max: ''}) {
+      var container = document.getElementById('disease-rows-container');
+      var rowId = 'disease-row-' + Date.now() + Math.random().toString().substring(2, 6);
+      
+      var optionsHtml = '';
+      var list = (masterDataCache && masterDataCache.diseases) ? masterDataCache.diseases : JSON.parse(localStorage.getItem('diseases') || '[]');
+      var selectedArr = data.name ? data.name.split(',').map(s=>s.trim()) : [];
+      list.forEach(function(val) {
+        var isChecked = selectedArr.includes(val) ? 'checked' : '';
+        optionsHtml += '<label><input type="checkbox" value="' + val + '" onchange="updateMultiHeaderGeneric(\'sel-' + rowId + '\', \'Disease\'); recalcDiseases();" ' + isChecked + '> ' + val + '</label>';
+      });
+      optionsHtml += '<a class="multi-select-add-btn" onclick="showAddUIMulti(\'sel-' + rowId + '\', \'ui-' + rowId + '\')">➕ Add New Disease...</a>';
+
+      var headerText = selectedArr.length > 0 ? selectedArr.join(', ') : '-- Select Disease --';
+
+      var rowHtml = `
+        <div class="form-grid disease-row" id="${rowId}" style="align-items: center; background:#f9f9f9; padding:10px; border-radius:6px; border:1px solid #eee; margin-bottom:10px;">
+          <div class="fg" style="flex:2;">
+            <label>Disease Name</label>
+            <div class="multi-select-dropdown disease-name-select" id="sel-${rowId}">
+              <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="header-text">${headerText}</span>
+              </div>
+              <div class="multi-select-options">
+                ${optionsHtml}
+              </div>
+            </div>
+            <div id="ui-${rowId}" class="add-new-row">
+              <input type="text" id="input-${rowId}" placeholder="Type new disease...">
+              <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('sel-${rowId}', 'diseases', 'input-${rowId}', 'ui-${rowId}'); recalcDiseases();">Add</button>
+              <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('sel-${rowId}', 'ui-${rowId}')">Cancel</button>
+            </div>
+          </div>
+          <div class="fg"><label>Min loss (%)</label><input type="number" class="disease-min" placeholder="e.g. 2" step="0.01" min="0" max="100" value="${data.min}" oninput="recalcDiseases()"></div>
+          <div class="fg"><label>Max loss (%)</label><input type="number" class="disease-max" placeholder="e.g. 5" step="0.01" min="0" max="100" value="${data.max}" oninput="recalcDiseases()"></div>
+          <div class="fg"><label>Avg loss (%)</label><input type="number" class="disease-avg calc" readonly value="${data.min !== '' && data.max !== '' ? fmt((Number(data.min)+Number(data.max))/2, 2) : ''}"></div>
+          <div class="fg" style="max-width: 40px; margin-top:20px;"><button class="btn btn-danger btn-sm" onclick="document.getElementById('${rowId}').remove(); recalcDiseases();"><i class="fa fa-trash"></i></button></div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    function recalcDiseases() {
+      var container = document.getElementById('disease-rows-container');
+      var rows = container.querySelectorAll('.disease-row');
+      var totalMin = 0, totalMax = 0, diseaseNames = [];
+      
+      rows.forEach(r => {
+        var min = parseFloat(r.querySelector('.disease-min').value) || 0;
+        var max = parseFloat(r.querySelector('.disease-max').value) || 0;
+        var diseaseNameContainer = r.querySelector('.disease-name-select');
+        var diseaseNameArr = Array.from(diseaseNameContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        if (diseaseNameArr.length > 0) diseaseNames.push(...diseaseNameArr);
+        
+        if (max === 0 && min > 0) max = min;
+        var avg = (min + max) / 2;
+        r.querySelector('.disease-avg').value = fmt(avg, 2);
+        
+        totalMin += min;
+        totalMax += max;
+      });
+      
+      document.getElementById('e-dis-names').value = diseaseNames.length > 0 ? diseaseNames.join(', ') : '';
+      document.getElementById('e-dis-min').value = fmt(Math.min(100, totalMin), 2);
+      document.getElementById('e-dis-max').value = fmt(Math.min(100, totalMax), 2);
+      recalc();
+    }
+    
+    function getMultiSelectValue(id) {
+      var container = document.getElementById(id);
+      if (container.tagName === 'SELECT') {
+        return Array.from(container.selectedOptions).map(o => o.value || o.textContent).filter(v => v !== '___add_new___').join(',');
+      } else {
+        return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value).join(',');
+      }
+    }
+
+    function fmt(v, d) { d = d || 4; return (v !== null && v !== undefined && !isNaN(v)) ? (+v).toFixed(d) : ''; }
+    function fmtC(v) { return fmt(v, 4); }
+    function calcVal(prod, msp) { return prod * msp * 10 * 1e5 / 1e7; }
+    function switchTab(t) {
+      ['entry', 'records', 'report', 'setup'].forEach(p => { document.getElementById('pg-' + p).style.display = p === t ? 'block' : 'none'; var tab = document.getElementById('tab-' + p); if (tab) tab.classList.toggle('active', p === t); });
+      if (t === 'records') renderRec();
+      if (t === 'report') renderReport();
+      if (t === 'setup') renderSetup();
+    }
+    function onCropChange() {
+  var c = document.getElementById('e-crop').value;
+  var y = document.getElementById('e-year').value;
+  
+  var sub = document.getElementById('topbar-sub-text');
+  if (sub) {
+    if (y && y !== '___add_new___') {
+      sub.textContent = 'Data Entry & Automatic Report Generation · ' + y;
+    } else {
+      sub.textContent = 'Data Entry & Automatic Report Generation · 2020–2027';
+    }
+  }
+
+  if (!c || !y) return;
+  // Find matching entry in cropParams where crop matches and period matches year
+  var key = c + '|' + y;
+  var params = cropParams[key] || {};
+  // Fallback to crop-only if year-specific not found
+  if (!params.prod && !params.msp) {
+    // try original structure where cropParams[c] may hold default values
+    params = cropParams[c] || {};
+  }
+  document.getElementById('e-prod').value = params.prod || '';
+  document.getElementById('e-msp').value = params.msp || '';
+  recalc();
+}
+    function recalc() {
+      var iMin = parseFloat(document.getElementById('e-ins-min').value) || 0;
+      var iMax = parseFloat(document.getElementById('e-ins-max').value) || 0;
+      var dMin = parseFloat(document.getElementById('e-dis-min').value) || 0;
+      var dMax = parseFloat(document.getElementById('e-dis-max').value) || 0;
+      var prod = parseFloat(document.getElementById('e-prod').value) || 0;
+      var msp = parseFloat(document.getElementById('e-msp').value) || 0;
+      if (iMax === 0 && iMin > 0) iMax = iMin;
+      if (dMax === 0 && dMin > 0) dMax = dMin;
+      var iAvg = (iMin + iMax) / 2;
+      var dAvg = (dMin + dMax) / 2;
+      var val = calcVal(prod, msp);
+      document.getElementById('e-ins-avg').value = fmt(iAvg, 2);
+      document.getElementById('e-dis-avg').value = fmt(dAvg, 2);
+      document.getElementById('e-val').value = fmt(val, 4);
+      document.getElementById('r-il-min').value = fmt(val * iMin / 100, 4);
+      document.getElementById('r-il-avg').value = fmt(val * iAvg / 100, 4);
+      document.getElementById('r-il-max').value = fmt(val * iMax / 100, 4);
+      document.getElementById('r-dl-min').value = fmt(val * dMin / 100, 4);
+      document.getElementById('r-dl-avg').value = fmt(val * dAvg / 100, 4);
+      document.getElementById('r-dl-max').value = fmt(val * dMax / 100, 4);
+      document.getElementById('r-tot-min').value = fmt(val * (iMin + dMin) / 100, 4);
+      document.getElementById('r-tot-avg').value = fmt(val * (iAvg + dAvg) / 100, 4);
+      document.getElementById('pb-ins').style.width = Math.min(100, iAvg) + '%';
+      document.getElementById('pb-dis').style.width = Math.min(100, dAvg) + '%';
+      // Compute avg for extra pest categories
+      var nemMin = parseFloat(document.getElementById('e-nem-min').value) || 0;
+      var nemMax = parseFloat(document.getElementById('e-nem-max').value) || nemMin;
+      document.getElementById('e-nem-avg').value = fmt((nemMin + nemMax) / 2, 2);
+      var weedMin = parseFloat(document.getElementById('e-weed-min').value) || 0;
+      var weedMax = parseFloat(document.getElementById('e-weed-max').value) || weedMin;
+      document.getElementById('e-weed-avg').value = fmt((weedMin + weedMax) / 2, 2);
+      var miteMin = parseFloat(document.getElementById('e-mite-min').value) || 0;
+      var miteMax = parseFloat(document.getElementById('e-mite-max').value) || miteMin;
+      document.getElementById('e-mite-avg').value = fmt((miteMin + miteMax) / 2, 2);
+      var rodMin = parseFloat(document.getElementById('e-rod-min').value) || 0;
+      var rodMax = parseFloat(document.getElementById('e-rod-max').value) || rodMin;
+      document.getElementById('e-rod-avg').value = fmt((rodMin + rodMax) / 2, 2);
+      var vertMin = parseFloat(document.getElementById('e-vert-min').value) || 0;
+      var vertMax = parseFloat(document.getElementById('e-vert-max').value) || vertMin;
+      document.getElementById('e-vert-avg').value = fmt((vertMin + vertMax) / 2, 2);
+    }
+    function saveEntry() {
+      var crop = document.getElementById('e-crop').value;
+      var year = document.getElementById('e-year').value;
+      if (!crop || !year) { showAlert('Please select a Crop and Year before saving.', 'warning'); return; }
+      var iMin = parseFloat(document.getElementById('e-ins-min').value) || 0;
+      var iMax = parseFloat(document.getElementById('e-ins-max').value) || iMin;
+      var dMin = parseFloat(document.getElementById('e-dis-min').value) || 0;
+      var dMax = parseFloat(document.getElementById('e-dis-max').value) || dMin;
+      var nemMin = parseFloat(document.getElementById('e-nem-min').value) || 0;
+      var nemMax = parseFloat(document.getElementById('e-nem-max').value) || nemMin;
+      var weedMin = parseFloat(document.getElementById('e-weed-min').value) || 0;
+      var weedMax = parseFloat(document.getElementById('e-weed-max').value) || weedMin;
+      var miteMin = parseFloat(document.getElementById('e-mite-min').value) || 0;
+      var miteMax = parseFloat(document.getElementById('e-mite-max').value) || miteMin;
+      var rodMin = parseFloat(document.getElementById('e-rod-min').value) || 0;
+      var rodMax = parseFloat(document.getElementById('e-rod-max').value) || rodMin;
+      var vertMin = parseFloat(document.getElementById('e-vert-min').value) || 0;
+      var vertMax = parseFloat(document.getElementById('e-vert-max').value) || vertMin;
+      var iAvg = (iMin + iMax) / 2, dAvg = (dMin + dMax) / 2;
+      var prod = parseFloat(document.getElementById('e-prod').value) || 0;
+      var msp = parseFloat(document.getElementById('e-msp').value) || 0;
+      var val = calcVal(prod, msp);
+      entries.push({ id: Date.now(), centre: document.getElementById('e-centre').value || '—', state: document.getElementById('e-state').value || '—', zone: document.getElementById('e-zone').value || '—', crop, year, season: getMultiSelectValue('e-season'), cultivar: (document.getElementById('e-cultivar')||{}).value || '—', location: getMultiSelectValue('e-location') || '—', area: parseFloat((document.getElementById('e-area')||{}).value) || 0, ins_min: iMin, ins_avg: iAvg, ins_max: iMax, dis_min: dMin, dis_avg: dAvg, dis_max: dMax, ins_pests: (document.getElementById('e-ins-pests')||{}).value || '—', dis_names: (document.getElementById('e-dis-names')||{}).value || '—', mon: parseFloat((document.getElementById('e-mon')||{}).value) || 0, prod, msp, val, mgmt: (document.getElementById('e-mgmt')||{}).value || '—', remarks: (document.getElementById('e-remarks')||{}).value || '', il_min: val * iMin / 100, il_avg: val * iAvg / 100, il_max: val * iMax / 100, dl_min: val * dMin / 100, dl_avg: val * dAvg / 100, dl_max: val * dMax / 100, tot_min: val * (iMin + dMin) / 100, tot_avg: val * (iAvg + dAvg) / 100, nem_min: nemMin, nem_avg: (nemMin+nemMax)/2, nem_max: nemMax, nem_name: getMultiSelectValue('sel-nem'), weed_min: weedMin, weed_avg: (weedMin+weedMax)/2, weed_max: weedMax, weed_name: getMultiSelectValue('sel-weed'), mite_min: miteMin, mite_avg: (miteMin+miteMax)/2, mite_max: miteMax, mite_name: getMultiSelectValue('sel-mite'), rod_min: rodMin, rod_avg: (rodMin+rodMax)/2, rod_max: rodMax, rod_name: getMultiSelectValue('sel-rod'), vert_min: vertMin, vert_avg: (vertMin+vertMax)/2, vert_max: vertMax, vert_name: getMultiSelectValue('sel-vert') });
+      persistEntries();
+      updateBadge();
+      showAlert('✓ Record saved — ' + crop + ' (' + year + ') from ' + (document.getElementById('e-centre').value || 'unknown centre'), 'success');
+      clearForm();
+    }
+    function clearForm() {
+      ['e-centre', 'e-state', 'e-zone', 'e-cultivar', 'e-location', 'e-ins-pests', 'e-dis-names', 'e-ins-min', 'e-ins-max', 'e-ins-avg', 'e-dis-min', 'e-dis-max', 'e-dis-avg', 'e-prod', 'e-msp', 'e-val', 'e-area', 'e-mon', 'r-il-min', 'r-il-avg', 'r-il-max', 'r-dl-min', 'r-dl-avg', 'r-dl-max', 'r-tot-min', 'r-tot-avg',
+        'e-nem-min', 'e-nem-max', 'e-nem-avg', 'e-nem-name',
+        'e-weed-min', 'e-weed-max', 'e-weed-avg', 'e-weed-name',
+        'e-mite-min', 'e-mite-max', 'e-mite-avg', 'e-mite-name',
+        'e-rod-min', 'e-rod-max', 'e-rod-avg', 'e-rod-name',
+        'e-vert-min', 'e-vert-max', 'e-vert-avg', 'e-vert-name'
+      ].forEach(id => { var el = document.getElementById(id); if (el) el.value = ''; });
+      // Reset extra pest dropdowns
+      initExtraPests();
+      document.getElementById('pb-ins').style.width = '0%';
+      document.getElementById('pb-dis').style.width = '0%';
+      document.getElementById('pest-rows-container').innerHTML = '';
+      addPestRow();
+      document.getElementById('disease-rows-container').innerHTML = '';
+      addDiseaseRow();
+    }
+    function showAlert(msg, type) { var d = document.getElementById('entry-alert'); d.innerHTML = '<div class="alert alert-' + (type || 'success') + '">' + msg + '</div>'; setTimeout(() => d.innerHTML = '', 4000); }
+    function updateBadge() { var n = entries.length; document.getElementById('top-badge').textContent = n + ' record' + (n !== 1 ? 's' : ''); document.getElementById('rc-badge').textContent = n; }
+    function renderRec() { var fc = document.getElementById('f-crop').value; var fy = document.getElementById('f-year').value; var rows = entries.filter(e => (!fc || e.crop === fc) && (!fy || e.year === fy)); var tb = document.getElementById('rec-body'); var em = document.getElementById('rec-empty'); if (!rows.length) { tb.innerHTML = ''; em.style.display = 'block'; return; } em.style.display = 'none'; tb.innerHTML = rows.map((e, i) => `<tr><td>${i + 1}</td><td><span class="badge b-blue">${e.crop}</span></td><td>${e.year}</td><td style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${e.centre}">${e.centre}</td><td>${e.state}</td><td>${fmt(e.ins_min, 2)}</td><td>${fmt(e.ins_avg, 2)}</td><td>${fmt(e.ins_max, 2)}</td><td>${fmt(e.dis_min, 2)}</td><td>${fmt(e.dis_avg, 2)}</td><td>${fmt(e.dis_max, 2)}</td><td>${e.prod}</td><td>${e.msp}</td><td><strong>${fmt(e.val, 2)}</strong></td><td>${fmt(e.il_min, 4)}</td><td>${fmt(e.il_avg, 4)}</td><td>${fmt(e.il_max, 4)}</td><td>${fmt(e.dl_min, 4)}</td><td>${fmt(e.dl_avg, 4)}</td><td>${fmt(e.dl_max, 4)}</td><td class="red-bold">${fmt(e.tot_min, 4)}</td><td class="red-bold">${fmt(e.tot_avg, 4)}</td><td><span class="badge ${e.mgmt === 'Yes' ? 'b-green' : e.mgmt === 'No' ? 'b-red' : 'b-amber'}">${e.mgmt}</span></td><td><div style="display:flex;gap:4px;"><button class="btn btn-sm btn-primary" onclick="editEntry(${e.id})"><i class="fa fa-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="delEntry(${e.id})"><i class="fa fa-trash"></i></button></div></td></tr>`).join(''); }
+    function delEntry(id) { entries = entries.filter(e => e.id !== id); persistEntries(); updateBadge(); renderRec(); }
+    
+    function setMultiSelectValue(id, valueString) {
+      var container = document.getElementById(id);
+      if (!container) return;
+      var values = (valueString || '').split(',').map(s => s.trim()).filter(s => s);
+      
+      // Select elements
+      if (container.tagName === 'SELECT') {
+        Array.from(container.options).forEach(o => {
+          o.selected = values.includes(o.value || o.textContent);
+        });
+      } else {
+        // Checkboxes in custom dropdown
+        var checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+          cb.checked = values.includes(cb.value);
+        });
+        if (id === 'e-cultivar') {
+          updateMultiHeaderGeneric(id, 'Cultivar');
+        } else {
+          updateMultiHeader(id);
+        }
+      }
+    }
+
+    function editEntry(id) {
+      var e = entries.find(x => x.id === id);
+      if (!e) return;
+      
+      switchTab('entry');
+      
+      var el;
+      if(el = document.getElementById('e-centre')) el.value = e.centre !== '—' ? e.centre : '';
+      if(el = document.getElementById('e-state')) el.value = e.state !== '—' ? e.state : '';
+      if(el = document.getElementById('e-zone')) el.value = e.zone !== '—' ? e.zone : '';
+      if(el = document.getElementById('e-crop')) el.value = e.crop;
+      if(el = document.getElementById('e-year')) el.value = e.year;
+      
+      setMultiSelectValue('e-season', e.season);
+      setMultiSelectValue('e-cultivar', e.cultivar);
+      setMultiSelectValue('e-location', e.location);
+      
+      if(el = document.getElementById('e-area')) el.value = e.area || '';
+      if(el = document.getElementById('e-mon')) el.value = e.mon || '';
+      
+      document.getElementById('pest-rows-container').innerHTML = '';
+      addPestRow({name: e.ins_pests !== '—' ? e.ins_pests : '', min: e.ins_min, max: e.ins_max});
+      recalcPests();
+      
+      document.getElementById('disease-rows-container').innerHTML = '';
+      addDiseaseRow({name: e.dis_names !== '—' ? e.dis_names : '', min: e.dis_min, max: e.dis_max});
+      recalcDiseases();
+      
+      // Set pest name selects
+      setMultiSelectValue('sel-nem', e.nem_name || '');
+      setMultiSelectValue('sel-weed', e.weed_name || '');
+      setMultiSelectValue('sel-mite', e.mite_name || '');
+      setMultiSelectValue('sel-rod', e.rod_name || '');
+      setMultiSelectValue('sel-vert', e.vert_name || '');
+      
+      if(el = document.getElementById('e-nem-min')) el.value = e.nem_min || '';
+      if(el = document.getElementById('e-nem-max')) el.value = e.nem_max || '';
+      if(el = document.getElementById('e-weed-min')) el.value = e.weed_min || '';
+      if(el = document.getElementById('e-weed-max')) el.value = e.weed_max || '';
+      if(el = document.getElementById('e-mite-min')) el.value = e.mite_min || '';
+      if(el = document.getElementById('e-mite-max')) el.value = e.mite_max || '';
+      if(el = document.getElementById('e-rod-min')) el.value = e.rod_min || '';
+      if(el = document.getElementById('e-rod-max')) el.value = e.rod_max || '';
+      if(el = document.getElementById('e-vert-min')) el.value = e.vert_min || '';
+      if(el = document.getElementById('e-vert-max')) el.value = e.vert_max || '';
+
+      if(el = document.getElementById('e-prod')) el.value = e.prod || '';
+      if(el = document.getElementById('e-msp')) el.value = e.msp || '';
+      
+      recalc();
+      
+      // Remove original entry so it gets "updated" instead of duplicated on next save
+      delEntry(id);
+      showAlert('Editing record for ' + e.crop + ' (' + e.year + ')', 'info');
+    }
+    
+    function renderReport() {
+      var rc = document.getElementById('report-html');
+      
+      // 1. Ensure the container has the selectors (Crop, Start Year, End Year)
+      if (!document.getElementById('e-report-crop')) {
+        // remove old selectors
+        var oldSel = document.getElementById('e-year-range-start');
+        if (oldSel && oldSel.closest('.form-grid')) {
+          oldSel.closest('.form-grid').remove();
+        }
+        var selectorDiv = document.createElement('div');
+        selectorDiv.className = 'form-grid';
+        selectorDiv.style.marginBottom = '14px';
+        
+        var uniqueCrops = [...new Set(entries.map(e => e.crop))].sort();
+        var cropOptions = '<option value="">-- All Crops --</option>' + uniqueCrops.map(c => '<option>'+c+'</option>').join('');
+        
+        selectorDiv.innerHTML = `
+          <div class="fg" style="flex:1;">
+            <label>Select Report</label>
+            <select id="e-report-type" onchange="renderReport()" style="height:30px;border:1px solid #ccc;border-radius:6px;padding:0 8px;font-size:12px;max-width:180px;">
+              <option value="general">General Overview</option>
+              <option value="sec1">CROP & DATA OVERVIEW</option>
+              <option value="sec2">CONSOLIDATED YIELD LOSS PERCENTAGE</option>
+              <option value="sec3">MONETARY LOSS ESTIMATION</option>
+              <option value="sec4">YEAR-WISE YIELD LOSS SUMMARY</option>
+              <option value="sec5">CENTRE-WISE DATA SUMMARY</option>
+            </select>
+          </div>
+          <div class="fg" style="flex:1;">
+            <label>Select Crop</label>
+            <select id="e-report-crop" onchange="renderReport()" style="height:30px;border:1px solid #ccc;border-radius:6px;padding:0 8px;font-size:12px">
+              ${cropOptions}
+            </select>
+          </div>
+          <div class="fg" style="flex:1;">
+            <label>Start Year</label>
+            <select id="e-year-range-start" onchange="renderReport()" style="height:30px;border:1px solid #ccc;border-radius:6px;padding:0 8px;font-size:12px">
+              <option value="">-- Earliest --</option>
+              <option>2020-21</option>
+              <option>2021-22</option>
+              <option>2022-23</option>
+              <option>2023-24</option>
+              <option>2024-25</option>
+              <option>2025-26</option>
+              <option>2026-27</option>
+            </select>
+          </div>
+          <div class="fg" style="flex:1;">
+            <label>End Year</label>
+            <select id="e-year-range-end" onchange="renderReport()" style="height:30px;border:1px solid #ccc;border-radius:6px;padding:0 8px;font-size:12px">
+              <option value="">-- Latest --</option>
+              <option>2020-21</option>
+              <option>2021-22</option>
+              <option>2022-23</option>
+              <option>2023-24</option>
+              <option>2024-25</option>
+              <option>2025-26</option>
+              <option>2026-27</option>
+            </select>
+          </div>`;
+        rc.parentNode.insertBefore(selectorDiv, rc);
+      } else {
+        // update crop dropdown if entries changed but preserve selection
+        var selCrop = document.getElementById('e-report-crop');
+        var currVal = selCrop.value;
+        var uniqueCrops = [...new Set(entries.map(e => e.crop))].sort();
+        selCrop.innerHTML = '<option value="">-- All Crops --</option>' + uniqueCrops.map(c => '<option '+(c===currVal?'selected':'')+'>'+c+'</option>').join('');
+      }
+
+      var reportTypeSel = document.getElementById('e-report-type');
+      var reportType = reportTypeSel ? reportTypeSel.value : 'general';
+
+      if (!entries.length) { rc.innerHTML = '<div class="card"><div class="empty"><i class="fa fa-chart-area"></i>No data yet. Add entries from the Data Entry tab.</div></div>'; return; }
+
+      var allYears = [...new Set(entries.map(e => e.year))].sort();
+      var startSel = document.getElementById('e-year-range-start');
+      var endSel = document.getElementById('e-year-range-end');
+      var cropSel = document.getElementById('e-report-crop');
+      var startY = startSel ? startSel.value : '';
+      var endY = endSel ? endSel.value : '';
+      var selC = cropSel ? cropSel.value : '';
+      
+      var selectedYears = allYears.filter(y => {
+        if (startY && y < startY) return false;
+        if (endY && y > endY) return false;
+        return true;
+      });
+      
+      var filtered = entries.filter(e => selectedYears.includes(e.year));
+      var years = selectedYears.sort();
+      var cropColors = { Castor: 'b-blue', Sunflower: 'b-amber', Linseed: 'b-green', Sesame: 'b-red', Safflower: 'b-gray', Niger: 'b-gray' };
+
+      function avg(arr, k) { var v = arr.filter(e => e[k] > 0); return v.length ? v.reduce((s, e) => s + e[k], 0) / v.length : 0; }
+      function avgAll(arr, k) { return arr.length ? arr.reduce((s, e) => s + (e[k] || 0), 0) / arr.length : 0; }
+      function uniqueList(arr, k) { 
+        var set = new Set();
+        arr.forEach(e => {
+           if(e[k] && e[k] !== '—') e[k].split(',').map(x=>x.trim()).forEach(x => {if(x) set.add(x)});
+        });
+        return [...set].join(', ') || '—';
+      }
+
+      var commonStyles = `
+        <style>
+          .accordion-header { cursor: pointer; padding: 16px 18px; margin: 0; background: #f9f9f9; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; border-bottom: 1px solid #ddd; transition: background 0.2s; }
+          .accordion-header:hover { background: #f1f1f1; }
+          .accordion-header.active { background: #eef5fa; border-bottom: 1px solid #d4e3f0; }
+          .accordion-header.active i.fa-chevron-down { transform: rotate(180deg); }
+          .accordion-content { display: none; padding: 18px; }
+          .tbl.sectbl th { background: #3b71a7; color: #fff; text-align: left; }
+          .tbl.sectbl td, .tbl.sectbl th { padding: 8px 12px; }
+          .ov-table td:first-child { font-weight: 500; width: 30%; }
+          .yellow-note { background: #fff8e1; border-left: 4px solid #ffc107; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #665000; }
+        </style>`;
+
+      // If no crop is selected or reportType is general, prompt to select a crop or show aggregate
+      if (reportType === 'general' || !selC) {
+        var crops = [...new Set(filtered.map(e => e.crop))];
+        var summary = crops.map(crop => {
+          var rs = filtered.filter(e => e.crop === crop);
+          var pArr = rs.filter(r => r.prod > 0), mArr = rs.filter(r => r.msp > 0);
+          var prod = pArr.length ? pArr.reduce((s, r) => s + r.prod, 0) / pArr.length : ((cropParams[crop]||{}).prod || 0);
+          var msp = mArr.length ? mArr.reduce((s, r) => s + r.msp, 0) / mArr.length : ((cropParams[crop]||{}).msp || 0);
+          var val = calcVal(prod, msp);
+          var iMin = avgAll(rs, 'ins_min'), iAvg = avgAll(rs, 'ins_avg'), iMax = avgAll(rs, 'ins_max');
+          var dMin = avgAll(rs, 'dis_min'), dAvg = avgAll(rs, 'dis_avg'), dMax = avgAll(rs, 'dis_max');
+          return { crop, n: rs.length, prod, msp, val, iMin, iAvg, iMax, dMin, dAvg, dMax,
+            ilMin: val * iMin / 100, ilAvg: val * iAvg / 100, ilMax: val * iMax / 100,
+            dlMin: val * dMin / 100, dlAvg: val * dAvg / 100, dlMax: val * dMax / 100,
+            tMin: val * (iMin + dMin) / 100, tAvg: val * (iAvg + dAvg) / 100 };
+        });
+
+        var T = { val: 0, ilMin: 0, ilAvg: 0, ilMax: 0, dlMin: 0, dlAvg: 0, dlMax: 0, tMin: 0, tAvg: 0 };
+        summary.forEach(r => {
+          T.val += r.val; T.ilMin += r.ilMin; T.ilAvg += r.ilAvg; T.ilMax += r.ilMax;
+          T.dlMin += r.dlMin; T.dlAvg += r.dlAvg; T.dlMax += r.dlMax; T.tMin += r.tMin; T.tAvg += r.tAvg;
+        });
+
+        rc.innerHTML = commonStyles + `<div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header ${reportType !== 'general' && !selC ? 'active' : ''}" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span><i class="fa fa-info-circle"></i> This Report Requires a Crop</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+          </div>
+          <div class="accordion-content" style="display:${reportType !== 'general' && !selC ? 'block' : 'none'};">
+            <div class="empty" style="padding: 20px 0;"><i class="fa fa-leaf" style="color:#aaa;font-size:32px;margin-bottom:10px;"></i><br>To view this specific report, please select a crop from the 'Select Crop' dropdown.</div>
+          </div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header ${reportType === 'general' ? 'active' : ''}" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span><i class="fa fa-table-cells"></i> General Overview (All Crops)</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+          </div>
+          <div class="accordion-content" style="display:${reportType === 'general' ? 'block' : 'none'};">
+            <div class="metric-row" style="margin-bottom: 20px;">
+              <div class="metric"><div class="m-label">Total entries</div><div class="m-val">${filtered.length}</div><div class="m-sub">${crops.length} crop(s), ${years.length} year(s)</div></div>
+              <div class="metric"><div class="m-label">Total value of produce</div><div class="m-val">₹${T.val.toFixed(0)} Cr</div><div class="m-sub">Combined all crops</div></div>
+              <div class="metric red"><div class="m-label">Total loss — Average</div><div class="m-val">₹${T.tAvg.toFixed(2)} Cr</div><div class="m-sub">Insect + Disease (avg)</div></div>
+            </div>
+          </div>
+        </div>`;
+        return;
+      }
+
+      // -- 5 SECTION REPORT LOGIC FOR SPECIFIC CROP --
+      var rs = filtered.filter(e => e.crop === selC);
+      
+      // Calculations for Section 1: CROP & DATA OVERVIEW
+      var pArr = rs.filter(r => r.prod > 0), mArr = rs.filter(r => r.msp > 0);
+      var prod = pArr.length ? pArr.reduce((s, r) => s + r.prod, 0) / pArr.length : ((cropParams[selC]||{}).prod || 0);
+      var msp = mArr.length ? mArr.reduce((s, r) => s + r.msp, 0) / mArr.length : ((cropParams[selC]||{}).msp || 0);
+      var val = calcVal(prod, msp);
+      
+      var majorInsects = uniqueList(rs, 'ins_pests');
+      var majorDiseases = uniqueList(rs, 'dis_names');
+      var numCentres = new Set(rs.map(r => r.centre)).size;
+      
+      var iMin = avgAll(rs, 'ins_min'), iAvg = avgAll(rs, 'ins_avg');
+      var dMin = avgAll(rs, 'dis_min'), dAvg = avgAll(rs, 'dis_avg');
+      
+      var ilMin = val * iMin / 100, ilAvg = val * iAvg / 100;
+      var dlMin = val * dMin / 100, dlAvg = val * dAvg / 100;
+
+      // Group by year for Section 4
+      var ySummary = [];
+      years.forEach(y => {
+        var yRs = rs.filter(e => e.year === y);
+        if(yRs.length) {
+           ySummary.push({
+             year: y,
+             insAvg: avgAll(yRs, 'ins_avg'),
+             disAvg: avgAll(yRs, 'dis_avg'),
+             insects: uniqueList(yRs, 'ins_pests'),
+             diseases: uniqueList(yRs, 'dis_names')
+           });
+        }
+      });
+
+      // Group by centre for Section 5
+      var centres = [...new Set(rs.map(r => r.centre))].sort();
+      var cSummary = [];
+      centres.forEach(c => {
+         var cRs = rs.filter(e => e.centre === c);
+         if(cRs.length) {
+            var cInsects = uniqueList(cRs, 'ins_pests');
+            var cDiseases = uniqueList(cRs, 'dis_names');
+            var cIMin = Math.min(...cRs.map(x=>x.ins_min)), cIMax = Math.max(...cRs.map(x=>x.ins_max));
+            var cDMin = Math.min(...cRs.map(x=>x.dis_min)), cDMax = Math.max(...cRs.map(x=>x.dis_max));
+            var iRange = cIMin === cIMax ? cIMin + '%' : cIMin + '–' + cIMax + '%';
+            var dRange = cDMin === cDMax ? cDMin + '%' : cDMin + '–' + cDMax + '%';
+            if (cIMin === Infinity || cIMax === -Infinity) iRange = 'ND';
+            if (cDMin === Infinity || cDMax === -Infinity) dRange = 'ND';
+            
+            cSummary.push({
+               centre: c,
+               insects: cInsects,
+               diseases: cDiseases,
+               iRange: iRange,
+               dRange: dRange
+            });
+         }
+      });
+
+      var dataPeriodStr = years.length > 0 ? years[0] + ' to ' + years[years.length-1] + ' (' + years.length + ' years)' : '—';
+
+      var htmlOut = commonStyles;
+      
+      if (reportType === 'sec1') {
+        htmlOut += `
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span>CROP & DATA OVERVIEW</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+          </div>
+          <div class="accordion-content" style="display:block;">
+            <table class="tbl sectbl ov-table" style="width:100%">
+              <thead><tr><th>Parameter</th><th>Details</th></tr></thead>
+              <tbody>
+                <tr><td>Crop</td><td><strong>${selC}</strong></td></tr>
+                <tr><td>Avg. Production</td><td>${fmt(prod,3)} Lakh Tonnes</td></tr>
+                <tr><td>MSP / Market Price (avg.)</td><td>Rs. ${fmt(msp,2)}/quintal (avg.)</td></tr>
+                <tr><td>Value of Produce</td><td>Rs. ${fmt(val,2)} Crores</td></tr>
+                <tr><td>Major Insect Pests</td><td>${majorInsects}</td></tr>
+                <tr><td>Major Diseases</td><td>${majorDiseases}</td></tr>
+                <tr><td>Data Period</td><td>${dataPeriodStr}</td></tr>
+                <tr><td>No. of Reporting Centres</td><td>${numCentres} Centres / State Institutions</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      }
+
+      if (reportType === 'sec2') {
+        htmlOut += `
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span>CONSOLIDATED YIELD LOSS PERCENTAGE</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+          </div>
+          <div class="accordion-content" style="display:block;">
+            <div class="yellow-note">
+              Methodology: For each centre-year record, if a range (min–max) was reported, the average was computed. If a single value was reported, it was used as both min and avg. Final % = mean of all records across all centres and years.
+            </div>
+            <table class="tbl sectbl" style="width:100%; text-align:center;">
+              <thead><tr><th style="text-align:left">Parameter</th><th style="text-align:center">Min. Loss (%)</th><th style="text-align:center">Avg. Loss (%)</th></tr></thead>
+              <tbody>
+                <tr><td style="text-align:left; color:#d9534f; font-weight:bold;">Yield Loss due to Insect Pests</td><td style="color:#d9534f; font-weight:bold;">${fmt(iMin,2)}%</td><td style="color:#d9534f; font-weight:bold;">${fmt(iAvg,2)}%</td></tr>
+                <tr><td style="text-align:left">Yield Loss due to Diseases</td><td>${fmt(dMin,2)}%</td><td>${fmt(dAvg,2)}%</td></tr>
+                <tr style="background:#f1f5f9"><td style="text-align:left; color:#0e3c68; font-weight:bold;">COMBINED Yield Loss (Insects + Diseases)</td><td style="color:#0e3c68; font-weight:bold;">${fmt(iMin+dMin,2)}%</td><td style="color:#0e3c68; font-weight:bold;">${fmt(iAvg+dAvg,2)}%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      }
+
+      if (reportType === 'sec3') {
+        htmlOut += `
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span>MONETARY LOSS ESTIMATION</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+          </div>
+          <div class="accordion-content" style="display:block;">
+            <div class="yellow-note">
+              Formula: Monetary Loss (₹ Cr) = Value of Produce (₹ Cr) × % Yield Loss ÷ 100 | Value of Produce = ${fmt(prod,3)} Lakh Tonnes × Rs. ${fmt(msp,2)}/quintal (avg.) = Rs. ${fmt(val,2)} Crores
+            </div>
+            <table class="tbl sectbl" style="width:100%; text-align:center;">
+              <thead><tr><th style="text-align:left">Loss Component</th><th style="text-align:center">Min Loss (% Loss)</th><th style="text-align:center">Min Loss (₹ Crores)</th><th style="text-align:center">Avg Loss (% Loss)</th><th style="text-align:center">Avg Loss (₹ Crores)</th></tr></thead>
+              <tbody>
+                <tr><td style="text-align:left">Monetary Loss due to Insect</td><td>${fmt(iMin,2)}%</td><td>Rs. ${fmt(ilMin,2)} Cr</td><td>${fmt(iAvg,2)}%</td><td>Rs. ${fmt(ilAvg,2)} Cr</td></tr>
+                <tr><td style="text-align:left">Monetary Loss due to Diseases</td><td>${fmt(dMin,2)}%</td><td>Rs. ${fmt(dlMin,2)} Cr</td><td>${fmt(dAvg,2)}%</td><td>Rs. ${fmt(dlAvg,2)} Cr</td></tr>
+                <tr style="background:#f1f5f9"><td style="text-align:left; color:#0e3c68; font-weight:bold;">COMBINED Monetary Loss</td><td style="color:#0e3c68; font-weight:bold;">${fmt(iMin+dMin,2)}%</td><td style="color:#0e3c68; font-weight:bold;">Rs. ${fmt(ilMin+dlMin,2)} Cr</td><td style="color:#0e3c68; font-weight:bold;">${fmt(iAvg+dAvg,2)}%</td><td style="color:#0e3c68; font-weight:bold;">Rs. ${fmt(ilAvg+dlAvg,2)} Cr</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      }
+
+      if (reportType === 'sec4') {
+        htmlOut += `
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span>YEAR-WISE YIELD LOSS SUMMARY</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+          </div>
+          <div class="accordion-content" style="display:block;">
+            <table class="tbl sectbl" style="width:100%; text-align:center;">
+              <thead><tr><th style="text-align:center">Year</th><th style="text-align:center">Insect Loss (%)</th><th style="text-align:center">Disease Loss (%)</th><th style="text-align:left">Major Insect Pests Recorded</th><th style="text-align:left">Major Diseases Recorded</th></tr></thead>
+              <tbody>
+                ${ySummary.map(y => `<tr><td>${y.year}</td><td>${fmt(y.insAvg,2)}%</td><td>${fmt(y.disAvg,2)}%</td><td style="text-align:left">${y.insects}</td><td style="text-align:left">${y.diseases}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      }
+
+      if (reportType === 'sec5') {
+        htmlOut += `
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
+            <span>CENTRE-WISE DATA SUMMARY</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+          </div>
+          <div class="accordion-content" style="display:block;">
+            <table class="tbl sectbl" style="width:100%; text-align:center;">
+              <thead><tr><th style="text-align:left">Centre / Institution</th><th style="text-align:left">Major Insect Pests</th><th style="text-align:left">Major Diseases</th><th style="text-align:center">Insect Loss Range</th><th style="text-align:center">Disease Loss Range</th></tr></thead>
+              <tbody>
+                ${cSummary.map(c => `<tr><td style="text-align:left">${c.centre}</td><td style="text-align:left">${c.insects}</td><td style="text-align:left">${c.diseases}</td><td>${c.iRange}</td><td>${c.dRange}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+      }
+      
+      rc.innerHTML = htmlOut;
+    }
+// duplicate renderReport removed
+    function updateSetupPeriod(oldKey, newPeriod) {
+      newPeriod = newPeriod.trim();
+      var pObj = cropParams[oldKey];
+      var crop = oldKey.split('|')[0];
+      var newKey = newPeriod ? (crop + '|' + newPeriod) : crop;
+      
+      if (newKey !== oldKey) {
+        cropParams[newKey] = { prod: pObj.prod, msp: pObj.msp, period: newPeriod };
+        delete cropParams[oldKey];
+      } else {
+        pObj.period = newPeriod;
+      }
+      persistCropParams();
+      renderSetup();
+    }
+
+    function renderSetup() { 
+      var sortedKeys = Object.keys(cropParams).sort((a, b) => {
+        var cropA = a.split('|')[0];
+        var cropB = b.split('|')[0];
+        if (cropA !== cropB) return cropA.localeCompare(cropB);
+        var yearA = a.split('|')[1] || cropParams[a].period || '';
+        var yearB = b.split('|')[1] || cropParams[b].period || '';
+        return yearA.localeCompare(yearB);
+      });
+      document.getElementById('setup-body').innerHTML = sortedKeys.map(c => { 
+        var p = cropParams[c];
+        var v = calcVal(p.prod, p.msp); 
+        var displayCrop = c.split('|')[0]; 
+        var displayPeriod = c.split('|')[1] || p.period || '';
+        return `<tr><td class="lcell"><strong>${displayCrop}</strong></td><td><input type="number" value="${p.prod}" step="0.001" style="width:120px;height:28px;border:1px solid #ccc;border-radius:6px;padding:0 6px;font-size:12px" onchange="cropParams['${c}'].prod=parseFloat(this.value)||0;persistCropParams();renderSetup();"></td><td><input type="number" value="${p.msp}" step="0.01" style="width:120px;height:28px;border:1px solid #ccc;border-radius:6px;padding:0 6px;font-size:12px" onchange="cropParams['${c}'].msp=parseFloat(this.value)||0;persistCropParams();renderSetup();"></td><td><input type="text" value="${displayPeriod}" placeholder="2020-21" style="width:80px;height:28px;border:1px solid #ccc;border-radius:6px;padding:0 6px;font-size:12px" onchange="updateSetupPeriod('${c}', this.value)"></td><td><strong>₹${v.toFixed(4)} Cr</strong></td><td><div style="display:flex;gap:4px;"><button class="btn btn-sm btn-primary" onclick="editSetup('${c}')"><i class="fa fa-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="delete cropParams['${c}'];persistCropParams();renderSetup()"><i class="fa fa-trash"></i></button></div></td></tr>`;
+      }).join(''); 
+    }
+    
+    function editSetup(c) {
+      var p = cropParams[c];
+      if (!p) return;
+      var parts = c.split('|');
+      var cropName = parts[0];
+      var period = parts[1] || p.period || '';
+      
+      document.getElementById('s-crop').value = cropName;
+      document.getElementById('s-prod').value = p.prod;
+      document.getElementById('s-msp').value = p.msp;
+      document.getElementById('s-period').value = period;
+      document.getElementById('s-crop').scrollIntoView({behavior: "smooth", block: "center"});
+      document.getElementById('s-crop').focus();
+    }
+    function saveSetup() {
+  var c = document.getElementById('s-crop').value.trim();
+  var p = parseFloat(document.getElementById('s-prod').value) || 0;
+  var m = parseFloat(document.getElementById('s-msp').value) || 0;
+  var per = document.getElementById('s-period').value.trim();
+  if (!c) return;
+  if (per) {
+    cropParams[c + '|' + per] = { prod: p, msp: m, period: per };
+  } else {
+    cropParams[c] = { prod: p, msp: m, period: '' };
+  }
+  // Persist all changes
+  persistCropParams();
+  var sel = document.getElementById('e-crop');
+  if (![...sel.options].some(o => o.value === c)) { var o = document.createElement('option'); o.value = o.textContent = c; sel.appendChild(o); }
+  // Ensure year options include the new period
+  var yearSel = document.getElementById('e-year');
+  if (per && ![...yearSel.options].some(o => o.value === per)) { var o = document.createElement('option'); o.value = o.textContent = per; yearSel.appendChild(o); }
+  ['s-crop', 's-prod', 's-msp', 's-period'].forEach(id => document.getElementById(id).value = '');
+  renderSetup();
+}
+
+// Fallback fetch from UPAg portal (placeholder implementation)
+function fetchCropParamsFromUPAg(crop, year) {
+  // Placeholder URL – replace with actual API endpoint as needed
+  var apiUrl = `https://upag.gov.in/api/crop-params?crop=${encodeURIComponent(crop)}&year=${encodeURIComponent(year)}`;
+  fetch(apiUrl)
+    .then(r => r.ok ? r.json() : Promise.reject('Failed to fetch'))
+    .then(data => {
+      if (data && data.prod != null && data.msp != null) {
+        // Store fetched params for future use
+        var key = crop + '|' + year;
+        cropParams[key] = { prod: data.prod, msp: data.msp };
+        // Update UI fields if current selection matches
+        if (document.getElementById('e-crop').value === crop && document.getElementById('e-year').value === year) {
+          document.getElementById('e-prod').value = data.prod;
+          document.getElementById('e-msp').value = data.msp;
+          recalc();
+        }
+      }
+    })
+    .catch(err => console.warn('UPAg fetch error:', err));
+}
+
+    function loadSample() { var s = [{ centre: 'RARS Palem', state: 'Telangana', zone: 'Southern TZ', crop: 'Castor', year: '2020-21', season: 'Kharif', cultivar: 'PCH-111', location: 'Mahabubnagar', area: 500, ins_min: 12, ins_max: 12, dis_min: 10, dis_max: 80, ins_pests: 'Capsule borer, Thrips, Whiteflies', dis_names: 'Wilt, Gray mold', mon: 20500, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'RARS Palem', state: 'Telangana', zone: 'Southern TZ', crop: 'Castor', year: '2022-23', season: 'Kharif', cultivar: 'PCH-111', location: 'Nagarkurnool', area: 460, ins_min: 11, ins_max: 11, dis_min: 5, dis_max: 35, ins_pests: 'Capsule borer, Thrips, Whiteflies', dis_names: 'Wilt, Gray mold, Root rot', mon: 14000, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'SDAU Gujarat', state: 'Gujarat', zone: 'North Gujarat Zone IV', crop: 'Castor', year: '2020-21', season: 'Kharif', cultivar: 'GCH-4', location: 'S.K. Nagar', area: 800, ins_min: 29, ins_max: 29, dis_min: 17, dis_max: 17, ins_pests: 'Leafhopper, Thrips, Whitefly, Semilooper, Spodoptera', dis_names: 'Fusarium wilt, Root rot', mon: 52000, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'Dr. BRC ARS Mandor', state: 'Rajasthan', zone: 'Western dry/plane region', crop: 'Castor', year: '2021-22', season: 'Kharif', cultivar: 'Available', location: 'Jodhpur', area: 400, ins_min: 0, ins_max: 0, dis_min: 46.98, dis_max: 46.98, ins_pests: 'ND', dis_names: 'Root rot', mon: 39170, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'ZARS UAS Bengaluru', state: 'Karnataka', zone: 'Zone-V', crop: 'Sunflower', year: '2021-22', season: 'Kharif', cultivar: 'KBSH-78', location: 'Chamarajnagar', area: 300, ins_min: 5, ins_max: 5, dis_min: 10, dis_max: 12, ins_pests: 'Leafhopper, Thrips, Helicoverpa', dis_names: 'Alternariaster leaf spot, PM, Necrosis', mon: 12000, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'TNAU Coimbatore', state: 'Tamil Nadu', zone: 'Southern Agro-climatic Zone', crop: 'Sunflower', year: '2021-22', season: 'Rabi', cultivar: 'CO2', location: 'Coimbatore', area: 200, ins_min: 0, ins_max: 0, dis_min: 21, dis_max: 21, ins_pests: 'ND', dis_names: 'Alternaria blight, PM, Necrosis', mon: 21840, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }]; entries = []; s.forEach(function (d) { var p = cropParams[d.crop] || { prod: 1, msp: 5000 }; var iAvg = (d.ins_min + d.ins_max) / 2, dAvg = (d.dis_min + d.dis_max) / 2; var val = calcVal(p.prod, p.msp); entries.push({ id: Date.now() + Math.random(), ...d, ins_avg: iAvg, dis_avg: dAvg, prod: p.prod, msp: p.msp, val: val, il_min: val * d.ins_min / 100, il_avg: val * iAvg / 100, il_max: val * d.ins_max / 100, dl_min: val * d.dis_min / 100, dl_avg: val * dAvg / 100, dl_max: val * d.dis_max / 100, tot_min: val * (d.ins_min + d.dis_min) / 100, tot_avg: val * (iAvg + dAvg) / 100 }); }); updateBadge(); showAlert('✓ 14 sample records loaded successfully. Click "View Report" to see the auto-generated summary report.', 'success'); }
+  </script>
+</body>
+
+</html>

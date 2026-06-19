@@ -174,3 +174,6 @@ export const SEASONS = ['Kharif 2024-25','Rabi 2024-25','Kharif 2023-24','Rabi 2
 export const AV_COLORS = ['#1b5e20','#1565c0','#c62828','#6a1b9a','#d97706','#0d9488','#b45309','#0369a1'];
 
 export const wiltColor = v => v>=20 ? 'var(--red)' : v>=10 ? 'var(--orange)' : v>=5 ? 'var(--amber-d)' : 'var(--g7)';
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { CROPS, DISCIPLINES, getColsByDiscipline };
+}

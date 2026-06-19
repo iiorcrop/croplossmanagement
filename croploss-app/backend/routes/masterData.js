@@ -45,7 +45,7 @@ router.put('/:key', protect, authorize('super_admin'), async (req, res, next) =>
   try {
     const { key } = req.params;
     const { value } = req.body; // expect array
-    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions','varieties'];
+    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions','varieties','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases'];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid master data key' });
     let data = await MasterData.findOneAndUpdate({ }, { [key]: value }, { new: true, upsert: true });
     res.json({ success: true, data });
@@ -58,10 +58,24 @@ router.put('/:key', protect, authorize('super_admin'), async (req, res, next) =>
 router.delete('/:key/:value', protect, authorize('super_admin'), async (req, res, next) => {
   try {
     const { key, value } = req.params;
-    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions'];
+    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases'];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid master data key' });
     const update = { $pull: { [key]: value } };
     let data = await MasterData.findOneAndUpdate({}, update, { new: true });
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST append a single value to a list (allow normal users)
+router.post('/:key/append', protect, async (req, res, next) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    const allowedKeys = ['centers','states','locations','cultivars','agroEcologicalZones','zonesList','crops','seasons','years','pests','diseases'];
+    if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid append key' });
+    let data = await MasterData.findOneAndUpdate({}, { $addToSet: { [key]: value } }, { new: true, upsert: true });
     res.json({ success: true, data });
   } catch (err) {
     next(err);
