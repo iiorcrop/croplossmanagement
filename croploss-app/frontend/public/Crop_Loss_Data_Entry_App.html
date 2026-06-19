@@ -842,50 +842,70 @@
     <div class="card">
       <div class="card-title"><i class="fa fa-worm"></i> Nematodes Yield Loss (%)</div>
       <div class="form-grid">
-        <div class="fg"><label>Nematode Name</label><div id="nem-container" style="width:100%;"></div><span class="hint">Name of nematode species / type</span></div>
-        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-nem-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to nematodes</span></div>
-        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-nem-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to nematodes</span></div>
-        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-nem-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+        <div class="fg" style="grid-column: 1 / -1;">
+          <div id="nem-rows-container"></div>
+          <button type="button" class="btn btn-outline" style="margin-top:10px; font-size:12px;" onclick="addExtraPestRow('nem', 'Nematode', 'nematodes')">➕ Add Nematode Record</button>
+        </div>
+        <input type="hidden" id="e-nem-name">
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Min loss (%)</label><input type="number" id="e-nem-min" class="calc" readonly><span class="hint">Sum of min losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Max loss (%)</label><input type="number" id="e-nem-max" class="calc" readonly><span class="hint">Sum of max losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Avg loss (%) — computed</label><input type="number" id="e-nem-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
       </div>
     </div>
     <!-- Weeds Yield Loss -->
     <div class="card">
       <div class="card-title"><i class="fa fa-seedling"></i> Weeds Yield Loss (%)</div>
       <div class="form-grid">
-        <div class="fg"><label>Weed Name</label><div id="weed-container" style="width:100%;"></div><span class="hint">Name of weed species / type</span></div>
-        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-weed-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to weeds</span></div>
-        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-weed-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to weeds</span></div>
-        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-weed-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+        <div class="fg" style="grid-column: 1 / -1;">
+          <div id="weed-rows-container"></div>
+          <button type="button" class="btn btn-outline" style="margin-top:10px; font-size:12px;" onclick="addExtraPestRow('weed', 'Weed', 'weeds')">➕ Add Weed Record</button>
+        </div>
+        <input type="hidden" id="e-weed-name">
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Min loss (%)</label><input type="number" id="e-weed-min" class="calc" readonly><span class="hint">Sum of min losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Max loss (%)</label><input type="number" id="e-weed-max" class="calc" readonly><span class="hint">Sum of max losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Avg loss (%) — computed</label><input type="number" id="e-weed-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
       </div>
     </div>
     <!-- Mites Yield Loss -->
     <div class="card">
       <div class="card-title"><i class="fa fa-spider"></i> Mites Yield Loss (%)</div>
       <div class="form-grid">
-        <div class="fg"><label>Mite Name</label><div id="mite-container" style="width:100%;"></div><span class="hint">Name of mite species / type</span></div>
-        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-mite-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to mites</span></div>
-        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-mite-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to mites</span></div>
-        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-mite-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+        <div class="fg" style="grid-column: 1 / -1;">
+          <div id="mite-rows-container"></div>
+          <button type="button" class="btn btn-outline" style="margin-top:10px; font-size:12px;" onclick="addExtraPestRow('mite', 'Mite', 'mites')">➕ Add Mite Record</button>
+        </div>
+        <input type="hidden" id="e-mite-name">
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Min loss (%)</label><input type="number" id="e-mite-min" class="calc" readonly><span class="hint">Sum of min losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Max loss (%)</label><input type="number" id="e-mite-max" class="calc" readonly><span class="hint">Sum of max losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Avg loss (%) — computed</label><input type="number" id="e-mite-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
       </div>
     </div>
     <!-- Rodents Yield Loss -->
     <div class="card">
       <div class="card-title"><i class="fa fa-paw"></i> Rodents Yield Loss (%)</div>
       <div class="form-grid">
-        <div class="fg"><label>Rodent Name</label><div id="rod-container" style="width:100%;"></div><span class="hint">Name of rodent species / type</span></div>
-        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-rod-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to rodents</span></div>
-        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-rod-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to rodents</span></div>
-        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-rod-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+        <div class="fg" style="grid-column: 1 / -1;">
+          <div id="rod-rows-container"></div>
+          <button type="button" class="btn btn-outline" style="margin-top:10px; font-size:12px;" onclick="addExtraPestRow('rod', 'Rodent', 'rodents')">➕ Add Rodent Record</button>
+        </div>
+        <input type="hidden" id="e-rod-name">
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Min loss (%)</label><input type="number" id="e-rod-min" class="calc" readonly><span class="hint">Sum of min losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Max loss (%)</label><input type="number" id="e-rod-max" class="calc" readonly><span class="hint">Sum of max losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Avg loss (%) — computed</label><input type="number" id="e-rod-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
       </div>
     </div>
     <!-- Vertebrate Yield Loss -->
     <div class="card">
       <div class="card-title"><i class="fa fa-crow"></i> Vertebrate Yield Loss (%)</div>
       <div class="form-grid">
-        <div class="fg"><label>Vertebrate Name</label><div id="vert-container" style="width:100%;"></div><span class="hint">Name of vertebrate species / type</span></div>
-        <div class="fg"><label>Min loss (%)</label><input type="number" id="e-vert-min" step="0.01" placeholder="e.g. 2" oninput="recalc()"><span class="hint">Minimum % loss due to vertebrates</span></div>
-        <div class="fg"><label>Max loss (%)</label><input type="number" id="e-vert-max" step="0.01" placeholder="e.g. 5" oninput="recalc()"><span class="hint">Maximum % loss due to vertebrates</span></div>
-        <div class="fg"><label>Avg loss (%) — computed</label><input type="number" id="e-vert-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
+        <div class="fg" style="grid-column: 1 / -1;">
+          <div id="vert-rows-container"></div>
+          <button type="button" class="btn btn-outline" style="margin-top:10px; font-size:12px;" onclick="addExtraPestRow('vert', 'Vertebrate', 'vertebrates')">➕ Add Vertebrate Record</button>
+        </div>
+        <input type="hidden" id="e-vert-name">
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Min loss (%)</label><input type="number" id="e-vert-min" class="calc" readonly><span class="hint">Sum of min losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Max loss (%)</label><input type="number" id="e-vert-max" class="calc" readonly><span class="hint">Sum of max losses</span></div>
+        <div class="fg" style="border-top: 1px solid #eee; padding-top: 14px;"><label>TOTAL Avg loss (%) — computed</label><input type="number" id="e-vert-avg" class="calc" readonly><span class="hint">Auto: (Min + Max) ÷ 2</span></div>
       </div>
     </div>
     <div class="card">
@@ -997,6 +1017,16 @@
   </div>
   <!-- Report tab -->
   <div id="pg-report" class="content" style="display:none">
+    <!-- Final Report Controls -->
+    <div id="final-report-bar" style="display:flex;align-items:center;gap:12px;padding:12px 0 4px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <label style="font-size:12px;font-weight:600;color:#0e3c68;display:block;margin-bottom:4px;"><i class="fa fa-file-pdf" style="color:#c0392b;"></i> Final Report Name</label>
+        <input type="text" id="final-report-name" placeholder="e.g. Castor Yield Loss Report 2020-25" style="width:100%;border:1.5px solid #b0c4de;border-radius:7px;padding:7px 12px;font-size:13px;outline:none;box-shadow:0 1px 4px #0001;">
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;padding-bottom:2px;">
+        <button onclick="downloadAllReportsPDF()" style="background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 2px 8px #c0392b44;white-space:nowrap;"><i class="fa fa-file-pdf"></i> Download Final Report (All Sections)</button>
+      </div>
+    </div>
     <div id="report-html"></div>
   </div>
   <!-- Setup tab -->
@@ -1304,9 +1334,6 @@
       populateStateSelect();
       loadDynamicSelectOptions('e-centre', 'centers');
       loadDynamicSelectOptions('e-zone', 'zonesList');
-      loadDynamicSelectOptions('e-cultivar', 'cultivars');
-      loadDynamicSelectOptions('e-location', 'locations', true);
-      loadDynamicSelectOptions('e-crop', 'crops');
       loadDynamicSelectOptions('e-year', 'years');
       loadDynamicSelectOptions('e-season', 'seasons', true);
       loadDynamicSelectOptions('e-cultivar', 'cultivars', true);
@@ -1321,44 +1348,82 @@
         addDiseaseRow();
       }
       
-      // Initialize extra pest name dropdowns
-      initExtraPests();
+      // Initialize extra pests rows
+      if (document.getElementById('nem-rows-container').children.length === 0) {
+        addExtraPestRow('nem', 'Nematode', 'nematodes');
+        addExtraPestRow('weed', 'Weed', 'weeds');
+        addExtraPestRow('mite', 'Mite', 'mites');
+        addExtraPestRow('rod', 'Rodent', 'rodents');
+        addExtraPestRow('vert', 'Vertebrate', 'vertebrates');
+      }
     });
-    
-    function initExtraPests() {
-      var categories = [
-        { id: 'nem', name: 'Nematode', dbKey: 'nematodes' },
-        { id: 'weed', name: 'Weed', dbKey: 'weeds' },
-        { id: 'mite', name: 'Mite', dbKey: 'mites' },
-        { id: 'rod', name: 'Rodent', dbKey: 'rodents' },
-        { id: 'vert', name: 'Vertebrate', dbKey: 'vertebrates' }
-      ];
-      categories.forEach(function(cat) {
-        var container = document.getElementById(cat.id + '-container');
-        if (!container) return;
-        var list = (masterDataCache && masterDataCache[cat.dbKey]) ? masterDataCache[cat.dbKey] : JSON.parse(localStorage.getItem(cat.dbKey) || '[]');
-        var optionsHtml = '';
-        list.forEach(function(val) {
-          optionsHtml += '<label><input type="checkbox" value="' + val + '" onchange="updateMultiHeaderGeneric(\'sel-' + cat.id + '\', \'' + cat.name + '\')"> ' + val + '</label>';
-        });
-        optionsHtml += '<a class="multi-select-add-btn" onclick="showAddUIMulti(\'sel-' + cat.id + '\', \'ui-' + cat.id + '\')">➕ Add New ' + cat.name + '...</a>';
-        
-        container.innerHTML = `
-          <div class="multi-select-dropdown ${cat.id}-name-select" id="sel-${cat.id}">
-            <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
-              <span class="header-text">-- Select ${cat.name} --</span>
-            </div>
-            <div class="multi-select-options">
-              ${optionsHtml}
-            </div>
-          </div>
-          <div id="ui-${cat.id}" class="add-new-row">
-            <input type="text" id="input-${cat.id}" placeholder="Type new ${cat.name.toLowerCase()}...">
-            <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('sel-${cat.id}', '${cat.dbKey}', 'input-${cat.id}', 'ui-${cat.id}')">Add</button>
-            <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('sel-${cat.id}', 'ui-${cat.id}')">Cancel</button>
-          </div>
-        `;
+
+    function addExtraPestRow(type, label, dbKey, data = {name: '', min: '', max: ''}) {
+      var container = document.getElementById(type + '-rows-container');
+      var rowId = type + '-row-' + Date.now() + Math.random().toString().substring(2, 6);
+      
+      var optionsHtml = '';
+      var list = (masterDataCache && masterDataCache[dbKey]) ? masterDataCache[dbKey] : JSON.parse(localStorage.getItem(dbKey) || '[]');
+      var selectedArr = data.name ? data.name.split(',').map(s=>s.trim()) : [];
+      list.forEach(function(val) {
+        var isChecked = selectedArr.includes(val) ? 'checked' : '';
+        optionsHtml += '<label><input type="checkbox" value="' + val + '" onchange="updateMultiHeaderGeneric(\'sel-' + rowId + '\', \''+label+'\'); recalcExtraPest(\''+type+'\');" ' + isChecked + '> ' + val + '</label>';
       });
+      optionsHtml += '<a class="multi-select-add-btn" onclick="showAddUIMulti(\'sel-' + rowId + '\', \'ui-' + rowId + '\')">➕ Add New '+label+'...</a>';
+
+      var headerText = selectedArr.length > 0 ? selectedArr.join(', ') : '-- Select '+label+' --';
+
+      var rowHtml = `
+        <div class="form-grid ${type}-row" id="${rowId}" style="align-items: center; background:#f9f9f9; padding:10px; border-radius:6px; border:1px solid #eee; margin-bottom:10px;">
+          <div class="fg" style="flex:2;">
+            <label>${label} Name</label>
+            <div class="multi-select-dropdown ${type}-name-select" id="sel-${rowId}">
+              <div class="multi-select-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="header-text">${headerText}</span>
+              </div>
+              <div class="multi-select-options">
+                ${optionsHtml}
+              </div>
+            </div>
+            <div id="ui-${rowId}" class="add-new-row">
+              <input type="text" id="input-${rowId}" placeholder="Type new ${label.toLowerCase()}...">
+              <button type="button" class="btn btn-primary" onclick="commitNewOptionMulti('sel-${rowId}', '${dbKey}', 'input-${rowId}', 'ui-${rowId}'); recalcExtraPest('${type}');">Add</button>
+              <button type="button" class="btn btn-outline" onclick="cancelNewOptionMulti('sel-${rowId}', 'ui-${rowId}')">Cancel</button>
+            </div>
+          </div>
+          <div class="fg"><label>Min loss (%)</label><input type="number" class="${type}-min" placeholder="e.g. 2" step="0.01" min="0" max="100" value="${data.min}" oninput="recalcExtraPest('${type}')"></div>
+          <div class="fg"><label>Max loss (%)</label><input type="number" class="${type}-max" placeholder="e.g. 5" step="0.01" min="0" max="100" value="${data.max}" oninput="recalcExtraPest('${type}')"></div>
+          <div class="fg"><label>Avg loss (%)</label><input type="number" class="${type}-avg calc" readonly value="${data.min !== '' && data.max !== '' ? fmt((Number(data.min)+Number(data.max))/2, 2) : ''}"></div>
+          <div class="fg" style="max-width: 40px; margin-top:20px;"><button class="btn btn-danger btn-sm" onclick="document.getElementById('${rowId}').remove(); recalcExtraPest('${type}');"><i class="fa fa-trash"></i></button></div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    function recalcExtraPest(type) {
+      var container = document.getElementById(type + '-rows-container');
+      var rows = container.querySelectorAll('.' + type + '-row');
+      var totalMin = 0, totalMax = 0, names = [];
+      
+      rows.forEach(r => {
+        var min = parseFloat(r.querySelector('.'+type+'-min').value) || 0;
+        var max = parseFloat(r.querySelector('.'+type+'-max').value) || 0;
+        var nameContainer = r.querySelector('.'+type+'-name-select');
+        var nameArr = Array.from(nameContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        if (nameArr.length > 0) names.push(...nameArr);
+        
+        if (max === 0 && min > 0) max = min;
+        var avg = (min + max) / 2;
+        r.querySelector('.'+type+'-avg').value = fmt(avg, 2);
+        
+        totalMin += min;
+        totalMax += max;
+      });
+      
+      document.getElementById('e-' + type + '-name').value = names.length > 0 ? names.join(', ') : '';
+      document.getElementById('e-' + type + '-min').value = fmt(Math.min(100, totalMin), 2);
+      document.getElementById('e-' + type + '-max').value = fmt(Math.min(100, totalMax), 2);
+      recalc();
     }
 
     function addPestRow(data = {name: '', min: '', max: ''}) {
@@ -1605,7 +1670,7 @@
       var prod = parseFloat(document.getElementById('e-prod').value) || 0;
       var msp = parseFloat(document.getElementById('e-msp').value) || 0;
       var val = calcVal(prod, msp);
-      entries.push({ id: Date.now(), centre: document.getElementById('e-centre').value || '—', state: document.getElementById('e-state').value || '—', zone: document.getElementById('e-zone').value || '—', crop, year, season: getMultiSelectValue('e-season'), cultivar: (document.getElementById('e-cultivar')||{}).value || '—', location: getMultiSelectValue('e-location') || '—', area: parseFloat((document.getElementById('e-area')||{}).value) || 0, ins_min: iMin, ins_avg: iAvg, ins_max: iMax, dis_min: dMin, dis_avg: dAvg, dis_max: dMax, ins_pests: (document.getElementById('e-ins-pests')||{}).value || '—', dis_names: (document.getElementById('e-dis-names')||{}).value || '—', mon: parseFloat((document.getElementById('e-mon')||{}).value) || 0, prod, msp, val, mgmt: (document.getElementById('e-mgmt')||{}).value || '—', remarks: (document.getElementById('e-remarks')||{}).value || '', il_min: val * iMin / 100, il_avg: val * iAvg / 100, il_max: val * iMax / 100, dl_min: val * dMin / 100, dl_avg: val * dAvg / 100, dl_max: val * dMax / 100, tot_min: val * (iMin + dMin) / 100, tot_avg: val * (iAvg + dAvg) / 100, nem_min: nemMin, nem_avg: (nemMin+nemMax)/2, nem_max: nemMax, nem_name: getMultiSelectValue('sel-nem'), weed_min: weedMin, weed_avg: (weedMin+weedMax)/2, weed_max: weedMax, weed_name: getMultiSelectValue('sel-weed'), mite_min: miteMin, mite_avg: (miteMin+miteMax)/2, mite_max: miteMax, mite_name: getMultiSelectValue('sel-mite'), rod_min: rodMin, rod_avg: (rodMin+rodMax)/2, rod_max: rodMax, rod_name: getMultiSelectValue('sel-rod'), vert_min: vertMin, vert_avg: (vertMin+vertMax)/2, vert_max: vertMax, vert_name: getMultiSelectValue('sel-vert') });
+      entries.push({ id: Date.now(), centre: document.getElementById('e-centre').value || '—', state: document.getElementById('e-state').value || '—', zone: document.getElementById('e-zone').value || '—', crop, year, season: getMultiSelectValue('e-season'), cultivar: getMultiSelectValue('e-cultivar') || '—', location: getMultiSelectValue('e-location') || '—', area: parseFloat((document.getElementById('e-area')||{}).value) || 0, ins_min: iMin, ins_avg: iAvg, ins_max: iMax, dis_min: dMin, dis_avg: dAvg, dis_max: dMax, ins_pests: (document.getElementById('e-ins-pests')||{}).value || '—', dis_names: (document.getElementById('e-dis-names')||{}).value || '—', mon: parseFloat((document.getElementById('e-mon')||{}).value) || 0, prod, msp, val, mgmt: (document.getElementById('e-mgmt')||{}).value || '—', remarks: (document.getElementById('e-remarks')||{}).value || '', il_min: val * iMin / 100, il_avg: val * iAvg / 100, il_max: val * iMax / 100, dl_min: val * dMin / 100, dl_avg: val * dAvg / 100, dl_max: val * dMax / 100, tot_min: val * (iMin + dMin) / 100, tot_avg: val * (iAvg + dAvg) / 100, nem_min: nemMin, nem_avg: (nemMin+nemMax)/2, nem_max: nemMax, nem_name: (document.getElementById('e-nem-name')||{}).value || '—', weed_min: weedMin, weed_avg: (weedMin+weedMax)/2, weed_max: weedMax, weed_name: (document.getElementById('e-weed-name')||{}).value || '—', mite_min: miteMin, mite_avg: (miteMin+miteMax)/2, mite_max: miteMax, mite_name: (document.getElementById('e-mite-name')||{}).value || '—', rod_min: rodMin, rod_avg: (rodMin+rodMax)/2, rod_max: rodMax, rod_name: (document.getElementById('e-rod-name')||{}).value || '—', vert_min: vertMin, vert_avg: (vertMin+vertMax)/2, vert_max: vertMax, vert_name: (document.getElementById('e-vert-name')||{}).value || '—' });
       persistEntries();
       updateBadge();
       showAlert('✓ Record saved — ' + crop + ' (' + year + ') from ' + (document.getElementById('e-centre').value || 'unknown centre'), 'success');
@@ -1619,14 +1684,26 @@
         'e-rod-min', 'e-rod-max', 'e-rod-avg', 'e-rod-name',
         'e-vert-min', 'e-vert-max', 'e-vert-avg', 'e-vert-name'
       ].forEach(id => { var el = document.getElementById(id); if (el) el.value = ''; });
-      // Reset extra pest dropdowns
-      initExtraPests();
+      
+      setMultiSelectValue('e-season', '');
+      setMultiSelectValue('e-location', '');
+      setMultiSelectValue('e-cultivar', '');
       document.getElementById('pb-ins').style.width = '0%';
       document.getElementById('pb-dis').style.width = '0%';
       document.getElementById('pest-rows-container').innerHTML = '';
       addPestRow();
       document.getElementById('disease-rows-container').innerHTML = '';
       addDiseaseRow();
+      
+      ['nem', 'weed', 'mite', 'rod', 'vert'].forEach(type => {
+        var c = document.getElementById(type + '-rows-container');
+        if (c) {
+          c.innerHTML = '';
+          addExtraPestRow(type, type.charAt(0).toUpperCase() + type.slice(1), 
+            type === 'nem' ? 'nematodes' : type === 'weed' ? 'weeds' : type === 'mite' ? 'mites' : type === 'rod' ? 'rodents' : 'vertebrates'
+          );
+        }
+      });
     }
     function showAlert(msg, type) { var d = document.getElementById('entry-alert'); d.innerHTML = '<div class="alert alert-' + (type || 'success') + '">' + msg + '</div>'; setTimeout(() => d.innerHTML = '', 4000); }
     function updateBadge() { var n = entries.length; document.getElementById('top-badge').textContent = n + ' record' + (n !== 1 ? 's' : ''); document.getElementById('rc-badge').textContent = n; }
@@ -1685,12 +1762,15 @@
       addDiseaseRow({name: e.dis_names !== '—' ? e.dis_names : '', min: e.dis_min, max: e.dis_max});
       recalcDiseases();
       
-      // Set pest name selects
-      setMultiSelectValue('sel-nem', e.nem_name || '');
-      setMultiSelectValue('sel-weed', e.weed_name || '');
-      setMultiSelectValue('sel-mite', e.mite_name || '');
-      setMultiSelectValue('sel-rod', e.rod_name || '');
-      setMultiSelectValue('sel-vert', e.vert_name || '');
+      // Set extra pest rows
+      ['nem', 'weed', 'mite', 'rod', 'vert'].forEach(type => {
+        document.getElementById(type + '-rows-container').innerHTML = '';
+        var nameVal = e[type + '_name'] !== '—' ? e[type + '_name'] : '';
+        addExtraPestRow(type, type.charAt(0).toUpperCase() + type.slice(1), 
+            type === 'nem' ? 'nematodes' : type === 'weed' ? 'weeds' : type === 'mite' ? 'mites' : type === 'rod' ? 'rodents' : 'vertebrates',
+            {name: nameVal, min: e[type + '_min'], max: e[type + '_max']});
+        recalcExtraPest(type);
+      });
       
       if(el = document.getElementById('e-nem-min')) el.value = e.nem_min || '';
       if(el = document.getElementById('e-nem-max')) el.value = e.nem_max || '';
@@ -1942,9 +2022,13 @@
         htmlOut += `
         <div class="card" style="padding:0; overflow:hidden;">
           <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
-            <span>CROP & DATA OVERVIEW</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            <span>CROP & DATA OVERVIEW</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <button onclick="event.stopPropagation(); downloadSingleReportPDF('sec1-card', 'CROP & DATA OVERVIEW - ${selC}')" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;"><i class="fa fa-file-pdf"></i> PDF</button>
+              <i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            </span>
           </div>
-          <div class="accordion-content" style="display:block;">
+          <div class="accordion-content" id="sec1-card" style="display:block;">
             <table class="tbl sectbl ov-table" style="width:100%">
               <thead><tr><th>Parameter</th><th>Details</th></tr></thead>
               <tbody>
@@ -1966,9 +2050,13 @@
         htmlOut += `
         <div class="card" style="padding:0; overflow:hidden;">
           <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
-            <span>CONSOLIDATED YIELD LOSS PERCENTAGE</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            <span>CONSOLIDATED YIELD LOSS PERCENTAGE</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <button onclick="event.stopPropagation(); downloadSingleReportPDF('sec2-card', 'CONSOLIDATED YIELD LOSS - ${selC}')" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;"><i class="fa fa-file-pdf"></i> PDF</button>
+              <i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            </span>
           </div>
-          <div class="accordion-content" style="display:block;">
+          <div class="accordion-content" id="sec2-card" style="display:block;">
             <div class="yellow-note">
               Methodology: For each centre-year record, if a range (min–max) was reported, the average was computed. If a single value was reported, it was used as both min and avg. Final % = mean of all records across all centres and years.
             </div>
@@ -1988,9 +2076,13 @@
         htmlOut += `
         <div class="card" style="padding:0; overflow:hidden;">
           <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
-            <span>MONETARY LOSS ESTIMATION</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            <span>MONETARY LOSS ESTIMATION</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <button onclick="event.stopPropagation(); downloadSingleReportPDF('sec3-card', 'MONETARY LOSS ESTIMATION - ${selC}')" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;"><i class="fa fa-file-pdf"></i> PDF</button>
+              <i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            </span>
           </div>
-          <div class="accordion-content" style="display:block;">
+          <div class="accordion-content" id="sec3-card" style="display:block;">
             <div class="yellow-note">
               Formula: Monetary Loss (₹ Cr) = Value of Produce (₹ Cr) × % Yield Loss ÷ 100 | Value of Produce = ${fmt(prod,3)} Lakh Tonnes × Rs. ${fmt(msp,2)}/quintal (avg.) = Rs. ${fmt(val,2)} Crores
             </div>
@@ -2010,9 +2102,13 @@
         htmlOut += `
         <div class="card" style="padding:0; overflow:hidden;">
           <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
-            <span>YEAR-WISE YIELD LOSS SUMMARY</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            <span>YEAR-WISE YIELD LOSS SUMMARY</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <button onclick="event.stopPropagation(); downloadSingleReportPDF('sec4-card', 'YEAR-WISE YIELD LOSS SUMMARY - ${selC}')" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;"><i class="fa fa-file-pdf"></i> PDF</button>
+              <i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            </span>
           </div>
-          <div class="accordion-content" style="display:block;">
+          <div class="accordion-content" id="sec4-card" style="display:block;">
             <table class="tbl sectbl" style="width:100%; text-align:center;">
               <thead><tr><th style="text-align:center">Year</th><th style="text-align:center">Insect Loss (%)</th><th style="text-align:center">Disease Loss (%)</th><th style="text-align:left">Major Insect Pests Recorded</th><th style="text-align:left">Major Diseases Recorded</th></tr></thead>
               <tbody>
@@ -2027,9 +2123,13 @@
         htmlOut += `
         <div class="card" style="padding:0; overflow:hidden;">
           <div class="card-title accordion-header active" onclick="this.classList.toggle('active'); var c = this.nextElementSibling; c.style.display = c.style.display === 'block' ? 'none' : 'block';">
-            <span>CENTRE-WISE DATA SUMMARY</span><i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            <span>CENTRE-WISE DATA SUMMARY</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+              <button onclick="event.stopPropagation(); downloadSingleReportPDF('sec5-card', 'CENTRE-WISE DATA SUMMARY - ${selC}')" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:700;"><i class="fa fa-file-pdf"></i> PDF</button>
+              <i class="fa fa-chevron-down" style="transition:transform 0.3s"></i>
+            </span>
           </div>
-          <div class="accordion-content" style="display:block;">
+          <div class="accordion-content" id="sec5-card" style="display:block;">
             <table class="tbl sectbl" style="width:100%; text-align:center;">
               <thead><tr><th style="text-align:left">Centre / Institution</th><th style="text-align:left">Major Insect Pests</th><th style="text-align:left">Major Diseases</th><th style="text-align:center">Insect Loss Range</th><th style="text-align:center">Disease Loss Range</th></tr></thead>
               <tbody>
@@ -2042,6 +2142,98 @@
       
       rc.innerHTML = htmlOut;
     }
+
+    function downloadSingleReportPDF(sectionId, title) {
+      var section = document.getElementById(sectionId);
+      if (!section) { alert('Report section not found. Please select a crop and report type first.'); return; }
+      var reportName = (document.getElementById('final-report-name') || {}).value || title;
+      var printWin = window.open('', '_blank', 'width=900,height=700');
+      printWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${reportName} - ${title}</title><style>
+        body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:20px;}
+        h2{font-size:16px;color:#0e3c68;margin-bottom:16px;border-bottom:2px solid #0e3c68;padding-bottom:8px;}
+        table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+        th{background:#3b71a7;color:#fff;padding:8px 12px;text-align:left;font-size:12px;}
+        td{padding:7px 12px;border-bottom:1px solid #e0e0e0;font-size:12px;}
+        tr:nth-child(even){background:#f7f9fc;}
+        .yellow-note{background:#fff8e1;border-left:4px solid #ffc107;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#665000;}
+        @media print{body{margin:0;}}
+      </style></head><body>`);
+      printWin.document.write(`<h2>${reportName ? reportName + ' — ' : ''}${title}</h2>`);
+      printWin.document.write(section.innerHTML);
+      printWin.document.write('</body></html>');
+      printWin.document.close();
+      printWin.focus();
+      setTimeout(function(){ printWin.print(); printWin.close(); }, 400);
+    }
+
+    function downloadAllReportsPDF() {
+      var reportName = (document.getElementById('final-report-name') || {}).value || 'Crop Loss Analysis Report';
+      var selCropEl = document.getElementById('e-report-crop');
+      var selCrop = selCropEl ? selCropEl.value : '';
+      if (!selCrop) { alert('Please select a Crop from the dropdown first, then click Download Final Report.'); return; }
+      if (!entries.length) { alert('No data available. Please add entries from the Data Entry tab first.'); return; }
+
+      // Temporarily render all 5 sections
+      var originalType = document.getElementById('e-report-type').value;
+      var sectionIds = ['sec1','sec2','sec3','sec4','sec5'];
+      var sectionTitles = {
+        sec1: 'CROP & DATA OVERVIEW',
+        sec2: 'CONSOLIDATED YIELD LOSS PERCENTAGE',
+        sec3: 'MONETARY LOSS ESTIMATION',
+        sec4: 'YEAR-WISE YIELD LOSS SUMMARY',
+        sec5: 'CENTRE-WISE DATA SUMMARY'
+      };
+
+      var allHTML = '';
+      var renderCount = 0;
+
+      function renderAndCollect(idx) {
+        if (idx >= sectionIds.length) {
+          // All sections collected — open print window
+          var printWin = window.open('', '_blank', 'width=900,height=800');
+          var startY = (document.getElementById('e-year-range-start') || {}).value || '';
+          var endY = (document.getElementById('e-year-range-end') || {}).value || '';
+          var periodStr = startY && endY ? (startY + ' to ' + endY) : (startY || endY || '');
+          printWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${reportName}</title><style>
+            body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:28px 36px;}
+            h1{font-size:20px;color:#0e3c68;text-align:center;margin-bottom:4px;}
+            .sub{font-size:12px;color:#666;text-align:center;margin-bottom:24px;}
+            h2{font-size:14px;color:#0e3c68;margin:24px 0 10px;border-bottom:2px solid #0e3c68;padding-bottom:6px;page-break-before:auto;}
+            table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+            th{background:#3b71a7;color:#fff;padding:8px 12px;text-align:left;font-size:12px;}
+            td{padding:7px 12px;border-bottom:1px solid #e0e0e0;font-size:12px;}
+            tr:nth-child(even){background:#f7f9fc;}
+            .yellow-note{background:#fff8e1;border-left:4px solid #ffc107;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#665000;}
+            .section-block{margin-bottom:30px;page-break-inside:avoid;}
+            @media print{body{margin:15mm;}h2{page-break-before:auto;}}
+          </style></head><body>`);
+          printWin.document.write(`<h1>${reportName}</h1>`);
+          printWin.document.write(`<div class="sub">Crop: <strong>${selCrop}</strong>${periodStr ? ' &nbsp;|&nbsp; Period: ' + periodStr : ''} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</div>`);
+          printWin.document.write(allHTML);
+          printWin.document.write('</body></html>');
+          printWin.document.close();
+          printWin.focus();
+          // Restore original report type
+          document.getElementById('e-report-type').value = originalType;
+          renderReport();
+          setTimeout(function(){ printWin.print(); printWin.close(); }, 500);
+          return;
+        }
+        var sec = sectionIds[idx];
+        document.getElementById('e-report-type').value = sec;
+        renderReport();
+        setTimeout(function(){
+          var secEl = document.getElementById(sec + '-card');
+          if (secEl) {
+            allHTML += `<div class="section-block"><h2>${sectionTitles[sec]}</h2>${secEl.innerHTML}</div>`;
+          }
+          renderAndCollect(idx + 1);
+        }, 120);
+      }
+
+      renderAndCollect(0);
+    }
+
 // duplicate renderReport removed
     function updateSetupPeriod(oldKey, newPeriod) {
       newPeriod = newPeriod.trim();
