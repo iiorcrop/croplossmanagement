@@ -2436,7 +2436,7 @@ function fetchCropParamsFromUPAg(crop, year) {
     .catch(err => console.warn('UPAg fetch error:', err));
 }
 
-    // ── PDF Download Functions ────────────────────────────────────────────────
+    // ── PDF Download Functions (Popup-Free Inline Printing) ────────────────────────────────────────────────
     function downloadSingleReportPDF(sectionId, title) {
       var section = document.getElementById(sectionId);
       if (!section) {
@@ -2444,31 +2444,55 @@ function fetchCropParamsFromUPAg(crop, year) {
         return;
       }
       var reportName = (document.getElementById('final-report-name') || {}).value || title;
-      var printWin = window.open('', '_blank', 'width=960,height=700');
-      if (!printWin) {
-        alert('Popup was blocked! Please allow popups for this page, then try again.');
-        return;
+      
+      // Hide all body children
+      var originalStates = [];
+      for (var i = 0; i < document.body.children.length; i++) {
+        var el = document.body.children[i];
+        if (el.tagName !== 'SCRIPT') {
+          originalStates.push({ el: el, display: el.style.display });
+          el.style.display = 'none';
+        }
       }
-      printWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${reportName}</title><style>
-        body{font-family:Arial,sans-serif;font-size:12px;color:#222;margin:24px 32px;}
-        h2{font-size:15px;color:#0e3c68;margin-bottom:12px;border-bottom:2px solid #0e3c68;padding-bottom:6px;}
-        table{width:100%;border-collapse:collapse;margin-bottom:12px;}
-        th{background:#3b71a7;color:#fff;padding:7px 10px;text-align:left;font-size:11px;vertical-align:middle;}
-        td{padding:6px 10px;border-bottom:1px solid #e0e0e0;font-size:11px;vertical-align:middle;}
-        tr:nth-child(even){background:#f7f9fc;}
-        .yellow-note{background:#fff8e1;border-left:4px solid #ffc107;padding:8px 12px;margin-bottom:12px;font-size:10px;color:#665000;}
-        .tbl.overall-tbl{border-collapse:collapse;width:100%;}
-        .tbl.overall-tbl th,.tbl.overall-tbl td{border:1px solid #000 !important;padding:5px 7px !important;text-align:center;font-size:10px;}
-        .tbl.overall-tbl th{background:#dde6f0 !important;color:#000 !important;font-weight:bold;vertical-align:middle;}
-        .tbl.overall-tbl td:first-child{text-align:left;font-weight:bold;}
-        @media print{body{margin:10mm 15mm;}}
-      </style></head><body>`);
-      printWin.document.write(`<h2>${reportName ? reportName + ' — ' : ''}${title}</h2>`);
-      printWin.document.write(section.innerHTML);
-      printWin.document.write('</body></html>');
-      printWin.document.close();
-      printWin.focus();
-      setTimeout(function(){ printWin.print(); }, 500);
+
+      // Create print container
+      var printDiv = document.createElement('div');
+      printDiv.id = 'print-container';
+      printDiv.innerHTML = `
+        <div style="font-family:Arial,sans-serif;font-size:12px;color:#222;margin:24px 32px;">
+          <h2 style="font-size:15px;color:#0e3c68;margin-bottom:12px;border-bottom:2px solid #0e3c68;padding-bottom:6px;">${reportName ? reportName + ' — ' : ''}${title}</h2>
+          ${section.innerHTML}
+        </div>
+      `;
+      
+      var style = document.createElement('style');
+      style.innerHTML = `
+        @media print {
+          @page { margin: 10mm 15mm; }
+          body { background: #fff !important; }
+          .tbl { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+          .tbl th { background: #3b71a7 !important; color: #fff !important; padding: 7px 10px; text-align: left; font-size: 11px; vertical-align: middle; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .tbl td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; vertical-align: middle; }
+          .tbl tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .yellow-note { background: #fff8e1 !important; border-left: 4px solid #ffc107; padding: 8px 12px; margin-bottom: 12px; font-size: 10px; color: #665000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .tbl.overall-tbl { border-collapse: collapse; width: 100%; }
+          .tbl.overall-tbl th, .tbl.overall-tbl td { border: 1px solid #000 !important; padding: 5px 7px !important; text-align: center; font-size: 10px; }
+          .tbl.overall-tbl th { background: #dde6f0 !important; color: #000 !important; font-weight: bold; vertical-align: middle; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .tbl.overall-tbl td:first-child { text-align: left; font-weight: bold; }
+          .accordion-content { display: block !important; }
+          button, .fa-chevron-down { display: none !important; }
+        }
+      `;
+      printDiv.appendChild(style);
+      document.body.appendChild(printDiv);
+      
+      window.print();
+      
+      // Cleanup and restore
+      document.body.removeChild(printDiv);
+      for (var j = 0; j < originalStates.length; j++) {
+        originalStates[j].el.style.display = originalStates[j].display;
+      }
     }
 
     function downloadAllReportsPDF() {
@@ -2498,35 +2522,61 @@ function fetchCropParamsFromUPAg(crop, year) {
 
       function renderAndCollect(idx) {
         if (idx >= sectionIds.length) {
-          // All sections collected — open print window
-          var printWin = window.open('', '_blank', 'width=960,height=800');
-          if (!printWin) { alert('Popup was blocked! Please allow popups and try again.'); return; }
+          // All collected, now print inline
           var startY = (document.getElementById('e-year-range-start') || {}).value || '';
           var endY   = (document.getElementById('e-year-range-end')   || {}).value || '';
           var periodStr = startY && endY ? (startY + ' to ' + endY) : (startY || endY || '');
-          printWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${reportName}</title><style>
-            body{font-family:Arial,sans-serif;font-size:12px;color:#222;margin:28px 36px;}
-            h1{font-size:18px;color:#0e3c68;text-align:center;margin-bottom:4px;}
-            .sub{font-size:11px;color:#666;text-align:center;margin-bottom:22px;}
-            h2{font-size:13px;color:#0e3c68;margin:22px 0 8px;border-bottom:2px solid #0e3c68;padding-bottom:5px;}
-            table{width:100%;border-collapse:collapse;margin-bottom:12px;}
-            th{background:#3b71a7;color:#fff;padding:7px 10px;text-align:left;font-size:11px;vertical-align:middle;}
-            td{padding:6px 10px;border-bottom:1px solid #e0e0e0;font-size:11px;}
-            tr:nth-child(even){background:#f7f9fc;}
-            .yellow-note{background:#fff8e1;border-left:4px solid #ffc107;padding:8px 12px;margin-bottom:12px;font-size:10px;color:#665000;}
-            .section-block{margin-bottom:28px;page-break-inside:avoid;}
-            @media print{body{margin:12mm 15mm;}h2{page-break-before:auto;}}
-          </style></head><body>`);
-          printWin.document.write(`<h1>${reportName}</h1>`);
-          printWin.document.write(`<div class="sub">Crop: <strong>${selCrop}</strong>${periodStr ? ' &nbsp;|&nbsp; Period: ' + periodStr : ''} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>`);
-          printWin.document.write(allHTML);
-          printWin.document.write('</body></html>');
-          printWin.document.close();
-          printWin.focus();
+          
+          var originalStates = [];
+          for (var i = 0; i < document.body.children.length; i++) {
+            var el = document.body.children[i];
+            if (el.tagName !== 'SCRIPT') {
+              originalStates.push({ el: el, display: el.style.display });
+              el.style.display = 'none';
+            }
+          }
+
+          var printDiv = document.createElement('div');
+          printDiv.id = 'print-container-all';
+          printDiv.innerHTML = `
+            <div style="font-family:Arial,sans-serif;font-size:12px;color:#222;margin:28px 36px;">
+              <h1 style="font-size:18px;color:#0e3c68;text-align:center;margin-bottom:4px;">${reportName}</h1>
+              <div style="font-size:11px;color:#666;text-align:center;margin-bottom:22px;">Crop: <strong>${selCrop}</strong>${periodStr ? ' &nbsp;|&nbsp; Period: ' + periodStr : ''} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+              ${allHTML}
+            </div>
+          `;
+          
+          var style = document.createElement('style');
+          style.innerHTML = `
+            @media print {
+              @page { margin: 12mm 15mm; }
+              body { background: #fff !important; }
+              h2 { font-size:13px; color:#0e3c68; margin:22px 0 8px; border-bottom:2px solid #0e3c68; padding-bottom:5px; page-break-before:auto; }
+              .section-block { margin-bottom:28px; page-break-inside:avoid; }
+              .tbl { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+              .tbl th { background: #3b71a7 !important; color: #fff !important; padding: 7px 10px; text-align: left; font-size: 11px; vertical-align: middle; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .tbl td { padding: 6px 10px; border-bottom: 1px solid #e0e0e0; font-size: 11px; vertical-align: middle; }
+              .tbl tr:nth-child(even) { background: #f7f9fc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .yellow-note { background: #fff8e1 !important; border-left: 4px solid #ffc107; padding: 8px 12px; margin-bottom: 12px; font-size: 10px; color: #665000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .accordion-content { display: block !important; }
+              button, .fa-chevron-down { display: none !important; }
+            }
+          `;
+          printDiv.appendChild(style);
+          document.body.appendChild(printDiv);
+          
           // Restore original report type
           if (document.getElementById('e-report-type')) document.getElementById('e-report-type').value = originalType;
           renderReport();
-          setTimeout(function(){ printWin.print(); }, 600);
+          
+          setTimeout(function(){ 
+            window.print(); 
+            // Cleanup and restore
+            document.body.removeChild(printDiv);
+            for (var j = 0; j < originalStates.length; j++) {
+              originalStates[j].el.style.display = originalStates[j].display;
+            }
+          }, 500);
           return;
         }
         var sec = sectionIds[idx];
