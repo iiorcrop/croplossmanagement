@@ -2599,6 +2599,8 @@ function fetchCropParamsFromUPAg(crop, year) {
             alert('An error occurred while generating the CSV file.');
         }
     }
+
+    function downloadSingleReportPDF(sectionId, title) {
       var section = document.getElementById(sectionId);
       if (!section) {
         alert('Report section not found. Please select a report type and crop first, then click PDF.');
