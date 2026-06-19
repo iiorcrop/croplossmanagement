@@ -1607,9 +1607,9 @@
     params = cropParams[foundKey];
   }
 
-  // 2. Fallback to just Crop (no year)
+  // 2. Fallback to just Crop (no year) or the first available period for that crop
   if (!params || (!params.prod && !params.msp)) {
-    var foundCrop = Object.keys(cropParams).find(k => k.toLowerCase() === targetCrop);
+    var foundCrop = Object.keys(cropParams).find(k => k.split('|')[0].trim().toLowerCase() === targetCrop);
     if (foundCrop) {
       params = cropParams[foundCrop];
     }
