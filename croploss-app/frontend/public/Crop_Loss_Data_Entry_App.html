@@ -2423,6 +2423,114 @@ function fetchCropParamsFromUPAg(crop, year) {
     .catch(err => console.warn('UPAg fetch error:', err));
 }
 
+    // ── PDF Download Functions ────────────────────────────────────────────────
+    function downloadSingleReportPDF(sectionId, title) {
+      var section = document.getElementById(sectionId);
+      if (!section) {
+        alert('Report section not found. Please select a report type and crop first, then click PDF.');
+        return;
+      }
+      var reportName = (document.getElementById('final-report-name') || {}).value || title;
+      var printWin = window.open('', '_blank', 'width=960,height=700');
+      if (!printWin) {
+        alert('Popup was blocked! Please allow popups for this page, then try again.');
+        return;
+      }
+      printWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${reportName}</title><style>
+        body{font-family:Arial,sans-serif;font-size:12px;color:#222;margin:24px 32px;}
+        h2{font-size:15px;color:#0e3c68;margin-bottom:12px;border-bottom:2px solid #0e3c68;padding-bottom:6px;}
+        table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+        th{background:#3b71a7;color:#fff;padding:7px 10px;text-align:left;font-size:11px;vertical-align:middle;}
+        td{padding:6px 10px;border-bottom:1px solid #e0e0e0;font-size:11px;vertical-align:middle;}
+        tr:nth-child(even){background:#f7f9fc;}
+        .yellow-note{background:#fff8e1;border-left:4px solid #ffc107;padding:8px 12px;margin-bottom:12px;font-size:10px;color:#665000;}
+        .tbl.overall-tbl{border-collapse:collapse;width:100%;}
+        .tbl.overall-tbl th,.tbl.overall-tbl td{border:1px solid #000 !important;padding:5px 7px !important;text-align:center;font-size:10px;}
+        .tbl.overall-tbl th{background:#dde6f0 !important;color:#000 !important;font-weight:bold;vertical-align:middle;}
+        .tbl.overall-tbl td:first-child{text-align:left;font-weight:bold;}
+        @media print{body{margin:10mm 15mm;}}
+      </style></head><body>`);
+      printWin.document.write(`<h2>${reportName ? reportName + ' — ' : ''}${title}</h2>`);
+      printWin.document.write(section.innerHTML);
+      printWin.document.write('</body></html>');
+      printWin.document.close();
+      printWin.focus();
+      setTimeout(function(){ printWin.print(); }, 500);
+    }
+
+    function downloadAllReportsPDF() {
+      var reportName = (document.getElementById('final-report-name') || {}).value || 'Crop Loss Analysis Report';
+      var selCropEl = document.getElementById('e-report-crop');
+      var selCrop = selCropEl ? selCropEl.value : '';
+      if (!selCrop) {
+        alert('Please select a specific Crop from the "Select Crop" dropdown first, then click Download Final Report.');
+        return;
+      }
+      if (!entries.length) {
+        alert('No data available. Please add entries from the Data Entry tab first.');
+        return;
+      }
+
+      var originalType = document.getElementById('e-report-type') ? document.getElementById('e-report-type').value : 'sec1';
+      var sectionIds   = ['sec1', 'sec2', 'sec3', 'sec4', 'sec5'];
+      var sectionTitles = {
+        sec1: 'CROP & DATA OVERVIEW',
+        sec2: 'CONSOLIDATED YIELD LOSS PERCENTAGE',
+        sec3: 'MONETARY LOSS ESTIMATION',
+        sec4: 'YEAR-WISE YIELD LOSS SUMMARY',
+        sec5: 'CENTRE-WISE DATA SUMMARY'
+      };
+
+      var allHTML = '';
+
+      function renderAndCollect(idx) {
+        if (idx >= sectionIds.length) {
+          // All sections collected — open print window
+          var printWin = window.open('', '_blank', 'width=960,height=800');
+          if (!printWin) { alert('Popup was blocked! Please allow popups and try again.'); return; }
+          var startY = (document.getElementById('e-year-range-start') || {}).value || '';
+          var endY   = (document.getElementById('e-year-range-end')   || {}).value || '';
+          var periodStr = startY && endY ? (startY + ' to ' + endY) : (startY || endY || '');
+          printWin.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${reportName}</title><style>
+            body{font-family:Arial,sans-serif;font-size:12px;color:#222;margin:28px 36px;}
+            h1{font-size:18px;color:#0e3c68;text-align:center;margin-bottom:4px;}
+            .sub{font-size:11px;color:#666;text-align:center;margin-bottom:22px;}
+            h2{font-size:13px;color:#0e3c68;margin:22px 0 8px;border-bottom:2px solid #0e3c68;padding-bottom:5px;}
+            table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+            th{background:#3b71a7;color:#fff;padding:7px 10px;text-align:left;font-size:11px;vertical-align:middle;}
+            td{padding:6px 10px;border-bottom:1px solid #e0e0e0;font-size:11px;}
+            tr:nth-child(even){background:#f7f9fc;}
+            .yellow-note{background:#fff8e1;border-left:4px solid #ffc107;padding:8px 12px;margin-bottom:12px;font-size:10px;color:#665000;}
+            .section-block{margin-bottom:28px;page-break-inside:avoid;}
+            @media print{body{margin:12mm 15mm;}h2{page-break-before:auto;}}
+          </style></head><body>`);
+          printWin.document.write(`<h1>${reportName}</h1>`);
+          printWin.document.write(`<div class="sub">Crop: <strong>${selCrop}</strong>${periodStr ? ' &nbsp;|&nbsp; Period: ' + periodStr : ''} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>`);
+          printWin.document.write(allHTML);
+          printWin.document.write('</body></html>');
+          printWin.document.close();
+          printWin.focus();
+          // Restore original report type
+          if (document.getElementById('e-report-type')) document.getElementById('e-report-type').value = originalType;
+          renderReport();
+          setTimeout(function(){ printWin.print(); }, 600);
+          return;
+        }
+        var sec = sectionIds[idx];
+        if (document.getElementById('e-report-type')) document.getElementById('e-report-type').value = sec;
+        renderReport();
+        setTimeout(function(){
+          var secEl = document.getElementById(sec + '-card');
+          if (secEl) {
+            allHTML += `<div class="section-block"><h2>${sectionTitles[sec]}</h2>${secEl.innerHTML}</div>`;
+          }
+          renderAndCollect(idx + 1);
+        }, 150);
+      }
+
+      renderAndCollect(0);
+    }
+
     function loadSample() { var s = [{ centre: 'RARS Palem', state: 'Telangana', zone: 'Southern TZ', crop: 'Castor', year: '2020-21', season: 'Kharif', cultivar: 'PCH-111', location: 'Mahabubnagar', area: 500, ins_min: 12, ins_max: 12, dis_min: 10, dis_max: 80, ins_pests: 'Capsule borer, Thrips, Whiteflies', dis_names: 'Wilt, Gray mold', mon: 20500, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'RARS Palem', state: 'Telangana', zone: 'Southern TZ', crop: 'Castor', year: '2022-23', season: 'Kharif', cultivar: 'PCH-111', location: 'Nagarkurnool', area: 460, ins_min: 11, ins_max: 11, dis_min: 5, dis_max: 35, ins_pests: 'Capsule borer, Thrips, Whiteflies', dis_names: 'Wilt, Gray mold, Root rot', mon: 14000, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'SDAU Gujarat', state: 'Gujarat', zone: 'North Gujarat Zone IV', crop: 'Castor', year: '2020-21', season: 'Kharif', cultivar: 'GCH-4', location: 'S.K. Nagar', area: 800, ins_min: 29, ins_max: 29, dis_min: 17, dis_max: 17, ins_pests: 'Leafhopper, Thrips, Whitefly, Semilooper, Spodoptera', dis_names: 'Fusarium wilt, Root rot', mon: 52000, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'Dr. BRC ARS Mandor', state: 'Rajasthan', zone: 'Western dry/plane region', crop: 'Castor', year: '2021-22', season: 'Kharif', cultivar: 'Available', location: 'Jodhpur', area: 400, ins_min: 0, ins_max: 0, dis_min: 46.98, dis_max: 46.98, ins_pests: 'ND', dis_names: 'Root rot', mon: 39170, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'ZARS UAS Bengaluru', state: 'Karnataka', zone: 'Zone-V', crop: 'Sunflower', year: '2021-22', season: 'Kharif', cultivar: 'KBSH-78', location: 'Chamarajnagar', area: 300, ins_min: 5, ins_max: 5, dis_min: 10, dis_max: 12, ins_pests: 'Leafhopper, Thrips, Helicoverpa', dis_names: 'Alternariaster leaf spot, PM, Necrosis', mon: 12000, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }, { centre: 'TNAU Coimbatore', state: 'Tamil Nadu', zone: 'Southern Agro-climatic Zone', crop: 'Sunflower', year: '2021-22', season: 'Rabi', cultivar: 'CO2', location: 'Coimbatore', area: 200, ins_min: 0, ins_max: 0, dis_min: 21, dis_max: 21, ins_pests: 'ND', dis_names: 'Alternaria blight, PM, Necrosis', mon: 21840, nem: 0, weed: 0, mgmt: 'Yes', remarks: '' }]; entries = []; s.forEach(function (d) { var p = cropParams[d.crop] || { prod: 1, msp: 5000 }; var iAvg = (d.ins_min + d.ins_max) / 2, dAvg = (d.dis_min + d.dis_max) / 2; var val = calcVal(p.prod, p.msp); entries.push({ id: Date.now() + Math.random(), ...d, ins_avg: iAvg, dis_avg: dAvg, prod: p.prod, msp: p.msp, val: val, il_min: val * d.ins_min / 100, il_avg: val * iAvg / 100, il_max: val * d.ins_max / 100, dl_min: val * d.dis_min / 100, dl_avg: val * dAvg / 100, dl_max: val * d.dis_max / 100, tot_min: val * (d.ins_min + d.dis_min) / 100, tot_avg: val * (iAvg + dAvg) / 100 }); }); updateBadge(); showAlert('✓ 14 sample records loaded successfully. Click "View Report" to see the auto-generated summary report.', 'success'); }
   </script>
 </body>
