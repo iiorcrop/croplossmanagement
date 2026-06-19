@@ -1025,7 +1025,12 @@
         <input type="text" id="final-report-name" placeholder="e.g. Castor Yield Loss Report 2020-25" style="width:100%;border:1.5px solid #b0c4de;border-radius:7px;padding:7px 12px;font-size:13px;outline:none;box-shadow:0 1px 4px #0001;">
       </div>
       <div style="display:flex;gap:8px;align-items:flex-end;padding-bottom:2px;">
-        <button onclick="downloadAllReportsPDF()" style="background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 2px 8px #c0392b44;white-space:nowrap;"><i class="fa fa-file-pdf"></i> Download Final Report (All Sections)</button>
+        <button onclick="downloadAllReportsPDF()" style="background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 2px 8px #c0392b44;white-space:nowrap;" title="Download a PDF of the complete report">
+          <i class="fa fa-file-pdf"></i> Download Final Report (All Sections)
+        </button>
+        <button onclick="exportEntriesCSV()" style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 2px 8px #27ae6011;white-space:nowrap;" title="Export all entered data as a CSV file">
+          <i class="fa fa-file-csv"></i> Download CSV (All Entries)
+        </button>
       </div>
     </div>
     <div id="report-html"></div>
@@ -1583,6 +1588,73 @@
       if (t === 'report') renderReport();
       if (t === 'setup') renderSetup();
     }
+    // ── CSV Download Helper ────────────────────────────────────────────────────────
+    /**
+     * Convert array of objects to CSV and trigger download.
+     * @param {Object[]} data
+     * @param {string} filename
+     */
+    function downloadCSV(data, filename = 'crop_entries.csv') {
+        if (!Array.isArray(data) || data.length === 0) {
+            alert('No data available to export.');
+            return;
+        }
+        const headers = ['#','Crop','Year','Centre','State','Ins Min%','Ins Avg%','Ins Max%','Dis Min%','Dis Avg%','Dis Max%','Prod(LT)','MSP','Val(Cr)','Ins Min(Cr)','Ins Avg(Cr)','Ins Max(Cr)','Dis Min(Cr)','Dis Avg(Cr)','Dis Max(Cr)','Total Min','Total Avg','Mgmt'];
+        const rows = [headers.join(',')];
+        data.forEach((r, i) => {
+            const vals = [
+                i+1,
+                r.crop||'',
+                r.year||'',
+                r.centre||'',
+                r.state||'',
+                r.ins_min||'',
+                r.ins_avg||'',
+                r.ins_max||'',
+                r.dis_min||'',
+                r.dis_avg||'',
+                r.dis_max||'',
+                r.prod||'',
+                r.msp||'',
+                r.val||'',
+                r.ilMin||'',
+                r.ilAvg||'',
+                r.ilMax||'',
+                r.dlMin||'',
+                r.dlAvg||'',
+                r.dlMax||'',
+                r.tMin||'',
+                r.tAvg||'',
+                r.mgmt||''
+            ];
+            const escaped = vals.map(v => {
+                const s = v===null||v===undefined ? '' : String(v);
+                return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+            });
+            rows.push(escaped.join(','));
+        });
+        const csv = rows.join('\n');
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function exportEntriesCSV() {
+        const defaultName = 'crop_entries.csv';
+        const name = prompt('Enter file name for CSV export:', defaultName);
+        if (name) {
+            const filename = name.toLowerCase().endsWith('.csv') ? name : name + '.csv';
+            const data = typeof entries !== 'undefined' ? entries : [];
+            downloadCSV(data, filename);
+        }
+    }
+
     function onCropChange() {
   var c = (document.getElementById('e-crop').value || '').trim();
   var y = (document.getElementById('e-year').value || '').trim();
@@ -2437,8 +2509,87 @@ function fetchCropParamsFromUPAg(crop, year) {
     .catch(err => console.warn('UPAg fetch error:', err));
 }
 
-    // ── PDF Download Functions (Browser Print Dialog) ────────────────────────────────────────────────
-    function downloadSingleReportPDF(sectionId, title) {
+    // ── Utility Functions ────────────────────────────────────────────────────────
+    function fmt(v, d) { d = d || 4; return (v !== null && v !== undefined && !isNaN(v)) ? (+v).toFixed(d) : ''; }
+    function fmtC(v) { return fmt(v, 4); }
+    function calcVal(prod, msp) { return prod * msp * 10 * 1e5 / 1e7; }
+    function switchTab(t) { /* existing switchTab logic unchanged */ }
+
+    // ── CSV Download Helper ────────────────────────────────────────────────────────
+    /**
+     * Convert an array of objects to CSV and trigger download.
+     * @param {Object[]} data - Array of objects representing rows.
+     * @param {string} filename - Desired name of the downloaded file.
+     */
+    function downloadCSV(data, filename = 'entries.csv') {
+        if (!Array.isArray(data) || data.length === 0) {
+            alert('No data available to export.');
+            return;
+        }
+        // Extract headers from object keys (preserve order of columns as they appear in the table)
+        const headers = ['#', 'Crop', 'Year', 'Centre', 'State', 'Ins Min%', 'Ins Avg%', 'Ins Max%',
+                         'Dis Min%', 'Dis Avg%', 'Dis Max%', 'Prod(LT)', 'MSP', 'Val(Cr)',
+                         'Ins Min(Cr)', 'Ins Avg(Cr)', 'Ins Max(Cr)', 'Dis Min(Cr)', 'Dis Avg(Cr)',
+                         'Dis Max(Cr)', 'Total Min', 'Total Avg', 'Mgmt', 'Actions'];
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+        data.forEach((row, idx) => {
+            const values = [
+                idx + 1,
+                row.crop ?? '',
+                row.year ?? '',
+                row.centre ?? '',
+                row.state ?? '',
+                row.ins_min ?? '',
+                row.ins_avg ?? '',
+                row.ins_max ?? '',
+                row.dis_min ?? '',
+                row.dis_avg ?? '',
+                row.dis_max ?? '',
+                row.prod ?? '',
+                row.msp ?? '',
+                row.val ?? '',
+                row.ilMin ?? '',
+                row.ilAvg ?? '',
+                row.ilMax ?? '',
+                row.dlMin ?? '',
+                row.dlAvg ?? '',
+                row.dlMax ?? '',
+                row.tMin ?? '',
+                row.tAvg ?? '',
+                row.mgmt ?? '',
+                '' // Actions column left empty for CSV export
+            ];
+            // Escape any commas or quotes in values
+            const escaped = values.map(v => {
+                const str = (v !== null && v !== undefined) ? String(v) : '';
+                return str.includes(',') || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
+            });
+            csvRows.push(escaped.join(','));
+        });
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Wrapper that gathers the global `entries` array and calls downloadCSV
+    function exportEntriesCSV() {
+        try {
+            // Ensure `entries` is defined; if not, fallback to an empty array
+            const data = typeof entries !== 'undefined' ? entries : [];
+            downloadCSV(data, 'crop_entries.csv');
+        } catch (e) {
+            console.error('CSV export failed:', e);
+            alert('An error occurred while generating the CSV file.');
+        }
+    }
       var section = document.getElementById(sectionId);
       if (!section) {
         alert('Report section not found. Please select a report type and crop first, then click PDF.');
