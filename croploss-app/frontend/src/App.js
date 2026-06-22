@@ -14,9 +14,7 @@ import MasterData from './pages/MasterData';
 import SystemSettings from './pages/SystemSettings';
 import SuperAdminReport from './pages/SuperAdminReport';
 import FormMatrix from './pages/FormMatrix';
-import CropLossAnalysis from './pages/CropLossAnalysis';
-import AnalysisReports from './pages/AnalysisReports';
-import MspTracker from './pages/MspTracker';
+
 import NotFound from './pages/NotFound';
 import './index.css';
 import Personal from './pages/Personal';
@@ -118,9 +116,7 @@ function AppRoutes() {
 
       {/* Super Admin – Final Crop Loss Report */}
       <Route path="/form-matrix" element={<ProtectedRoute roles={['super_admin']}><FormMatrix /></ProtectedRoute>} />
-      <Route path="/analysis/msp" element={<ProtectedRoute roles={['super_admin']}><MspTracker /></ProtectedRoute>} />
-      <Route path="/analysis/reports" element={<ProtectedRoute roles={['super_admin']}><AnalysisReports /></ProtectedRoute>} />
-      <Route path="/analysis/:tab?" element={<ProtectedRoute roles={['super_admin']}><CropLossAnalysis /></ProtectedRoute>} />
+
       {/* Profile */}
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       {/* Personal */}

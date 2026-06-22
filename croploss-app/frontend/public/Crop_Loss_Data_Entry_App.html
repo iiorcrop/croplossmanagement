@@ -1076,8 +1076,9 @@
     var cropParams = {};
     
     // Backend sync logic
-    var apiBase = '/api/personal-entries';
-    
+    var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    var apiBase = isLocal ? 'http://localhost:5000/api/personal-entries' : '/api/personal-entries';
+
     // Helper to persist entries
     async function persistEntries() {
       var token = localStorage.getItem('croploss_token') || '';

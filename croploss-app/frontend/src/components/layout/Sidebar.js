@@ -80,25 +80,7 @@ export default function Sidebar({ pendingCount = 0 }) {
           <div className={`nav-item ${active('/reports') ? 'active' : ''}`} onClick={() => go('/reports')}>
             <span className="nav-icon">📈</span> Reports
           </div>
-          <div className={`nav-item ${loc.pathname === '/analysis' || loc.pathname.startsWith('/analysis/') ? 'active' : ''}`} onClick={() => go('/analysis')}>
-            <span className="nav-icon">📊</span> CropLoss Analysis
-          </div>
-          { (loc.pathname === '/analysis' || loc.pathname.startsWith('/analysis/')) && (
-            <div style={{ background: 'rgba(0,0,0,0.05)', borderRadius: '0 0 8px 8px', marginBottom: '4px', paddingBottom: '4px' }}>
-              <div className={`nav-item ${loc.pathname === '/analysis' ? 'active' : ''}`} onClick={() => go('/analysis')} style={{ paddingLeft: '40px', fontSize: '13px', minHeight: '36px', marginBottom: '2px' }}>
-                <span className="nav-icon" style={{ fontSize: '14px' }}>📊</span> Entry Form
-              </div>
-              <div className={`nav-item ${loc.pathname === '/analysis/methodology' ? 'active' : ''}`} onClick={() => go('/analysis/methodology')} style={{ paddingLeft: '40px', fontSize: '13px', minHeight: '36px', marginBottom: '2px' }}>
-                <span className="nav-icon" style={{ fontSize: '14px' }}>📖</span> Methodology
-              </div>
-              <div className={`nav-item ${loc.pathname === '/analysis/reports' ? 'active' : ''}`} onClick={() => go('/analysis/reports')} style={{ paddingLeft: '40px', fontSize: '13px', minHeight: '36px', marginBottom: '2px' }}>
-                <span className="nav-icon" style={{ fontSize: '14px' }}>📝</span> Reports
-              </div>
-              <div className={`nav-item ${loc.pathname === '/analysis/msp' ? 'active' : ''}`} onClick={() => go('/analysis/msp')} style={{ paddingLeft: '40px', fontSize: '13px', minHeight: '36px', marginBottom: '0' }}>
-                <span className="nav-icon" style={{ fontSize: '14px' }}>💰</span> MSP
-              </div>
-            </div>
-          )}
+
           <div className={`nav-item ${active('/settings') ? 'active' : ''}`} onClick={() => go('/settings')}>
             <span className="nav-icon">⚙️</span> System Settings
           </div>

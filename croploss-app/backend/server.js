@@ -46,8 +46,7 @@ app.use('/api/locations', require('./routes/locations'));
 app.use('/api/settings',  require('./routes/settings'));
 app.use('/api/master-data', require('./routes/masterData'));
 app.use('/api/reports', require('./routes/report'));
-app.use('/api/analysis',  require('./routes/analysis'));
-app.use('/api/msp',       require('./routes/msp'));
+
 
 
 app.get("/api/health", (req, res) =>
