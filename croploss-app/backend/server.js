@@ -41,6 +41,7 @@ app.use("/api/auth/login", authLimiter);
 app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/users',     require('./routes/users'));
 app.use('/api/entries',   require('./routes/entries'));
+app.use('/api/personal-entries', require('./routes/personalEntries'));
 app.use('/api/locations', require('./routes/locations'));
 app.use('/api/settings',  require('./routes/settings'));
 app.use('/api/master-data', require('./routes/masterData'));

@@ -1075,69 +1075,103 @@
     var entries = [];
     var cropParams = {};
     
-    // Load persisted entries if any
-    try {
-      var storedEntries = localStorage.getItem('cropLossEntries');
-      if (storedEntries) entries = JSON.parse(storedEntries);
-    } catch(e) { console.warn('Failed to load stored entries', e); }
-
-    // Load persisted parameters if any
-    try {
-      var storedParams = localStorage.getItem('cropParams');
-      if (storedParams) cropParams = JSON.parse(storedParams);
-    } catch(e) { console.warn('Failed to load stored cropParams', e); }
+    // Backend sync logic
+    var apiBase = '/api/personal-entries';
     
     // Helper to persist entries
-    function persistEntries() {
-      try { localStorage.setItem('cropLossEntries', JSON.stringify(entries)); }
-      catch(e) { console.warn('Failed to save entries', e); }
+    async function persistEntries() {
+      var token = localStorage.getItem('croploss_token') || '';
+      try {
+        await fetch(apiBase + '/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ entries: entries })
+        });
+      } catch(e) { console.warn('Failed to save entries to backend', e); }
     }
-    // Normalize crop names case across entries and cropParams
-    (function normalizeCrops() {
-      let dirtyEntries = false;
-      let dirtyParams = false;
+
+    // Helper to persist current cropParams
+    async function persistCropParams(){
+      var token = localStorage.getItem('croploss_token') || '';
+      try {
+        await fetch(apiBase + '/params', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify(cropParams)
+        });
+      } catch(e){ console.warn('Failed to save cropParams to backend', e); }
+    }
+
+    async function initData() {
+      var token = localStorage.getItem('croploss_token') || '';
+      var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+      
+      // Fetch from backend
+      try {
+        var res = await fetch(apiBase, { headers });
+        var json = await res.json();
+        if (json.success && json.data) entries = json.data;
+        
+        var pres = await fetch(apiBase + '/params', { headers });
+        var pjson = await pres.json();
+        if (pjson.success && pjson.data) cropParams = pjson.data;
+      } catch(e) { console.error('Failed to fetch from backend', e); }
+
+      // Check localStorage for unsynced data (migration)
+      var localEntries = localStorage.getItem('cropLossEntries');
+      var localParams = localStorage.getItem('cropParams');
+      
+      if (localEntries) {
+        try {
+          var parsed = JSON.parse(localEntries);
+          if (parsed && parsed.length > 0) {
+            entries = parsed; // Use local entries
+            await persistEntries(); // Sync to backend
+          }
+          localStorage.removeItem('cropLossEntries');
+        } catch(e) { console.warn('Failed to migrate local entries', e); }
+      }
+      
+      if (localParams) {
+        try {
+          var parsedParams = JSON.parse(localParams);
+          if (Object.keys(parsedParams).length > 0) {
+            cropParams = parsedParams;
+            await persistCropParams();
+          }
+          localStorage.removeItem('cropParams');
+        } catch(e) { console.warn('Failed to migrate local params', e); }
+      }
+
+      // Normalize crops
+      let dirtyEntries = false; let dirtyParams = false;
       if (entries && entries.length) {
         entries.forEach(e => {
           if (e.crop) {
-            let clean = e.crop.trim();
-            clean = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
-            if (e.crop !== clean) {
-              e.crop = clean;
-              dirtyEntries = true;
-            }
+            let clean = e.crop.trim(); clean = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+            if (e.crop !== clean) { e.crop = clean; dirtyEntries = true; }
           }
         });
-        if (dirtyEntries) persistEntries();
       }
       if (cropParams) {
         let newParams = {};
         for (let key in cropParams) {
-          let cleanKey = key.trim();
-          cleanKey = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1).toLowerCase();
+          let cleanKey = key.trim(); cleanKey = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1).toLowerCase();
           if (key !== cleanKey) dirtyParams = true;
           newParams[cleanKey] = cropParams[key];
         }
-        if (dirtyParams) {
-          cropParams = newParams;
-          persistCropParams();
-        }
+        if (dirtyParams) cropParams = newParams;
       }
-    })();
+      if (dirtyEntries) persistEntries();
+      if (dirtyParams) persistCropParams();
 
-    // Render setup table on load
-    renderSetup();
-    updateBadge();
-    renderRec();
-    // Load persisted parameters if any
-    try {
-      var stored = localStorage.getItem('cropParams');
-      if (stored) cropParams = JSON.parse(stored);
-    } catch(e) { console.warn('Failed to load stored cropParams', e); }
-    // Helper to persist current cropParams
-    function persistCropParams(){
-      try { localStorage.setItem('cropParams', JSON.stringify(cropParams)); }
-      catch(e){ console.warn('Failed to save cropParams', e); }
-    } // User will add crop-year data via the Setup tab
+      renderSetup();
+      updateBadge();
+      renderRec();
+    }
+    
+    // Initialize data
+    initData(); // User will add crop-year data via the Setup tab
     var indianStates = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"];
     var masterDataCache = null;
     async function fetchMasterData() {
@@ -1915,6 +1949,22 @@
     }
     
     function renderReport() {
+      // Normalize crop names first to merge mixed cases instantly
+      let dirty = false;
+      if (entries && entries.length) {
+        entries.forEach(e => {
+          if (e.crop) {
+            let clean = e.crop.trim();
+            clean = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+            if (e.crop !== clean) {
+              e.crop = clean;
+              dirty = true;
+            }
+          }
+        });
+        if (dirty) persistEntries();
+      }
+
       var rc = document.getElementById('report-html');
       
       // 1. Ensure the container has the selectors (Crop, Start Year, End Year)
