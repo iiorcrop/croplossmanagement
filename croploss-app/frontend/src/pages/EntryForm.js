@@ -88,6 +88,34 @@ export default function EntryForm() {
       const newVal = window.prompt(`Enter new value:`);
       if (newVal && newVal.trim()) {
         const properVal = newVal.trim().replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+        
+        // Save to LocalStorage Master Data
+        const masterKeyMap = {
+          'previousCrop': 'previous-crops',
+          'variety': 'varieties',
+          'irrigatedRainfed': 'irrigation',
+          'stageOfCrop': 'crop-stages'
+        };
+        const masterKey = masterKeyMap[field];
+        if (masterKey) {
+          const lsKey = `master_data_v3_${masterKey}`;
+          const saved = localStorage.getItem(lsKey);
+          let items = saved ? JSON.parse(saved) : (INITIAL_DATA[masterKey] || []);
+          
+          if (!items.some(i => i.name.toLowerCase() === properVal.toLowerCase())) {
+            const nextId = items.length > 0 ? Math.max(...items.map(i => Number(i.id) || 0)) + 1 : 1;
+            const newObj = { id: nextId, name: properVal, status: 'Active', color: '#cbd5e1' };
+            if (field === 'variety') {
+              // Store it with the currently selected previous crop context
+              newObj.crop = form.previousCrop || '';
+              newObj.type = 'Unknown';
+              newObj.year = new Date().getFullYear().toString();
+            }
+            items.push(newObj);
+            localStorage.setItem(lsKey, JSON.stringify(items));
+          }
+        }
+
         setCustomOpts(prev => ({ ...prev, [customKey]: [...new Set([...prev[customKey], properVal])] }));
         setForm(prev => ({ ...prev, [field]: properVal }));
       }
