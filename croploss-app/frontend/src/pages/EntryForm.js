@@ -361,7 +361,7 @@ export default function EntryForm() {
   const availableIrrigationTypes = getMasterList('irrigation');
   const availableCropStages = getMasterList('crop-stages');
   const availableSowingDates = masterData?.sowingDates || SOWING_DATES; // Not in INITIAL_DATA, use fallback
-  const availableVarieties = getMasterVarieties(form.crop) || VARIETIES[form.crop?.toLowerCase()] || [];
+  const availableVarieties = getMasterVarieties(form.previousCrop) || VARIETIES[form.previousCrop?.toLowerCase()] || [];
 
   return (
     <div className="entry-form-page">
