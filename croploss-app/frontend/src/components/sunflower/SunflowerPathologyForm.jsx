@@ -27,16 +27,9 @@ const DISEASE_OPTIONS = [
 const defaultDiseaseRow = (overrides = {}) => ({
   cropStage: '',
   diseaseObserved: '',
-  totalPlantsObserved: '',
-  diseasedPlants: '',
-  diseaseIncidence: '',
-  diseaseSeverity: '',
-  diseaseRating: '',
-  headDiameter: '',
-  seedFilling: '',
-  estimatedYield: '',
-  expectedYield: '',
-  cropLoss: '',
+  meanDiseaseIncidence: '',
+  diseaseRange: '',
+  maxDisScore: '',
   remarks: '',
   ...overrides,
 });
@@ -67,19 +60,7 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
     // eslint-disable-next-line
   }, [observations]);
 
-  const handleLocChange = (locIdx, field, value) => {
-    const updated = [...observations];
-    // If it's latitude/longitude/location, it's at the root. Otherwise in sunflowerPathology
-    if (['latitude', 'longitude', 'location'].includes(field)) {
-      updated[locIdx] = { ...updated[locIdx], [field]: value };
-      if (field === 'location') {
-        updated[locIdx].sunflowerPathology = { ...updated[locIdx].sunflowerPathology || {}, village: value };
-      }
-    } else {
-      updated[locIdx].sunflowerPathology = { ...updated[locIdx].sunflowerPathology || {}, [field]: value };
-    }
-    setObservations(updated);
-  };
+
 
   const addDisease = (locIdx) => {
     const updated = [...observations];
@@ -102,17 +83,6 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
     if (!updated[locIdx].sunflowerPathology || !updated[locIdx].sunflowerPathology.diseases) return;
     const disease = updated[locIdx].sunflowerPathology.diseases[dIdx];
     disease[field] = value;
-
-    // Auto calculate incidence if both numbers are present
-    if (field === 'totalPlantsObserved' || field === 'diseasedPlants') {
-      const total = Number(disease.totalPlantsObserved) || 0;
-      const diseased = Number(disease.diseasedPlants) || 0;
-      if (total > 0) {
-        disease.diseaseIncidence = ((diseased / total) * 100).toFixed(2);
-      } else {
-        disease.diseaseIncidence = '';
-      }
-    }
 
     setObservations(updated);
   };
@@ -148,39 +118,7 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
         const pathData = obs.sunflowerPathology || {};
         return (
           <div key={locIdx} className="sfp-card">
-            <div className="sfp-card-header">
-              <h4>📍 Location Information</h4>
-            </div>
 
-            {/* Location / Meta Details Grid */}
-            <div className="sfp-location-grid">
-
-              
-              <div className="sfp-field">
-                <label>Farmer Name</label>
-                <input type="text" value={pathData.farmerName || ''} onChange={(e) => handleLocChange(locIdx, 'farmerName', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
-              <div className="sfp-field">
-                <label>Survey Date</label>
-                <input type="date" value={pathData.surveyDate || ''} onChange={(e) => handleLocChange(locIdx, 'surveyDate', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
-              <div className="sfp-field">
-                <label>Previous Crop</label>
-                <input type="text" value={pathData.previousCrop || ''} onChange={(e) => handleLocChange(locIdx, 'previousCrop', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
-              <div className="sfp-field">
-                <label>Variety/Hybrid</label>
-                <input type="text" value={pathData.varietyHybrid || ''} onChange={(e) => handleLocChange(locIdx, 'varietyHybrid', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
-              <div className="sfp-field">
-                <label>Area (ha)</label>
-                <input type="number" step="0.01" value={pathData.areaHa || ''} onChange={(e) => handleLocChange(locIdx, 'areaHa', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
-              <div className="sfp-field">
-                <label>No. of Fields Surveyed</label>
-                <input type="number" value={pathData.noOfFieldsSurveyed || ''} onChange={(e) => handleLocChange(locIdx, 'noOfFieldsSurveyed', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
-            </div>
 
             {/* Disease Section */}
             <div className="sfp-section">
@@ -231,45 +169,16 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
 
                   <div className="sfp-metrics-grid">
                     <div className="sfp-field">
-                      <label>Total Plants</label>
-                      <input type="number" value={disease.totalPlantsObserved || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'totalPlantsObserved', e.target.value)} disabled={readOnly} className="sfp-input" />
+                      <label>Mean disease incidence (PDI)</label>
+                      <input type="number" step="0.01" value={disease.meanDiseaseIncidence || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'meanDiseaseIncidence', e.target.value)} disabled={readOnly} className="sfp-input" />
                     </div>
                     <div className="sfp-field">
-                      <label>Diseased Plants</label>
-                      <input type="number" value={disease.diseasedPlants || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'diseasedPlants', e.target.value)} disabled={readOnly} className="sfp-input" />
+                      <label>Disease range (%)</label>
+                      <input type="text" value={disease.diseaseRange || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'diseaseRange', e.target.value)} disabled={readOnly} className="sfp-input" />
                     </div>
                     <div className="sfp-field">
-                      <label>Incidence (%)</label>
-                      <input type="number" step="0.01" value={disease.diseaseIncidence || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'diseaseIncidence', e.target.value)} disabled={readOnly} className="sfp-input sfp-highlight" readOnly={true} placeholder="Auto" title="Auto calculated from plants" />
-                    </div>
-                    <div className="sfp-field">
-                      <label>Severity (%)</label>
-                      <input type="number" step="0.01" value={disease.diseaseSeverity || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'diseaseSeverity', e.target.value)} disabled={readOnly} className="sfp-input" />
-                    </div>
-                    <div className="sfp-field">
-                      <label>Rating (0-9)</label>
-                      <input type="number" min="0" max="9" value={disease.diseaseRating || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'diseaseRating', e.target.value)} disabled={readOnly} className="sfp-input" />
-                    </div>
-                    
-                    <div className="sfp-field">
-                      <label>Head Diameter (cm)</label>
-                      <input type="number" step="0.1" value={disease.headDiameter || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'headDiameter', e.target.value)} disabled={readOnly} className="sfp-input" />
-                    </div>
-                    <div className="sfp-field">
-                      <label>Seed Filling (%)</label>
-                      <input type="number" step="0.1" value={disease.seedFilling || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'seedFilling', e.target.value)} disabled={readOnly} className="sfp-input" />
-                    </div>
-                    <div className="sfp-field">
-                      <label>Est. Yield (kg/ha)</label>
-                      <input type="number" step="0.1" value={disease.estimatedYield || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'estimatedYield', e.target.value)} disabled={readOnly} className="sfp-input" />
-                    </div>
-                    <div className="sfp-field">
-                      <label>Exp. Yield (kg/ha)</label>
-                      <input type="number" step="0.1" value={disease.expectedYield || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'expectedYield', e.target.value)} disabled={readOnly} className="sfp-input" />
-                    </div>
-                    <div className="sfp-field">
-                      <label>Crop Loss (%)</label>
-                      <input type="number" step="0.1" value={disease.cropLoss || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'cropLoss', e.target.value)} disabled={readOnly} className="sfp-input" />
+                      <label>Max Dis Score observed (as per scale)</label>
+                      <input type="text" value={disease.maxDisScore || ''} onChange={(e) => handleDiseaseChange(locIdx, dIdx, 'maxDisScore', e.target.value)} disabled={readOnly} className="sfp-input" />
                     </div>
                   </div>
                   
