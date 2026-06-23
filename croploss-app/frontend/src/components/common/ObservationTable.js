@@ -271,6 +271,29 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                       />
                     )}
                   </div>
+
+                  <div className="form-group">
+                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>Any new disease reported?</label>
+                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.newDiseaseReported || ''} onChange={e => setFormData({ ...formData, newDiseaseReported: e.target.value })}>
+                      <option value="">— Select —</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                  
+                  {formData.newDiseaseReported === 'Yes' && (
+                    <div className="form-group">
+                      <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>If Yes, Enter details</label>
+                      <input
+                        type="text"
+                        className="p-input"
+                        style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
+                        placeholder="Enter new disease details"
+                        value={formData.newDiseaseDetails || ''}
+                        onChange={e => setFormData({ ...formData, newDiseaseDetails: e.target.value })}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group" style={{ marginTop: 32 }}>

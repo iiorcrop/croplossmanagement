@@ -102,7 +102,11 @@ export default function EntryForm() {
           const saved = localStorage.getItem(lsKey);
           let items = saved ? JSON.parse(saved) : (INITIAL_DATA[masterKey] || []);
           
-          if (!items.some(i => i.name.toLowerCase() === properVal.toLowerCase())) {
+          const isDuplicate = field === 'variety' 
+            ? items.some(i => i.name.toLowerCase() === properVal.toLowerCase() && (i.crop || '').toLowerCase() === (form.previousCrop || '').toLowerCase())
+            : items.some(i => i.name.toLowerCase() === properVal.toLowerCase());
+
+          if (!isDuplicate) {
             const nextId = items.length > 0 ? Math.max(...items.map(i => Number(i.id) || 0)) + 1 : 1;
             const newObj = { id: nextId, name: properVal, status: 'Active', color: '#cbd5e1' };
             if (field === 'variety') {
@@ -113,6 +117,8 @@ export default function EntryForm() {
             }
             items.push(newObj);
             localStorage.setItem(lsKey, JSON.stringify(items));
+            // Sync with backend database
+            api.put(`/master-data/${masterKey}`, { value: items.map(i => i.name || i) }).catch(console.error);
           }
         }
 

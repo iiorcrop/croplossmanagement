@@ -40,10 +40,23 @@ router.post('/', protect, authorize('super_admin'), async (req, res, next) => {
   }
 });
 
+// Helper to map frontend route keys to backend schema keys
+const mapKey = (key) => {
+  const mapping = {
+    'previous-crops': 'previousCrops',
+    'soil-types': 'soilTypes',
+    'irrigation': 'irrigationTypes',
+    'crop-stages': 'cropStages',
+    'percent-options': 'percentOptions'
+  };
+  return mapping[key] || key;
+};
+
 // PUT update a specific list (e.g., crops, disciplines)
 router.put('/:key', protect, authorize('super_admin'), async (req, res, next) => {
   try {
-    const { key } = req.params;
+    const rawKey = req.params.key;
+    const key = mapKey(rawKey);
     const { value } = req.body; // expect array
     const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions','varieties','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases'];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid master data key' });
@@ -57,7 +70,9 @@ router.put('/:key', protect, authorize('super_admin'), async (req, res, next) =>
 // DELETE a single entry from a list
 router.delete('/:key/:value', protect, authorize('super_admin'), async (req, res, next) => {
   try {
-    const { key, value } = req.params;
+    const rawKey = req.params.key;
+    const key = mapKey(rawKey);
+    const value = req.params.value;
     const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases'];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid master data key' });
     const update = { $pull: { [key]: value } };
