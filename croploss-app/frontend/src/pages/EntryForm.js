@@ -75,6 +75,27 @@ export default function EntryForm() {
   const [availableVillages, setAvailableVillages] = useState([]);
   const [availableCultivars, setAvailableCultivars] = useState([]);
 
+  const [customOpts, setCustomOpts] = useState({
+    previousCrops: [],
+    varieties: [],
+    irrigatedRainfed: [],
+    stagesOfCrop: []
+  });
+
+  const handleAddNew = (field, customKey) => (e) => {
+    const val = e.target.value;
+    if (val === '__ADD_NEW__') {
+      const newVal = window.prompt(`Enter new value:`);
+      if (newVal && newVal.trim()) {
+        const properVal = newVal.trim().replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+        setCustomOpts(prev => ({ ...prev, [customKey]: [...new Set([...prev[customKey], properVal])] }));
+        setForm(prev => ({ ...prev, [field]: properVal }));
+      }
+    } else {
+      setForm(prev => ({ ...prev, [field]: val }));
+    }
+  };
+
   // Fetch States on Load
   useEffect(() => {
     api
@@ -601,13 +622,14 @@ export default function EntryForm() {
                 <select
                   className="form-control"
                   value={form.previousCrop}
-                  onChange={(e) => setField('previousCrop', e.target.value)}
+                  onChange={handleAddNew('previousCrop', 'previousCrops')}
                   disabled={!isEditable}
                 >
                   <option value="">— Select Previous Crop —</option>
-                  {availablePreviousCrops.map(c => (
+                  {[...availablePreviousCrops, ...customOpts.previousCrops].map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
+                  <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                 </select>
               </div>
               {/* Variety */}
@@ -616,13 +638,14 @@ export default function EntryForm() {
                 <select
                   className="form-control"
                   value={form.variety}
-                  onChange={(e) => setField('variety', e.target.value)}
+                  onChange={handleAddNew('variety', 'varieties')}
                   disabled={!isEditable}
                 >
                   <option value="">— Select Variety —</option>
-                  {availableVarieties.filter(Boolean).map(v => (
+                  {[...availableVarieties, ...customOpts.varieties].filter(Boolean).map(v => (
                     <option key={v} value={v}>{v}</option>
                   ))}
+                  <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                 </select>
               </div>
               {/* Irrigated / Rainfed */}
@@ -631,13 +654,14 @@ export default function EntryForm() {
                 <select
                   className="form-control"
                   value={form.irrigatedRainfed}
-                  onChange={(e) => setField('irrigatedRainfed', e.target.value)}
+                  onChange={handleAddNew('irrigatedRainfed', 'irrigatedRainfed')}
                   disabled={!isEditable}
                 >
                   <option value="">— Select Irrigation —</option>
-                  {availableIrrigationTypes.map(o => (
+                  {[...availableIrrigationTypes, ...customOpts.irrigatedRainfed].map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
+                  <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                 </select>
               </div>
               {/* Date of Sowing */}
@@ -661,13 +685,14 @@ export default function EntryForm() {
                 <select
                   className="form-control"
                   value={form.stageOfCrop}
-                  onChange={(e) => setField('stageOfCrop', e.target.value)}
+                  onChange={handleAddNew('stageOfCrop', 'stagesOfCrop')}
                   disabled={!isEditable}
                 >
                   <option value="">— Select Stage —</option>
-                  {availableCropStages.filter(Boolean).map(o => (
-                    <option key={o} value={o}>{o}</option>
+                  {[...availableCropStages, ...customOpts.stagesOfCrop].map(s => (
+                    <option key={s} value={s}>{s}</option>
                   ))}
+                  <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                 </select>
               </div>
             </div>

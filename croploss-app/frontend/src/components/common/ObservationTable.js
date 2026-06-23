@@ -19,13 +19,27 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
   const [showModal, setShowModal] = useState(false);
   const [editingIdx, setEditingIdx] = useState(null);
   const [formData, setFormData] = useState({});
+  const [customPctOpts, setCustomPctOpts] = useState([]);
+  const [customSeverityOpts, setCustomSeverityOpts] = useState([]);
 
   const cols = getColsByDiscipline(crop, discipline);
   const dcols = cols.disease;
   const icols = cols.insect;
 
-
-
+  const handleDropdownChange = (key, type) => (e) => {
+    const val = e.target.value;
+    if (val === '__ADD_NEW__') {
+      const newVal = window.prompt(`Enter new value:`);
+      if (newVal && newVal.trim()) {
+        const properVal = newVal.trim().replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+        if (type === 'percent') setCustomPctOpts(prev => [...new Set([...prev, properVal])]);
+        else setCustomSeverityOpts(prev => [...new Set([...prev, properVal])]);
+        setFormData(prev => ({ ...prev, [key]: properVal }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [key]: val }));
+    }
+  };
 
   const handleOpenAdd = () => {
     setEditingIdx(null);
@@ -211,8 +225,10 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                       <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>{c.label}</label>
                       {c.type === 'percent' ? (
                         <>
-                          <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={e => setFormData({ ...formData, [c.key]: e.target.value })}>
+                          <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={handleDropdownChange(c.key, 'percent')}>
                             {PCT_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
+                            {customPctOpts.map(o => <option key={o} value={o}>{o}</option>)}
+                            <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                           </select>
                           {formData[c.key] === '>50% (Specify)' && (
                             <input
@@ -225,12 +241,14 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                           )}
                         </>
                       ) : (
-                        <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={e => setFormData({ ...formData, [c.key]: e.target.value })}>
+                        <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={handleDropdownChange(c.key, 'severity')}>
                           <option value="-">— Select —</option>
                           <option value="Low">Low</option>
                           <option value="Moderate">Moderate</option>
                           <option value="High">High</option>
                           <option value="Severe">Severe</option>
+                          {customSeverityOpts.map(o => <option key={o} value={o}>{o}</option>)}
+                          <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                         </select>
                       )}
                     </div>
@@ -238,8 +256,10 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
 
                   <div className="form-group">
                     <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>% Crop Damage</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.cropDamage || ''} onChange={e => setFormData({ ...formData, cropDamage: e.target.value })}>
+                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.cropDamage || ''} onChange={handleDropdownChange('cropDamage', 'percent')}>
                       {PCT_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
+                      {customPctOpts.map(o => <option key={o} value={o}>{o}</option>)}
+                      <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                     </select>
                     {formData.cropDamage === '>50% (Specify)' && (
                       <input
