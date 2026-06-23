@@ -73,16 +73,17 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
     if (['latitude', 'longitude', 'location'].includes(field)) {
       updated[locIdx] = { ...updated[locIdx], [field]: value };
       if (field === 'location') {
-        updated[locIdx].sunflowerPathology = { ...updated[locIdx].sunflowerPathology, village: value };
+        updated[locIdx].sunflowerPathology = { ...updated[locIdx].sunflowerPathology || {}, village: value };
       }
     } else {
-      updated[locIdx].sunflowerPathology = { ...updated[locIdx].sunflowerPathology, [field]: value };
+      updated[locIdx].sunflowerPathology = { ...updated[locIdx].sunflowerPathology || {}, [field]: value };
     }
     setObservations(updated);
   };
 
   const addDisease = (locIdx) => {
     const updated = [...observations];
+    if (!updated[locIdx].sunflowerPathology) updated[locIdx].sunflowerPathology = {};
     if (!updated[locIdx].sunflowerPathology.diseases) updated[locIdx].sunflowerPathology.diseases = [];
     updated[locIdx].sunflowerPathology.diseases.push(defaultDiseaseRow());
     setObservations(updated);
@@ -90,12 +91,15 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
 
   const removeDisease = (locIdx, dIdx) => {
     const updated = [...observations];
-    updated[locIdx].sunflowerPathology.diseases = updated[locIdx].sunflowerPathology.diseases.filter((_, i) => i !== dIdx);
-    setObservations(updated);
+    if (updated[locIdx].sunflowerPathology && updated[locIdx].sunflowerPathology.diseases) {
+      updated[locIdx].sunflowerPathology.diseases = updated[locIdx].sunflowerPathology.diseases.filter((_, i) => i !== dIdx);
+      setObservations(updated);
+    }
   };
 
   const handleDiseaseChange = (locIdx, dIdx, field, value) => {
     const updated = [...observations];
+    if (!updated[locIdx].sunflowerPathology || !updated[locIdx].sunflowerPathology.diseases) return;
     const disease = updated[locIdx].sunflowerPathology.diseases[dIdx];
     disease[field] = value;
 
