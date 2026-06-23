@@ -7,7 +7,7 @@ const {
 // ── Single observation row (one row = one village/location) ────────────────
 const observationSchema = new mongoose.Schema({
   // Location info
-  location: { type: String, required: true, trim: true },
+  location: { type: String, default: '', trim: true },
   latitude: { type: Number },
   longitude: { type: Number },
 
@@ -160,7 +160,7 @@ const cropEntrySchema = new mongoose.Schema({
   agroEcologicalZone: [{ type: String }],
 
   // Center info (copied from user at time of entry)
-  centerName: { type: String, required: true, trim: true },
+  centerName: { type: String, trim: true, default: '' },
   centerState: { type: String, trim: true, default: '' },
   centerDistrict: { type: String, trim: true, default: '' },
 
