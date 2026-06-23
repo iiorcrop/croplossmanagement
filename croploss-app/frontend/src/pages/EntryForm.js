@@ -309,7 +309,15 @@ export default function EntryForm() {
   if (loading || loadingMaster) return <Spinner text="Loading…" />;
 
   const maxWilt = observations.length ? Math.max(0, ...observations.map((r) => parseFloat(r.wilt) || 0)) : 0;
-  const availableCrops = isAdmin ? CROPS : user?.assignedCrops || CROPS;
+  const availableCrops = isAdmin ? (masterData?.crops || CROPS) : user?.assignedCrops || (masterData?.crops || CROPS);
+  const availableDisciplines = masterData?.disciplines || DISCIPLINES;
+  const availableSeasons = masterData?.seasons || SEASONS;
+  const availableSoilTypes = masterData?.soilTypes || SOIL_TYPES;
+  const availablePreviousCrops = masterData?.previousCrops || PREVIOUS_CROPS;
+  const availableIrrigationTypes = masterData?.irrigationTypes || IRRIGATION_TYPES;
+  const availableSowingDates = masterData?.sowingDates || SOWING_DATES;
+  const availableCropStages = masterData?.cropStages || CROP_STAGES;
+  const availableVarieties = masterData?.varieties?.[form.crop] || VARIETIES[form.crop] || [];
 
   return (
     <div className="entry-form-page">
@@ -366,7 +374,7 @@ export default function EntryForm() {
                   onChange={(e) => setField("discipline", e.target.value)}
                   disabled={!isEditable}
                 >
-                  {DISCIPLINES.map((d) => (
+                  {availableDisciplines.map((d) => (
                     <option key={d} value={d}>
                       {d}
                     </option>
@@ -381,7 +389,7 @@ export default function EntryForm() {
                   onChange={(e) => setField("season", e.target.value)}
                   disabled={!isEditable}
                 >
-                  {SEASONS.map((s) => (
+                  {availableSeasons.map((s) => (
                     <option key={s}>{s}</option>
                   ))}
                 </select>
@@ -557,7 +565,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Soil Type —</option>
-                  {SOIL_TYPES.map(s => (
+                  {availableSoilTypes.map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
@@ -572,7 +580,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Previous Crop —</option>
-                  {PREVIOUS_CROPS.map(c => (
+                  {availablePreviousCrops.map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
@@ -587,7 +595,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Variety —</option>
-                  {(VARIETIES[form.crop] || []).filter(Boolean).map(v => (
+                  {availableVarieties.filter(Boolean).map(v => (
                     <option key={v} value={v}>{v}</option>
                   ))}
                 </select>
@@ -601,7 +609,7 @@ export default function EntryForm() {
                   onChange={(e) => setField('irrigatedRainfed', e.target.value)}
                   disabled={!isEditable}
                 >
-                  {IRRIGATION_TYPES.map(o => (
+                  {availableIrrigationTypes.map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
@@ -616,7 +624,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Period —</option>
-                  {SOWING_DATES.map(o => (
+                  {availableSowingDates.map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
@@ -631,7 +639,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Stage —</option>
-                  {CROP_STAGES.filter(Boolean).map(o => (
+                  {availableCropStages.filter(Boolean).map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
