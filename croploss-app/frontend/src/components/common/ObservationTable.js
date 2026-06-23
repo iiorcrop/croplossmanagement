@@ -65,10 +65,6 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
   };
 
   const handleSave = () => {
-    if (!formData.location) {
-      alert('Village/Location name is required');
-      return;
-    }
     if (editingIdx !== null) {
       const updated = rows.map((r, i) => i === editingIdx ? formData : r);
       onChange(updated);
@@ -141,8 +137,6 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
             <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
               <tr>
                 <th style={{ padding: '16px 24px', width: 60, color: '#64748b', fontSize: 11, textTransform: 'uppercase' }}>#</th>
-                <th style={{ padding: '16px 24px', color: '#64748b', fontSize: 11, textTransform: 'uppercase' }}>Location & Environment</th>
-                <th style={{ padding: '16px 24px', color: '#64748b', fontSize: 11, textTransform: 'uppercase' }}>Cultivation</th>
                 <th style={{ padding: '16px 24px', color: '#64748b', fontSize: 11, textTransform: 'uppercase' }}>Observations</th>
                 <th style={{ padding: '16px 24px', color: '#64748b', fontSize: 11, textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
               </tr>
@@ -151,22 +145,6 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
               {rows.map((r, i) => (
                 <tr key={i} className="hover-row-premium" style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '20px 24px', color: '#94a3b8', fontWeight: 600 }}>{i + 1}</td>
-                  <td style={{ padding: '20px 24px' }}>
-                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: 15 }}>{r.location}</div>
-                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, display: 'flex', gap: 12 }}>
-                      <span>📍 {r.latitude}, {r.longitude}</span>
-                      <span>🟤 {r.soilType}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      <span style={{ padding: '4px 8px', background: '#f1f5f9', borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#475569' }}>
-                        {r.variety === 'Others' ? r.otherVariety || 'Unknown Variety' : r.variety}
-                      </span>
-                      <span style={{ padding: '4px 8px', background: '#ecfdf5', borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#065f46' }}>{r.stageOfCrop}</span>
-                      <span style={{ padding: '4px 8px', background: '#eff6ff', borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#1e40af' }}>{r.irrigatedRainfed}</span>
-                    </div>
-                  </td>
                   <td style={{ padding: '20px 24px' }}>
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                       {dcols.slice(0, 3).map(c => (
@@ -208,26 +186,14 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                   <thead style={{ background: '#f8fafc' }}>
                     <tr>
                       <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>#</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Location</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Soil Type</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Prev Crop</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Variety</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Irrigation</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Sowing</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Stage</th>
+                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Observation Data</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((r, i) => (
                       <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '8px' }}>{i + 1}</td>
-                        <td style={{ padding: '8px' }}>{r.location}</td>
-                        <td style={{ padding: '8px' }}>{r.soilType}</td>
-                        <td style={{ padding: '8px' }}>{r.previousCrop}</td>
-                        <td style={{ padding: '8px' }}>{r.variety === 'Others' ? r.otherVariety || 'Unknown' : r.variety}</td>
-                        <td style={{ padding: '8px' }}>{r.irrigatedRainfed}</td>
-                        <td style={{ padding: '8px' }}>{r.dateOfSowing}</td>
-                        <td style={{ padding: '8px' }}>{r.stageOfCrop}</td>
+                        <td style={{ padding: '8px' }}>Observation #{i + 1}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -265,121 +231,7 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
             {/* Modal Body */}
             <div style={{ padding: 40 }}>
 
-              {/* Section 1: Location */}
-              <div style={{ marginBottom: 40 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 24 }}>
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Village / Cluster Name</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.location || ''} onChange={e => setFormData({ ...formData, location: e.target.value })} disabled={!taluka}>
-                      <option value="">{taluka ? "— Select Village —" : "Select Taluka first"}</option>
-                      {availableVillages.map(v => <option key={v} value={v}>{v}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Latitude</label>
-                    <input className="p-input" type="number" step="0.0001" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.latitude || ''} onChange={e => setFormData({ ...formData, latitude: e.target.value })} placeholder="22.49" />
-                  </div>
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Longitude</label>
-                    <input className="p-input" type="number" step="0.0001" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.longitude || ''} onChange={e => setFormData({ ...formData, longitude: e.target.value })} placeholder="71.31" />
-                  </div>
-                </div>
-              </div>
 
-              {/* Section 2: Cultivation */}
-              <div style={{ marginBottom: 40 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#065f46' }} /> Cultivation Context
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
-                  <div className="form-group">
-                    {/* Soil Type field with Others option */}
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Soil Type</label>
-                    {formData.soilType !== 'Others' ? (
-                      <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
-                        value={formData.soilType || ''}
-                        onChange={e => setFormData({ ...formData, soilType: e.target.value })}>
-                        <option value="">— Select —</option>
-                        {masterData.soilTypes.map(o => <option key={o} value={o}>{o}</option>)}
-                        <option value="Others">Others</option>
-                      </select>
-                    ) : (
-                      <input className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
-                        placeholder="Enter custom soil type"
-                        value={formData.customSoil || ''}
-                        onChange={e => setFormData({ ...formData, customSoil: e.target.value })} />
-                    )}
-                  </div>
-                  <div className="form-group">
-                    {/* Previous Crop field with Others option */}
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Previous Crop</label>
-                    {formData.previousCrop !== 'Others' ? (
-                      <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
-                        value={formData.previousCrop || ''}
-                        onChange={e => setFormData({ ...formData, previousCrop: e.target.value })}>
-                        <option value="">— Select —</option>
-                        {masterData.previousCrops.map(o => <option key={o} value={o}>{o}</option>)}
-                        <option value="Others">Others</option>
-                      </select>
-                    ) : (
-                      <input className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
-                        placeholder="Enter custom previous crop"
-                        value={formData.customPrevCrop || ''}
-                        onChange={e => setFormData({ ...formData, customPrevCrop: e.target.value })} />
-                    )}
-                  </div>
-                  <div className="form-group">
-                    {/* Variety field – include custom previous crop if not present */}
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Variety</label>
-                    {
-                      (() => {
-                        let dynamicVars = [...(masterData.varieties[crop] || [])];
-                        const finalPrev = formData.previousCrop === 'Others' ? (formData.customPrevCrop || '') : formData.previousCrop;
-                        if (finalPrev && !dynamicVars.includes(finalPrev)) {
-                          dynamicVars.push(finalPrev);
-                        }
-                        return (
-                          <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
-                            value={formData.variety || ''}
-                            onChange={e => setFormData({ ...formData, variety: e.target.value })}>
-                            <option value="">— Select —</option>
-                            {dynamicVars.map(v => <option key={v} value={v}>{v}</option>)}
-                            <option value="Others">Others</option>
-                          </select>
-                        );
-                      })()
-                    }
-                    {formData.variety === 'Others' && (
-                      <input
-                        type="text"
-                        style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8, marginTop: 10 }}
-                        placeholder="Specify custom variety"
-                        value={formData.otherVariety || ''}
-                        onChange={e => setFormData({ ...formData, otherVariety: e.target.value })}
-                      />
-                    )}
-                  </div>
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Irrigation Type</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.irrigatedRainfed || ''} onChange={e => setFormData({ ...formData, irrigatedRainfed: e.target.value })}>
-                      {IRRIGATION_TYPES.map(o => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Sowing Period</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.dateOfSowing || ''} onChange={e => setFormData({ ...formData, dateOfSowing: e.target.value })}>
-                      {SOWING_DATES.map(o => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#64748b' }}>Crop Stage</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.stageOfCrop || ''} onChange={e => setFormData({ ...formData, stageOfCrop: e.target.value })}>
-                      <option value="">— Select —</option>
-                      {CROP_STAGES.map(o => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                </div>
-              </div>
 
               {/* Section 3: Incidence & Severity */}
               <div style={{ background: '#f8fafc', padding: 32, borderRadius: 24, border: '1px solid #e2e8f0', marginBottom: 20 }}>

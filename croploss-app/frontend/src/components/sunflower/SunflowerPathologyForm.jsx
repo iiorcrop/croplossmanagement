@@ -160,28 +160,7 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
 
             {/* Location / Meta Details Grid */}
             <div className="sfp-location-grid">
-              <div className="sfp-field">
-                <label>Village / Cluster Name</label>
-                <select
-                  value={obs.location || ''}
-                  onChange={(e) => handleLocChange(locIdx, 'location', e.target.value)}
-                  disabled={readOnly || !taluka}
-                  className="sfp-input"
-                >
-                  <option value="">{taluka ? "— Select Village —" : "Select Taluka first"}</option>
-                  {availableVillages.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="sfp-field">
-                <label>Latitude</label>
-                <input type="number" step="0.0001" placeholder="e.g. 23.456" value={obs.latitude || ''} onChange={(e) => handleLocChange(locIdx, 'latitude', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
-              <div className="sfp-field">
-                <label>Longitude</label>
-                <input type="number" step="0.0001" placeholder="e.g. 72.123" value={obs.longitude || ''} onChange={(e) => handleLocChange(locIdx, 'longitude', e.target.value)} disabled={readOnly} className="sfp-input" />
-              </div>
+
               
               <div className="sfp-field">
                 <label>Farmer Name</label>

@@ -151,23 +151,7 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
             )}
           </div>
           
-          <div className="grid-2" style={{ gridTemplateColumns: '2fr 1fr 1fr', marginBottom: '20px' }}>
-            <div className="field-group">
-              <label>Village / Cluster Name</label>
-              <select value={obs.location || ''} onChange={(e) => handleLocChange(i, 'location', e.target.value)} disabled={readOnly || !taluka} className="form-control">
-                <option value="">{taluka ? "— Select Village —" : "Select Taluka first"}</option>
-                {availableVillages.map(v => <option key={v} value={v}>{v}</option>)}
-              </select>
-            </div>
-            <div className="field-group">
-              <label>Latitude</label>
-              <input type="number" step="0.0001" placeholder="22.49" value={obs.latitude || ''} onChange={(e) => handleLocChange(i, 'latitude', e.target.value)} disabled={readOnly} className="form-control" />
-            </div>
-            <div className="field-group">
-              <label>Longitude</label>
-              <input type="number" step="0.0001" placeholder="70.21" value={obs.longitude || ''} onChange={(e) => handleLocChange(i, 'longitude', e.target.value)} disabled={readOnly} className="form-control" />
-            </div>
-          </div>
+
 
           {/* A. Defoliators */}
           <section className="group-section">
