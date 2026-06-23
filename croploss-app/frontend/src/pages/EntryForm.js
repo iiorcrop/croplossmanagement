@@ -165,22 +165,6 @@ export default function EntryForm() {
         toast.error("Please select a crop");
         return false;
       }
-      if (form.majorCrops.length === 0) {
-        toast.error("Please select at least one major crop");
-        return false;
-      }
-      if (form.croppingSystem.length === 0) {
-        toast.error("Please select at least one cropping system");
-        return false;
-      }
-      if (form.soilType.length === 0) {
-        toast.error("Please select at least one soil type");
-        return false;
-      }
-      if (form.agroEcologicalZone.length === 0) {
-        toast.error("Please select at least one agro‑ecological zone");
-        return false;
-      }
       if (!form.discipline) {
         toast.error("Please select a discipline");
         return false;
@@ -209,6 +193,22 @@ export default function EntryForm() {
       }
       if (!form.cultivar) {
         toast.error("Please select a cultivar");
+        return false;
+      }
+      if (form.majorCrops.length === 0) {
+        toast.error("Please select at least one major crop");
+        return false;
+      }
+      if (form.croppingSystem.length === 0) {
+        toast.error("Please select at least one cropping system");
+        return false;
+      }
+      if (form.soilType.length === 0) {
+        toast.error("Please select at least one soil type");
+        return false;
+      }
+      if (form.agroEcologicalZone.length === 0) {
+        toast.error("Please select at least one agro‑ecological zone");
         return false;
       }
     }
