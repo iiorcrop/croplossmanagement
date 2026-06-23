@@ -41,6 +41,9 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
   };
 
   const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [defaultObservation]);
+  const [customOpts, setCustomOpts] = useState({
+    sunflowerPests: []
+  });
 
 
   useEffect(() => {
@@ -79,12 +82,26 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
   };
 
   const handlePestChange = (locIdx, pestIdx, field, value) => {
-    const updated = [...observations];
-    updated[locIdx].sunflowerPests[pestIdx] = {
-      ...updated[locIdx].sunflowerPests[pestIdx],
-      [field]: value
-    };
-    setObservations(updated);
+    if (field === 'pestName' && value === '__ADD_NEW__') {
+      const newVal = window.prompt(`Enter new pest name:`);
+      if (newVal && newVal.trim()) {
+        const properVal = newVal.trim().replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+        setCustomOpts(prev => ({ ...prev, sunflowerPests: [...new Set([...(prev.sunflowerPests || []), properVal])] }));
+        const updated = [...observations];
+        updated[locIdx].sunflowerPests[pestIdx] = {
+          ...updated[locIdx].sunflowerPests[pestIdx],
+          [field]: properVal
+        };
+        setObservations(updated);
+      }
+    } else {
+      const updated = [...observations];
+      updated[locIdx].sunflowerPests[pestIdx] = {
+        ...updated[locIdx].sunflowerPests[pestIdx],
+        [field]: value
+      };
+      setObservations(updated);
+    }
   };
 
   const handleYieldChange = (locIdx, method, value) => {
@@ -151,9 +168,10 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
                       className="sf-input sf-pest-select"
                     >
                       <option value="">— Select Pest —</option>
-                      {SUNFLOWER_PESTS.map((p) => (
+                      {[...SUNFLOWER_PESTS, ...(customOpts.sunflowerPests || [])].map((p) => (
                         <option key={p} value={p}>{p}</option>
                       ))}
+                      <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                     </select>
                     {!readOnly && (
                       <button className="sf-btn sf-btn-danger sf-btn-sm" onClick={() => removePest(locIdx, pIdx)}>

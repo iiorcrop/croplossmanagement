@@ -48,6 +48,12 @@ const WHITEFLY_SCALES = [
 
 const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka }) => {
   const [observations, setObservations] = useState(rows || []);
+  const [customOpts, setCustomOpts] = useState({
+    defoliators: [],
+    capsuleSpikeBorers: [],
+    suckingPests: [],
+    rootPests: []
+  });
 
 
   useEffect(() => {
@@ -97,9 +103,20 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
   };
 
   const handlePestChange = (locIdx, category, pestIdx, field, value) => {
-    const updated = [...observations];
-    updated[locIdx][category][pestIdx][field] = value;
-    setObservations(updated);
+    if (field === 'pestName' && value === '__ADD_NEW__') {
+      const newVal = window.prompt(`Enter new pest name:`);
+      if (newVal && newVal.trim()) {
+        const properVal = newVal.trim().replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+        setCustomOpts(prev => ({ ...prev, [category]: [...new Set([...(prev[category] || []), properVal])] }));
+        const updated = [...observations];
+        updated[locIdx][category][pestIdx][field] = properVal;
+        setObservations(updated);
+      }
+    } else {
+      const updated = [...observations];
+      updated[locIdx][category][pestIdx][field] = value;
+      setObservations(updated);
+    }
   };
 
   const handleImageUpload = (locIdx, files) => {
@@ -154,7 +171,8 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
                 <div className="pest-header">
                   <select value={pest.pestName || ''} onChange={(e) => handlePestChange(i, 'defoliators', pIdx, 'pestName', e.target.value)} disabled={readOnly} className="form-control pest-select">
                     <option value="">— Select Defoliator —</option>
-                    {DEFOLIATORS.map(d => <option key={d} value={d}>{d}</option>)}
+                    {[...DEFOLIATORS, ...(customOpts.defoliators || [])].map(d => <option key={d} value={d}>{d}</option>)}
+                    <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                   </select>
                   {!readOnly && <button className="btn btn-danger btn-sm" onClick={() => removePest(i, 'defoliators', pIdx)}>✕</button>}
                 </div>
@@ -194,7 +212,8 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
                 <div className="pest-header">
                   <select value={pest.pestName || ''} onChange={(e) => handlePestChange(i, 'capsuleSpikeBorers', pIdx, 'pestName', e.target.value)} disabled={readOnly} className="form-control pest-select">
                     <option value="">— Select Borer —</option>
-                    {BORERS.map(b => <option key={b} value={b}>{b}</option>)}
+                    {[...BORERS, ...(customOpts.capsuleSpikeBorers || [])].map(b => <option key={b} value={b}>{b}</option>)}
+                    <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                   </select>
                   {!readOnly && <button className="btn btn-danger btn-sm" onClick={() => removePest(i, 'capsuleSpikeBorers', pIdx)}>✕</button>}
                 </div>
@@ -231,7 +250,8 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
                 <div className="pest-header">
                   <select value={pest.pestName || ''} onChange={(e) => handlePestChange(i, 'suckingPests', pIdx, 'pestName', e.target.value)} disabled={readOnly} className="form-control pest-select">
                     <option value="">— Select Sucking Pest —</option>
-                    {SUCKING_PESTS.map(s => <option key={s} value={s}>{s}</option>)}
+                    {[...SUCKING_PESTS, ...(customOpts.suckingPests || [])].map(s => <option key={s} value={s}>{s}</option>)}
+                    <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                   </select>
                   {!readOnly && <button className="btn btn-danger btn-sm" onClick={() => removePest(i, 'suckingPests', pIdx)}>✕</button>}
                 </div>
@@ -274,7 +294,8 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
                 <div className="pest-header">
                   <select value={pest.pestName || ''} onChange={(e) => handlePestChange(i, 'rootPests', pIdx, 'pestName', e.target.value)} disabled={readOnly} className="form-control pest-select">
                     <option value="">— Select Root Pest —</option>
-                    {ROOT_PESTS.map(r => <option key={r} value={r}>{r}</option>)}
+                    {[...ROOT_PESTS, ...(customOpts.rootPests || [])].map(r => <option key={r} value={r}>{r}</option>)}
+                    <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                   </select>
                   {!readOnly && <button className="btn btn-danger btn-sm" onClick={() => removePest(i, 'rootPests', pIdx)}>✕</button>}
                 </div>
