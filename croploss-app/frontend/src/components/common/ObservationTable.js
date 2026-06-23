@@ -8,6 +8,8 @@ export function blankRow(crop, discipline = 'Both') {
     soilType: 'Black', previousCrop: 'Castor', variety: '', otherVariety: '',
     irrigatedRainfed: 'Irrigated', dateOfSowing: '1st Wk Aug', stageOfCrop: '',
     cropDamage: '', remarks: '',
+    newDiseaseReported: '',
+    newDiseaseDetails: ''
   };
   const cols = getColsByDiscipline(crop, discipline);
   [...cols.disease, ...cols.insect].forEach(c => { row[c.key] = '-'; });
