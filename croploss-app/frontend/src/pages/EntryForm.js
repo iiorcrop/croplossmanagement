@@ -237,11 +237,7 @@ export default function EntryForm() {
         toast.error("Add at least one observation row");
         return false;
       }
-      const unfilled = observations.filter((r) => !r.location?.trim());
-      if (unfilled.length > 0) {
-        toast.error("All rows must have a location name");
-        return false;
-      }
+
     }
     return true;
   };

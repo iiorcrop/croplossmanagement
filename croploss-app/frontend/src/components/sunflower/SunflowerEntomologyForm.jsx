@@ -41,33 +41,7 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
   };
 
   const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [defaultObservation]);
-  const [availableVillages, setAvailableVillages] = useState([]);
-  const [masterData, setMasterData] = useState({ soilTypes: [], previousCrops: [], varieties: {} });
 
-  // Fetch master data for dynamic cultivation options
-  useEffect(() => {
-    api.get('/masterData')
-      .then(res => {
-        const data = res.data?.data || {};
-        setMasterData({
-          soilTypes: data.soilTypes || [],
-          previousCrops: data.previousCrops || [],
-          varieties: data.varieties || {},
-        });
-      })
-      .catch(err => console.error('Failed to load master data', err));
-  }, []);
-
-  // Fetch villages based on taluka passed from parent
-  useEffect(() => {
-    if (state && district && taluka) {
-      api.get(`/locations/villages/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${encodeURIComponent(taluka)}`)
-        .then(res => setAvailableVillages(res.data.data || []))
-        .catch(err => console.error('Failed to fetch villages', err));
-    } else {
-      setAvailableVillages([]);
-    }
-  }, [state, district, taluka]);
 
   useEffect(() => {
     // Only notify parent if rows actually changed

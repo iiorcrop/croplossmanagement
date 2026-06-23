@@ -48,17 +48,7 @@ const WHITEFLY_SCALES = [
 
 const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka }) => {
   const [observations, setObservations] = useState(rows || []);
-  const [availableVillages, setAvailableVillages] = useState([]);
 
-  useEffect(() => {
-    if (state && district && taluka) {
-      api.get(`/locations/villages/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${encodeURIComponent(taluka)}`)
-        .then(res => setAvailableVillages(res.data.data || []))
-        .catch(err => console.error('Failed to fetch villages', err));
-    } else {
-      setAvailableVillages([]);
-    }
-  }, [state, district, taluka]);
 
   useEffect(() => {
     onChange(observations);

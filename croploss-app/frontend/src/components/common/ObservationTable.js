@@ -25,32 +25,7 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
   const icols = cols.insect;
 
 
-  const [availableVillages, setAvailableVillages] = useState([]);
-  const [masterData, setMasterData] = useState({ soilTypes: [], previousCrops: [], varieties: {} });
 
-  React.useEffect(() => {
-    if (state && district && taluka) {
-      axios.get(`${process.env.REACT_APP_BASE_URL || '/api'}/locations/villages/${encodeURIComponent(state)}/${encodeURIComponent(district)}/${encodeURIComponent(taluka)}`)
-        .then(res => setAvailableVillages(res.data.data || []))
-        .catch(err => console.error('Failed to fetch villages', err));
-    } else {
-      setAvailableVillages([]);
-    }
-  }, [state, district, taluka]);
-
-  // Load master data on mount
-  React.useEffect(() => {
-    axios.get('/api/masterData')
-      .then(res => {
-        const data = res.data?.data || {};
-        setMasterData({
-          soilTypes: data.soilTypes || [],
-          previousCrops: data.previousCrops || [],
-          varieties: data.varieties || {},
-        });
-      })
-      .catch(err => console.error('Failed to load master data', err));
-  }, []);
 
   const handleOpenAdd = () => {
     setEditingIdx(null);
@@ -71,15 +46,7 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
     } else {
       onChange([...rows, formData]);
     }
-    // Persist custom entries to master data
-    if (formData.customSoil && !masterData.soilTypes.includes(formData.customSoil)) {
-      axios.put('/api/masterData/soilTypes', { value: [...masterData.soilTypes, formData.customSoil] })
-        .catch(err => console.error('Failed to persist custom soil type', err));
-    }
-    if (formData.customPrevCrop && !masterData.previousCrops.includes(formData.customPrevCrop)) {
-      axios.put('/api/masterData/previousCrops', { value: [...masterData.previousCrops, formData.customPrevCrop] })
-        .catch(err => console.error('Failed to persist custom previous crop', err));
-    }
+
     setShowModal(false);
   };
 
