@@ -70,17 +70,17 @@ export default function EntryForm() {
         .get(`/locations/states`)
         .then((res) => setAvailableStates(res.data.data))
         .catch((err) => console.error("Failed to fetch states", err));
-    // Fetch cultivars list on mount
-    api
-        .get(`/cultivars`)
-        .then((res) => setAvailableCultivars(res.data.data))
-        .catch((err) => console.error("Failed to fetch cultivars", err));
   }, []);
 
   // Fetch master data on mount
   useEffect(() => {
     api.get('/master-data')
-      .then(res => setMasterData(res.data.data))
+      .then(res => {
+        setMasterData(res.data.data);
+        if (res.data.data && res.data.data.cultivars) {
+          setAvailableCultivars(res.data.data.cultivars);
+        }
+      })
       .catch(err => {
         console.error('Failed to fetch master data', err);
         toast.error('Failed to load master data');

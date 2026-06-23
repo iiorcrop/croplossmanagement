@@ -114,7 +114,7 @@ export default function Sidebar({ pendingCount = 0 }) {
           {/* Personal tab */}
           <div className="sb-section">Personal</div>
           <div className={`nav-item ${active('/personal') ? 'active' : ''}`} onClick={() => go('/personal')}>
-            <span className="nav-icon">👤</span> Personal
+            <span className="nav-icon">👤</span> CropLoss Calculator
           </div>
         </>
       )}
