@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './SunflowerEntomologyForm.css';
 import api from '../../utils/api';
-
-/**
+import { IRRIGATION_TYPES, SOWING_DATES, CROP_STAGES } from '../../utils/constants';
  * SunflowerEntomologyForm – dynamic observation form for Crop: Sunflower & Discipline: Entomology.
  * Supports multiple locations and dynamic "Add Pest" entries per location.
  */
@@ -27,6 +26,13 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
     location: '',
     latitude: '',
     longitude: '',
+    soilType: 'Black',
+    previousCrop: 'Castor',
+    variety: '',
+    otherVariety: '',
+    irrigatedRainfed: 'Irrigated',
+    dateOfSowing: '1st Wk Aug',
+    stageOfCrop: '',
     sunflowerPests: [],
     yieldLoss: { method1: '', method2: '', method3: '' },
     images: [],
@@ -34,6 +40,21 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
 
   const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [defaultObservation]);
   const [availableVillages, setAvailableVillages] = useState([]);
+  const [masterData, setMasterData] = useState({ soilTypes: [], previousCrops: [], varieties: {} });
+
+  // Fetch master data for dynamic cultivation options
+  useEffect(() => {
+    api.get('/masterData')
+      .then(res => {
+        const data = res.data?.data || {};
+        setMasterData({
+          soilTypes: data.soilTypes || [],
+          previousCrops: data.previousCrops || [],
+          varieties: data.varieties || {},
+        });
+      })
+      .catch(err => console.error('Failed to load master data', err));
+  }, []);
 
   // Fetch villages based on taluka passed from parent
   useEffect(() => {
@@ -156,6 +177,76 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
             </div>
           </div>
 
+          {/* Cultivation Context */}
+          <div className="sf-section">
+            <h5 className="sf-section-title" style={{ marginTop: '20px' }}>🌱 Cultivation Context</h5>
+            <div className="sf-location-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+              <div className="sf-field">
+                <label>Soil Type</label>
+                {obs.soilType !== 'Others' ? (
+                  <select className="sf-input" value={obs.soilType || ''} onChange={e => handleLocChange(locIdx, 'soilType', e.target.value)} disabled={readOnly}>
+                    <option value="">— Select —</option>
+                    {masterData.soilTypes.map(o => <option key={o} value={o}>{o}</option>)}
+                    <option value="Others">Others</option>
+                  </select>
+                ) : (
+                  <input className="sf-input" placeholder="Enter custom soil type" value={obs.customSoil || ''} onChange={e => handleLocChange(locIdx, 'customSoil', e.target.value)} disabled={readOnly} />
+                )}
+              </div>
+              <div className="sf-field">
+                <label>Previous Crop</label>
+                {obs.previousCrop !== 'Others' ? (
+                  <select className="sf-input" value={obs.previousCrop || ''} onChange={e => handleLocChange(locIdx, 'previousCrop', e.target.value)} disabled={readOnly}>
+                    <option value="">— Select —</option>
+                    {masterData.previousCrops.map(o => <option key={o} value={o}>{o}</option>)}
+                    <option value="Others">Others</option>
+                  </select>
+                ) : (
+                  <input className="sf-input" placeholder="Enter custom previous crop" value={obs.customPrevCrop || ''} onChange={e => handleLocChange(locIdx, 'customPrevCrop', e.target.value)} disabled={readOnly} />
+                )}
+              </div>
+              <div className="sf-field">
+                <label>Variety</label>
+                {(() => {
+                  let dynamicVars = [...(masterData.varieties['sunflower'] || [])];
+                  const finalPrev = obs.previousCrop === 'Others' ? (obs.customPrevCrop || '') : obs.previousCrop;
+                  if (finalPrev && !dynamicVars.includes(finalPrev)) {
+                    dynamicVars.push(finalPrev);
+                  }
+                  return (
+                    <select className="sf-input" value={obs.variety || ''} onChange={e => handleLocChange(locIdx, 'variety', e.target.value)} disabled={readOnly}>
+                      <option value="">— Select —</option>
+                      {dynamicVars.map(v => <option key={v} value={v}>{v}</option>)}
+                      <option value="Others">Others</option>
+                    </select>
+                  );
+                })()}
+                {obs.variety === 'Others' && (
+                  <input type="text" className="sf-input" style={{ marginTop: 10 }} placeholder="Specify custom variety" value={obs.otherVariety || ''} onChange={e => handleLocChange(locIdx, 'otherVariety', e.target.value)} disabled={readOnly} />
+                )}
+              </div>
+              <div className="sf-field">
+                <label>Irrigation Type</label>
+                <select className="sf-input" value={obs.irrigatedRainfed || ''} onChange={e => handleLocChange(locIdx, 'irrigatedRainfed', e.target.value)} disabled={readOnly}>
+                  {IRRIGATION_TYPES.map(o => <option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div className="sf-field">
+                <label>Sowing Period</label>
+                <select className="sf-input" value={obs.dateOfSowing || ''} onChange={e => handleLocChange(locIdx, 'dateOfSowing', e.target.value)} disabled={readOnly}>
+                  {SOWING_DATES.map(o => <option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div className="sf-field">
+                <label>Crop Stage</label>
+                <select className="sf-input" value={obs.stageOfCrop || ''} onChange={e => handleLocChange(locIdx, 'stageOfCrop', e.target.value)} disabled={readOnly}>
+                  <option value="">— Select —</option>
+                  {CROP_STAGES.map(o => <option key={o}>{o}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* Dynamic Pest Section */}
           <div className="sf-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -260,16 +351,18 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
                         className="sf-input"
                       />
                     </div>
-                    <div className="sf-field">
-                      <label>Estimated Yield Loss %</label>
-                      <input
-                        type="text"
-                        value={pest.estimatedYieldLoss || ''}
-                        onChange={(e) => handlePestChange(locIdx, pIdx, 'estimatedYieldLoss', e.target.value)}
-                        disabled={readOnly}
-                        className="sf-input"
-                      />
-                    </div>
+                    {['Flowering', 'Seed filling', 'Harvesting', 'Post-harvest', 'Secondary spike'].includes(obs.stageOfCrop) && (
+                      <div className="sf-field">
+                        <label>Estimated Yield Loss %</label>
+                        <input
+                          type="text"
+                          value={pest.estimatedYieldLoss || ''}
+                          onChange={(e) => handlePestChange(locIdx, pIdx, 'estimatedYieldLoss', e.target.value)}
+                          disabled={readOnly}
+                          className="sf-input"
+                        />
+                      </div>
+                    )}
                     <div className="sf-field">
                       <label>Specific Information</label>
                       <input
