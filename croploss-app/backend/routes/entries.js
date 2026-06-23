@@ -222,7 +222,13 @@ router.put('/:id', protect, authorize('center_user', 'super_admin'), async (req,
       return res.status(400).json({ success: false, message: `Cannot edit entry with status: ${entry.status}` });
     }
 
-    const allowedFields = ['observations', 'district', 'taluka', 'surveyDate', 'season', 'year', 'surveyorName', 'surveyorDesig'];
+    const allowedFields = [
+      'observations', 'district', 'taluka', 'village', 'surveyDate', 'season', 'year',
+      'surveyorName', 'surveyorDesig',
+      'latitude', 'longitude', 'soilTypeField', 'previousCrop', 'variety',
+      'irrigatedRainfed', 'dateOfSowing', 'stageOfCrop',
+      'cultivar', 'majorCrops', 'croppingSystem', 'soilType', 'agroEcologicalZone',
+    ];
     allowedFields.forEach(f => { if (req.body[f] !== undefined) entry[f] = req.body[f]; });
 
     await entry.save();

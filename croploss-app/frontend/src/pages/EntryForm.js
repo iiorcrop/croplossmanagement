@@ -5,7 +5,8 @@ import { useAuth } from "../context/AuthContext";
 import api, { entriesAPI } from "../utils/api";
 import { Alert, Spinner } from "../components/common";
 import ObservationTable, { blankRow } from "../components/common/ObservationTable";
-import { CROPS, DISCIPLINES, CROP_EMOJI, CROP_LABEL, SEASONS, IRRIGATION_TYPES, SOIL_TYPES } from "../utils/constants";
+import { CROPS, DISCIPLINES, CROP_EMOJI, CROP_LABEL, SEASONS, IRRIGATION_TYPES, SOIL_TYPES,
+         PREVIOUS_CROPS, VARIETIES, SOWING_DATES, CROP_STAGES } from "../utils/constants";
 import CastorEntomologyForm from "../components/castor/CastorEntomologyForm";
 import SunflowerEntomologyForm from "../components/sunflower/SunflowerEntomologyForm";
 import SunflowerPathologyForm from "../components/sunflower/SunflowerPathologyForm";
@@ -47,6 +48,15 @@ export default function EntryForm() {
     state: user?.centerState || "",
     district: "",
     taluka: "",
+    village: "",
+    latitude: "",
+    longitude: "",
+    soilTypeField: "",
+    previousCrop: "",
+    variety: "",
+    irrigatedRainfed: "Irrigated",
+    dateOfSowing: "",
+    stageOfCrop: "",
     cultivar: "",
     surveyDate: new Date().toISOString().split("T")[0],
     surveyorName: user?.name || "",
@@ -62,6 +72,7 @@ export default function EntryForm() {
   const [availableStates, setAvailableStates] = useState([]);
   const [availableDistricts, setAvailableDistricts] = useState([]);
   const [availableTalukas, setAvailableTalukas] = useState([]);
+  const [availableVillages, setAvailableVillages] = useState([]);
   const [availableCultivars, setAvailableCultivars] = useState([]);
 
   // Fetch States on Load
@@ -112,6 +123,18 @@ export default function EntryForm() {
     }
   }, [form.state, form.district]);
 
+  // Fetch Villages when Taluka changes
+  useEffect(() => {
+    if (form.state && form.district && form.taluka) {
+      api
+        .get(`/locations/villages/${encodeURIComponent(form.state)}/${encodeURIComponent(form.district)}/${encodeURIComponent(form.taluka)}`)
+        .then((res) => setAvailableVillages(res.data.data || []))
+        .catch((err) => console.error("Failed to fetch villages", err));
+    } else {
+      setAvailableVillages([]);
+    }
+  }, [form.state, form.district, form.taluka]);
+
   const [observations, setObservations] = useState([]);
   const [entry, setEntry] = useState(null);
 
@@ -132,12 +155,25 @@ export default function EntryForm() {
           state: e.state || "",
           district: e.district || "",
           taluka: e.taluka || "",
+          village: e.village || "",
+          latitude: e.latitude || "",
+          longitude: e.longitude || "",
+          soilTypeField: e.soilTypeField || "",
+          previousCrop: e.previousCrop || "",
+          variety: e.variety || "",
+          irrigatedRainfed: e.irrigatedRainfed || "Irrigated",
+          dateOfSowing: e.dateOfSowing || "",
+          stageOfCrop: e.stageOfCrop || "",
           cultivar: e.cultivar || "",
           surveyDate: e.surveyDate ? new Date(e.surveyDate).toISOString().split("T")[0] : "",
           surveyorName: e.surveyorName || "",
           surveyorDesig: e.surveyorDesig || "",
           centerName: e.centerName || "",
           centerState: e.centerState || "",
+          majorCrops: e.majorCrops || [],
+          croppingSystem: e.croppingSystem || [],
+          soilType: e.soilType || [],
+          agroEcologicalZone: e.agroEcologicalZone || [],
         });
         setObservations(e.observations || []);
       })
@@ -189,6 +225,10 @@ export default function EntryForm() {
       }
       if (!form.taluka) {
         toast.error("Please select a taluka / block");
+        return false;
+      }
+      if (!form.village) {
+        toast.error("Please select a village");
         return false;
       }
       if (!form.cultivar) {
@@ -386,7 +426,7 @@ export default function EntryForm() {
 
         {currentStep === 1 && (
           <div className="animate-fade-in">
-            <h3 className="step-title">📍 Location & Surveyor</h3>
+            <h3 className="step-title">📍 Location &amp; Surveyor</h3>
             <div className="form-grid grid-2">
                 <div className="form-group">
                   <label className="form-label required">State</label>
@@ -450,7 +490,18 @@ export default function EntryForm() {
                   <select
                     className="form-control"
                     value={form.taluka}
-                    onChange={(e) => setForm({ ...form, taluka: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '__ADD_NEW__') {
+                        const newVal = window.prompt('Enter new Taluka name:');
+                        if (newVal && newVal.trim()) {
+                          setAvailableTalukas(prev => [...new Set([...prev, newVal.trim()])]);
+                          setForm({ ...form, taluka: newVal.trim(), village: '' });
+                        }
+                      } else {
+                        setForm({ ...form, taluka: val, village: '' });
+                      }
+                    }}
                     disabled={!isEditable || !form.district}
                   >
                     <option value="">— Select Taluka —</option>
@@ -460,6 +511,33 @@ export default function EntryForm() {
                       </option>
                     ))}
                     <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Taluka...</option>
+                  </select>
+                </div>
+                {/* Village Dropdown */}
+                <div className="form-group">
+                  <label className="form-label required">Village</label>
+                  <select
+                    className="form-control"
+                    value={form.village}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '__ADD_NEW_VILLAGE__') {
+                        const newVal = window.prompt('Enter new Village name:');
+                        if (newVal && newVal.trim()) {
+                          setAvailableVillages(prev => [...new Set([...prev, newVal.trim()])]);
+                          setField('village', newVal.trim());
+                        }
+                      } else {
+                        setField('village', val);
+                      }
+                    }}
+                    disabled={!isEditable || !form.taluka}
+                  >
+                    <option value="">{form.taluka ? '— Select Village —' : 'Select Taluka first'}</option>
+                    {availableVillages.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                    <option value="__ADD_NEW_VILLAGE__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Village...</option>
                   </select>
                 </div>
                 {/* Cultivar Dropdown */}
@@ -570,6 +648,126 @@ export default function EntryForm() {
                 <input className="form-control" type="text" value={form.centerName} readOnly />
               </div>
             </div>
+
+            {/* ── Crop-Level Details ───────────────────────────────── */}
+            <h3 className="step-title" style={{ marginTop: '28px' }}>🌱 Crop Details</h3>
+            <div className="form-grid grid-2">
+              {/* Latitude */}
+              <div className="form-group">
+                <label className="form-label">Latitude</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  step="0.0001"
+                  placeholder="e.g. 23.4567"
+                  value={form.latitude}
+                  onChange={(e) => setField('latitude', e.target.value)}
+                  readOnly={!isEditable}
+                />
+              </div>
+              {/* Longitude */}
+              <div className="form-group">
+                <label className="form-label">Longitude</label>
+                <input
+                  className="form-control"
+                  type="number"
+                  step="0.0001"
+                  placeholder="e.g. 72.1234"
+                  value={form.longitude}
+                  onChange={(e) => setField('longitude', e.target.value)}
+                  readOnly={!isEditable}
+                />
+              </div>
+              {/* Soil Type */}
+              <div className="form-group">
+                <label className="form-label">Soil Type</label>
+                <select
+                  className="form-control"
+                  value={form.soilTypeField}
+                  onChange={(e) => setField('soilTypeField', e.target.value)}
+                  disabled={!isEditable}
+                >
+                  <option value="">— Select Soil Type —</option>
+                  {SOIL_TYPES.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Previous Crop */}
+              <div className="form-group">
+                <label className="form-label">Previous Crop</label>
+                <select
+                  className="form-control"
+                  value={form.previousCrop}
+                  onChange={(e) => setField('previousCrop', e.target.value)}
+                  disabled={!isEditable}
+                >
+                  <option value="">— Select Previous Crop —</option>
+                  {PREVIOUS_CROPS.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Variety */}
+              <div className="form-group">
+                <label className="form-label">Variety</label>
+                <select
+                  className="form-control"
+                  value={form.variety}
+                  onChange={(e) => setField('variety', e.target.value)}
+                  disabled={!isEditable}
+                >
+                  <option value="">— Select Variety —</option>
+                  {(VARIETIES[form.crop] || []).filter(Boolean).map(v => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Irrigated / Rainfed */}
+              <div className="form-group">
+                <label className="form-label">Irrigated / Rainfed</label>
+                <select
+                  className="form-control"
+                  value={form.irrigatedRainfed}
+                  onChange={(e) => setField('irrigatedRainfed', e.target.value)}
+                  disabled={!isEditable}
+                >
+                  {IRRIGATION_TYPES.map(o => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Date of Sowing */}
+              <div className="form-group">
+                <label className="form-label">Date of Sowing</label>
+                <select
+                  className="form-control"
+                  value={form.dateOfSowing}
+                  onChange={(e) => setField('dateOfSowing', e.target.value)}
+                  disabled={!isEditable}
+                >
+                  <option value="">— Select Period —</option>
+                  {SOWING_DATES.map(o => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Stage of Crop */}
+              <div className="form-group">
+                <label className="form-label">Stage of Crop</label>
+                <select
+                  className="form-control"
+                  value={form.stageOfCrop}
+                  onChange={(e) => setField('stageOfCrop', e.target.value)}
+                  disabled={!isEditable}
+                >
+                  <option value="">— Select Stage —</option>
+                  {CROP_STAGES.filter(Boolean).map(o => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         )}
 
@@ -640,31 +838,67 @@ export default function EntryForm() {
 
         {currentStep === 3 && (
           <div className="animate-fade-in">
-            <h3 className="step-title">🏁 Review & Submit</h3>
+            <h3 className="step-title">🏁 Review &amp; Submit</h3>
             <div className="review-summary-grid">
               <div className="review-item">
-                <label>Crop & Discipline</label>
-                <div>
-                  {CROP_EMOJI[form.crop]} {CROP_LABEL(form.crop)} ({form.discipline})
-                </div>
+                <label>Crop &amp; Discipline</label>
+                <div>{CROP_EMOJI[form.crop]} {CROP_LABEL(form.crop)} ({form.discipline})</div>
               </div>
               <div className="review-item">
                 <label>Location</label>
-                <div>
-                  {form.taluka}, {form.district}, {form.state}
-                </div>
+                <div>{form.village}, {form.taluka}, {form.district}, {form.state}</div>
               </div>
               <div className="review-item">
                 <label>Season</label>
                 <div>{form.season}</div>
               </div>
               <div className="review-item">
-                <label>Date</label>
+                <label>Survey Date</label>
                 <div>{form.surveyDate}</div>
               </div>
+              {form.latitude && (
+                <div className="review-item">
+                  <label>Coordinates</label>
+                  <div>{form.latitude}° N, {form.longitude}° E</div>
+                </div>
+              )}
+              {form.soilTypeField && (
+                <div className="review-item">
+                  <label>Soil Type</label>
+                  <div>{form.soilTypeField}</div>
+                </div>
+              )}
+              {form.previousCrop && (
+                <div className="review-item">
+                  <label>Previous Crop</label>
+                  <div>{form.previousCrop}</div>
+                </div>
+              )}
+              {form.variety && (
+                <div className="review-item">
+                  <label>Variety</label>
+                  <div>{form.variety}</div>
+                </div>
+              )}
+              <div className="review-item">
+                <label>Irrigated / Rainfed</label>
+                <div>{form.irrigatedRainfed}</div>
+              </div>
+              {form.dateOfSowing && (
+                <div className="review-item">
+                  <label>Date of Sowing</label>
+                  <div>{form.dateOfSowing}</div>
+                </div>
+              )}
+              {form.stageOfCrop && (
+                <div className="review-item">
+                  <label>Stage of Crop</label>
+                  <div>{form.stageOfCrop}</div>
+                </div>
+              )}
               <div className="review-item">
                 <label>Observations</label>
-                <div>{observations.length} locations recorded</div>
+                <div>{observations.length} location(s) recorded</div>
               </div>
               {form.discipline !== "Entomology" && (
                 <div className="review-item">

@@ -137,9 +137,27 @@ const cropEntrySchema = new mongoose.Schema({
   state: { type: String, required: true, trim: true },
   district: { type: String, required: true, trim: true },
   taluka: { type: String, trim: true, default: '' },
+  village: { type: String, trim: true, default: '' },
   surveyDate: { type: Date, required: true },
   surveyorName: { type: String, trim: true, default: '' },
   surveyorDesig: { type: String, trim: true, default: '' },
+
+  // Centre-level crop & location context (one per form / survey)
+  latitude:         { type: Number, default: null },
+  longitude:        { type: Number, default: null },
+  soilTypeField:    { type: String, trim: true, default: '' },
+  previousCrop:     { type: String, trim: true, default: '' },
+  variety:          { type: String, trim: true, default: '' },
+  irrigatedRainfed: { type: String, enum: ['Irrigated', 'Rainfed', ''], default: 'Irrigated' },
+  dateOfSowing:     { type: String, trim: true, default: '' },
+  stageOfCrop:      { type: String, trim: true, default: '' },
+
+  // Zone / crop meta (multi-select from Location step)
+  cultivar:           { type: String, trim: true, default: '' },
+  majorCrops:         [{ type: String }],
+  croppingSystem:     [{ type: String }],
+  soilType:           [{ type: String }],
+  agroEcologicalZone: [{ type: String }],
 
   // Center info (copied from user at time of entry)
   centerName: { type: String, required: true, trim: true },
