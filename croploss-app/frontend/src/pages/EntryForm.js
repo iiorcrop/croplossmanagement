@@ -10,7 +10,7 @@ import { CROPS, DISCIPLINES, CROP_EMOJI, CROP_LABEL, SEASONS, IRRIGATION_TYPES, 
 import CastorEntomologyForm from "../components/castor/CastorEntomologyForm";
 import SunflowerEntomologyForm from "../components/sunflower/SunflowerEntomologyForm";
 import SunflowerPathologyForm from "../components/sunflower/SunflowerPathologyForm";
-// // import axios from "axios"; // removed unused import // removed unused import
+import { INITIAL_DATA } from "./MasterData";
 
 // --- Stepper Component ---
 const Stepper = ({ currentStep, steps }) => (
@@ -42,9 +42,9 @@ export default function EntryForm() {
 
   const [form, setForm] = useState({
     crop: "",
-    discipline: "Pathology",
-    season: "Kharif 2024-25",
-    year: 2024,
+    discipline: "",
+    season: "",
+    year: new Date().getFullYear(),
     state: user?.centerState || "",
     district: "",
     taluka: "",
@@ -54,7 +54,7 @@ export default function EntryForm() {
     soilTypeField: "",
     previousCrop: "",
     variety: "",
-    irrigatedRainfed: "Irrigated",
+    irrigatedRainfed: "",
     dateOfSowing: "",
     stageOfCrop: "",
     cultivar: "",
@@ -309,15 +309,38 @@ export default function EntryForm() {
   if (loading || loadingMaster) return <Spinner text="Loading…" />;
 
   const maxWilt = observations.length ? Math.max(0, ...observations.map((r) => parseFloat(r.wilt) || 0)) : 0;
-  const availableCrops = isAdmin ? (masterData?.crops || CROPS) : user?.assignedCrops || (masterData?.crops || CROPS);
-  const availableDisciplines = masterData?.disciplines || DISCIPLINES;
-  const availableSeasons = masterData?.seasons || SEASONS;
-  const availableSoilTypes = masterData?.soilTypes || SOIL_TYPES;
-  const availablePreviousCrops = masterData?.previousCrops || PREVIOUS_CROPS;
-  const availableIrrigationTypes = masterData?.irrigationTypes || IRRIGATION_TYPES;
-  const availableSowingDates = masterData?.sowingDates || SOWING_DATES;
-  const availableCropStages = masterData?.cropStages || CROP_STAGES;
-  const availableVarieties = masterData?.varieties?.[form.crop] || VARIETIES[form.crop] || [];
+
+  // Read directly from MasterData localStorage / INITIAL_DATA to ensure perfect sync
+  const getMasterList = (type) => {
+    const saved = localStorage.getItem(`master_data_v3_${type}`);
+    const items = saved ? JSON.parse(saved) : (INITIAL_DATA[type] || []);
+    return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed').map(i => i.name);
+  };
+
+  const getMasterCrops = () => {
+    const saved = localStorage.getItem(`master_data_v3_crops`);
+    const items = saved ? JSON.parse(saved) : (INITIAL_DATA['crops'] || []);
+    return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed');
+  };
+
+  const getMasterVarieties = (cropName) => {
+    const saved = localStorage.getItem(`master_data_v3_varieties`);
+    const items = saved ? JSON.parse(saved) : (INITIAL_DATA['varieties'] || []);
+    return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed' && (!cropName || i.crop?.toLowerCase() === cropName.toLowerCase())).map(i => i.name);
+  };
+
+  const masterCrops = getMasterCrops();
+  // Filter for center user assignments, if applicable
+  const availableCrops = isAdmin ? masterCrops : masterCrops.filter(c => user?.assignedCrops?.includes(c.name.toLowerCase()) || user?.assignedCrops?.includes(c.name));
+  
+  const availableDisciplines = getMasterList('disciplines');
+  const availableSeasons = getMasterList('seasons');
+  const availableSoilTypes = getMasterList('soil-types');
+  const availablePreviousCrops = getMasterList('previous-crops');
+  const availableIrrigationTypes = getMasterList('irrigation');
+  const availableCropStages = getMasterList('crop-stages');
+  const availableSowingDates = masterData?.sowingDates || SOWING_DATES; // Not in INITIAL_DATA, use fallback
+  const availableVarieties = getMasterVarieties(form.crop) || VARIETIES[form.crop?.toLowerCase()] || [];
 
   return (
     <div className="entry-form-page">
@@ -325,7 +348,7 @@ export default function EntryForm() {
         <div>
           <h2>{isEdit ? `Edit Survey` : "New Crop Survey Entry"}</h2>
           <p className="text-gray" style={{ fontSize: "13px", marginTop: "4px" }}>
-            {CROP_LABEL(form.crop) || "Select crop"} • {form.discipline} • {form.season}
+            {form.crop || "Select crop"} • {form.discipline} • {form.season}
           </p>
         </div>
         <div className="header-actions">
@@ -360,8 +383,8 @@ export default function EntryForm() {
                 >
                   <option value="">— Select Crop —</option>
                   {availableCrops.map((c) => (
-                    <option key={c} value={c}>
-                      {CROP_EMOJI[c]} {CROP_LABEL(c)}
+                    <option key={c.name} value={c.name.toLowerCase()}>
+                      {c.emoji || CROP_EMOJI[c.name.toLowerCase()]} {c.name}
                     </option>
                   ))}
                 </select>
@@ -374,6 +397,7 @@ export default function EntryForm() {
                   onChange={(e) => setField("discipline", e.target.value)}
                   disabled={!isEditable}
                 >
+                  <option value="">— Select Discipline —</option>
                   {availableDisciplines.map((d) => (
                     <option key={d} value={d}>
                       {d}
@@ -389,6 +413,7 @@ export default function EntryForm() {
                   onChange={(e) => setField("season", e.target.value)}
                   disabled={!isEditable}
                 >
+                  <option value="">— Select Season —</option>
                   {availableSeasons.map((s) => (
                     <option key={s}>{s}</option>
                   ))}
@@ -609,6 +634,7 @@ export default function EntryForm() {
                   onChange={(e) => setField('irrigatedRainfed', e.target.value)}
                   disabled={!isEditable}
                 >
+                  <option value="">— Select Irrigation —</option>
                   {availableIrrigationTypes.map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
@@ -654,13 +680,13 @@ export default function EntryForm() {
               <h3 className="step-title">📊 Observations</h3>
               <div style={{ display: "flex", gap: "8px" }}>
                 <span className="badge badge-active">
-                  {CROP_EMOJI[form.crop]} {CROP_LABEL(form.crop)}
+                  {form.crop}
                 </span>
                 <span className="badge badge-submitted">{form.discipline}</span>
               </div>
             </div>
             <p className="step-desc">
-              Enter {form.discipline} records for {CROP_LABEL(form.crop)} below.
+              Enter {form.discipline} records for {form.crop} below.
             </p>
 
             {maxWilt >= 50 && form.discipline !== "Entomology" && (
@@ -719,7 +745,7 @@ export default function EntryForm() {
             <div className="review-summary-grid">
               <div className="review-item">
                 <label>Crop &amp; Discipline</label>
-                <div>{CROP_EMOJI[form.crop]} {CROP_LABEL(form.crop)} ({form.discipline})</div>
+                <div>{form.crop} ({form.discipline})</div>
               </div>
               <div className="review-item">
                 <label>Location</label>

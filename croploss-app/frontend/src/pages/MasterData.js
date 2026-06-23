@@ -7,7 +7,7 @@ import autoTable from 'jspdf-autotable';
 import api from '../utils/api';
 
 // Initial data for the demonstration
-const INITIAL_DATA = {
+export const INITIAL_DATA = {
   crops: [
     { id: 1, name: 'Castor', emoji: '🌿', description: 'Major oilseed crop used for industrial oil production.', area: '1.2M Ha', status: 'Active', color: '#10b981' },
     { id: 2, name: 'Sunflower', emoji: '🌻', description: 'Edible oilseed crop known for high quality polyunsaturated fatty acids.', area: '0.8M Ha', status: 'Active', color: '#f59e0b' },
