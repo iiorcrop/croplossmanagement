@@ -23,6 +23,11 @@ const masterDataSchema = new mongoose.Schema({
   years: [{ type: mongoose.Schema.Types.Mixed }],
   pests: [{ type: mongoose.Schema.Types.Mixed }],
   diseases: [{ type: mongoose.Schema.Types.Mixed }],
+  rodents: [{ type: mongoose.Schema.Types.Mixed }],
+  vertebrates: [{ type: mongoose.Schema.Types.Mixed }],
+  weeds: [{ type: mongoose.Schema.Types.Mixed }],
+  mites: [{ type: mongoose.Schema.Types.Mixed }],
+  nematodes: [{ type: mongoose.Schema.Types.Mixed }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('MasterData', masterDataSchema);

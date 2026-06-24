@@ -1144,6 +1144,38 @@
         } catch(e) { console.warn('Failed to migrate local params', e); }
       }
 
+      // Migrate master data from localStorage to backend
+      const masterDataKeysToMigrate = [
+        'centers', 'rodents', 'locations', 'vertebrates', 'previous-crops', 
+        'diseases', 'weeds', 'cultivars', 'zonesList', 'seasons', 
+        'mites', 'pests', 'nematodes'
+      ];
+      for (const key of masterDataKeysToMigrate) {
+        // Some keys in localstorage might have different names based on user input or old versions, 
+        // e.g. 'master_data_v3_previous-crops', 'master_data_v3_seasons'
+        let lsKey = key;
+        if (key === 'previous-crops') lsKey = 'master_data_v3_previous-crops';
+        if (key === 'seasons') lsKey = 'master_data_v3_seasons';
+        
+        let localDataStr = localStorage.getItem(lsKey) || localStorage.getItem(key);
+        if (localDataStr) {
+          try {
+            let parsedList = JSON.parse(localDataStr);
+            if (Array.isArray(parsedList) && parsedList.length > 0) {
+              for (const item of parsedList) {
+                // saveToDB appends the item to the backend DB array
+                await saveToDB(key, item);
+              }
+            }
+            localStorage.removeItem(lsKey);
+            if (lsKey !== key) localStorage.removeItem(key);
+          } catch (e) {
+            console.warn('Failed to migrate master data for key:', key, e);
+          }
+        }
+      }
+
+
       // Normalize crops
       let dirtyEntries = false; let dirtyParams = false;
       if (entries && entries.length) {
