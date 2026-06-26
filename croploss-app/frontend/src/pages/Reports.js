@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { entriesAPI } from '../utils/api';
+import api, { entriesAPI } from '../utils/api';
 import { KpiCard, BarChart, StatusBadge, WiltValue, EmptyState, Spinner } from '../components/common';
-import { CROPS, CROP_EMOJI, CROP_LABEL, SEASONS, wiltColor } from '../utils/constants';
+import { CROP_EMOJI, CROP_LABEL, wiltColor } from '../utils/constants';
 
 const STATUS_COLORS = {
   draft:'#9ca3af', submitted:'#1d4ed8', under_review:'#d97706',
@@ -20,6 +20,16 @@ export default function Reports() {
   const [status, setStatus]     = useState('approved'); // Default to approved
   const [showCustom, setShowCustom] = useState(false);
   const [selectedFields, setSelectedFields] = useState(['location', 'variety', 'wilt']);
+  const [crops, setCrops] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+
+  useEffect(() => {
+    api.get('/master-data').then(res => {
+      const md = res.data?.data || {};
+      setCrops((md.crops || []).map(c => typeof c === 'string' ? c : (c.name || '')).filter(Boolean).map(c => c.toLowerCase()));
+      setSeasons((md.seasons || []).map(s => typeof s === 'string' ? s : (s.name || '')).filter(Boolean));
+    }).catch(err => console.error('Failed to load master data', err));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -199,7 +209,7 @@ export default function Reports() {
   const pending = count('submitted') + count('under_review');
 
   // Aggregate per-crop stats from cropSummary
-  const cropStats = CROPS.map(crop => {
+  const cropStats = crops.map(crop => {
     const rows = cropSummary.filter(cs => cs._id.crop === crop);
     const totalEntries = rows.reduce((a, r) => a + r.total, 0);
     const appEntries = rows.reduce((a, r) => a + r.approved, 0);
@@ -244,7 +254,7 @@ export default function Reports() {
             <span style={{ fontSize: 12, color: 'var(--gray)' }}>Season:</span>
             <select className="filter-control" value={season} onChange={e => setSeason(e.target.value)}>
               <option value="">All Seasons</option>
-              {SEASONS.map(s => <option key={s}>{s}</option>)}
+              {seasons.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
           

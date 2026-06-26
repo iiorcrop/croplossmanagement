@@ -1,7 +1,19 @@
-import React from 'react';
-import { CROPS, DISCIPLINES, getColsByDiscipline } from '../utils/constants';
+import React, { useEffect, useState } from 'react';
+import api from '../utils/api';
+import { getColsByDiscipline } from '../utils/constants';
 
 export default function FormMatrix() {
+  const [crops, setCrops] = useState([]);
+  const [disciplines, setDisciplines] = useState([]);
+
+  useEffect(() => {
+    api.get('/master-data').then(res => {
+      const md = res.data?.data || {};
+      setCrops((md.crops || []).map(c => typeof c === 'string' ? c : (c.name || '')).filter(Boolean).map(c => c.toLowerCase()));
+      setDisciplines((md.disciplines || []).map(d => typeof d === 'string' ? d : (d.name || '')).filter(Boolean));
+    }).catch(err => console.error('Failed to load master data', err));
+  }, []);
+
   return (
     <div style={{ padding: '24px' }}>
       <h2 style={{ marginBottom: '20px', fontSize: '22px', fontWeight: 700 }}>
@@ -18,14 +30,14 @@ export default function FormMatrix() {
           </tr>
         </thead>
         <tbody>
-          {CROPS.map((crop, ci) =>
-            DISCIPLINES.map((discipline, di) => {
+          {crops.map((crop, ci) =>
+            disciplines.map((discipline, di) => {
               const cols = getColsByDiscipline(crop, discipline);
               const ok =
                 (discipline === 'Pathology'   && cols.disease.length > 0 && cols.insect.length === 0) ||
                 (discipline === 'Entomology'  && cols.insect.length  > 0 && cols.disease.length === 0) ||
                 (discipline === 'Both'        && cols.disease.length > 0 && cols.insect.length  > 0);
-              const bg = (ci * DISCIPLINES.length + di) % 2 === 0 ? '#fff' : '#f9fafb';
+              const bg = (ci * disciplines.length + di) % 2 === 0 ? '#fff' : '#f9fafb';
               return (
                 <tr key={`${crop}-${discipline}`} style={{ background: bg }}>
                   <td style={{ padding: '8px 16px', border: '1px solid #e0e0e0', textTransform: 'capitalize', fontWeight: 600 }}>{crop}</td>

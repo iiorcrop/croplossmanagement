@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './SunflowerEntomologyForm.css';
 import api from '../../utils/api';
-import { IRRIGATION_TYPES, SOWING_DATES, CROP_STAGES } from '../../utils/constants';
 
 /**
  * SunflowerEntomologyForm – dynamic observation form for Crop: Sunflower & Discipline: Entomology.

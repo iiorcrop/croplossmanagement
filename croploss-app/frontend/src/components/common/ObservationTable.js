@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IRRIGATION_TYPES, SOWING_DATES, CROP_STAGES, PCT_OPTS, getColsByDiscipline } from '../../utils/constants';
+import { PCT_OPTS, getColsByDiscipline } from '../../utils/constants';
 import axios from 'axios';
 
 export function blankRow(crop, discipline = 'Both') {

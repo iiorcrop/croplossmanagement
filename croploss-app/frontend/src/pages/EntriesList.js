@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { entriesAPI } from '../utils/api';
+import api, { entriesAPI } from '../utils/api';
 import { StatusBadge, WiltValue, fmtDate, EmptyState, Spinner } from '../components/common';
-import { CROPS, CROP_EMOJI, CROP_LABEL, SEASONS } from '../utils/constants';
+import { CROP_EMOJI, CROP_LABEL } from '../utils/constants';
 
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -34,6 +34,17 @@ export default function EntriesList({ mode = 'all' }) {
   const [filters, setFilters] = useState({
     crop: '', status: mode === 'review' ? 'submitted' : '', season: '', search: '', page: 1,
   });
+
+  const [crops, setCrops] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+
+  useEffect(() => {
+    api.get('/master-data').then(res => {
+      const md = res.data?.data || {};
+      setCrops((md.crops || []).map(c => typeof c === 'string' ? c : (c.name || '')).filter(Boolean).map(c => c.toLowerCase()));
+      setSeasons((md.seasons || []).map(s => typeof s === 'string' ? s : (s.name || '')).filter(Boolean));
+    }).catch(err => console.error('Failed to load master data', err));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -188,14 +199,14 @@ export default function EntriesList({ mode = 'all' }) {
       <div className="filters-bar">
         <select className="filter-control" value={filters.crop} onChange={e => setFilter('crop', e.target.value)}>
           <option value="">All Crops</option>
-          {CROPS.map(c => <option key={c} value={c}>{CROP_EMOJI[c]} {CROP_LABEL(c)}</option>)}
+          {crops.map(c => <option key={c} value={c}>{CROP_EMOJI[c]} {CROP_LABEL(c)}</option>)}
         </select>
         <select className="filter-control" value={filters.status} onChange={e => setFilter('status', e.target.value)}>
           {statusOpts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
         <select className="filter-control" value={filters.season} onChange={e => setFilter('season', e.target.value)}>
           <option value="">All Seasons</option>
-          {SEASONS.map(s => <option key={s}>{s}</option>)}
+          {seasons.map(s => <option key={s}>{s}</option>)}
         </select>
         {mode !== 'mine' && (
           <input

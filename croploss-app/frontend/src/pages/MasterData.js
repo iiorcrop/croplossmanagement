@@ -64,6 +64,8 @@ export default function MasterData() {
   const config = CATEGORY_CONFIG[type] || CATEGORY_CONFIG.crops;
   
   const [data, setData] = useState([]);
+  const [availableCrops, setAvailableCrops] = useState([]);
+  const [selectedCrop, setSelectedCrop] = useState('');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -71,11 +73,11 @@ export default function MasterData() {
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ 
-    name: '', description: '', emoji: '', status: 'Active', 
-    code: '', area: '', startDate: '', endDate: '', color: '#10b981', 
-    fertility: 'Medium', impact: 'Neutral', crop: '', type: 'Hybrid', 
-    year: '2024', cost: 'Medium', duration: '', importance: 'High' 
+  const [formData, setFormData] = useState({
+    name: '', description: '', emoji: '', status: 'Active',
+    code: '', area: '', startDate: '', endDate: '', color: '#10b981',
+    fertility: 'Medium', impact: 'Neutral', crop: '', type: 'Hybrid',
+    year: '2024', cost: 'Medium', duration: '', importance: 'High'
   });
 
   // Fetch master data from database on mount or type change
@@ -85,6 +87,15 @@ export default function MasterData() {
       .then(res => {
         const dbData = res.data.data;
         if (dbData) {
+          const cropNames = (dbData.crops || [])
+            .map(c => typeof c === 'string' ? c : (c.name || ''))
+            .filter(Boolean)
+            .map(c => c.toLowerCase());
+          setAvailableCrops(cropNames);
+          if (type === 'varieties' && cropNames.length && !selectedCrop) {
+            setSelectedCrop(cropNames[0]);
+          }
+
           const dbKeyMap = {
             'previous-crops': 'previousCrops',
             'soil-types': 'soilTypes',
@@ -149,15 +160,24 @@ export default function MasterData() {
   };
 
   const filteredData = useMemo(() => {
-    return data.filter(item => 
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [data, searchTerm]);
+    return data.filter(item => {
+      if (type === 'varieties' && selectedCrop && (item.crop || '').toLowerCase() !== selectedCrop.toLowerCase()) return false;
+      return (
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    });
+  }, [data, searchTerm, type, selectedCrop]);
 
   const handleOpenAdd = () => {
     setEditingItem(null);
-    setFormData({ name: '', description: '', emoji: '', status: 'Active', code: '', area: '', startDate: '', endDate: '', color: '#10b981', fertility: 'Medium', impact: 'Neutral', crop: '', type: 'Hybrid', year: '2024', cost: 'Medium', duration: '', importance: 'High' });
+    setFormData({
+      name: '', description: '', emoji: '', status: 'Active',
+      code: '', area: '', startDate: '', endDate: '', color: '#10b981',
+      fertility: 'Medium', impact: 'Neutral',
+      crop: type === 'varieties' ? (selectedCrop.charAt(0).toUpperCase() + selectedCrop.slice(1)) : '',
+      type: 'Hybrid', year: '2024', cost: 'Medium', duration: '', importance: 'High'
+    });
     setShowModal(true);
   };
 
@@ -231,9 +251,34 @@ export default function MasterData() {
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, fontWeight: 600 }}>Records</div>
-          <div style={{ fontSize: 42, fontWeight: 800 }}>{data.length}</div>
+          <div style={{ fontSize: 42, fontWeight: 800 }}>{type === 'varieties' ? filteredData.length : data.length}</div>
         </div>
       </div>
+
+      {/* Crop tabs for varieties */}
+      {type === 'varieties' && availableCrops.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+          {availableCrops.map(c => (
+            <button
+              key={c}
+              onClick={() => setSelectedCrop(c)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 12,
+                border: selectedCrop === c ? '2px solid #1e293b' : '1px solid #e2e8f0',
+                background: selectedCrop === c ? '#1e293b' : '#fff',
+                color: selectedCrop === c ? '#fff' : '#475569',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                textTransform: 'capitalize'
+              }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Action Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, gap: 20, flexWrap: 'wrap' }}>
@@ -376,7 +421,12 @@ export default function MasterData() {
                 {type === 'varieties' && (
                   <div className="form-group">
                     <label className="form-label">Crop</label>
-                    <input className="form-control" value={formData.crop} onChange={e => setFormData({...formData, crop: e.target.value})} />
+                    <select className="form-control" value={(formData.crop || '').toLowerCase()} onChange={e => setFormData({...formData, crop: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1)})}>
+                      <option value="">— Select Crop —</option>
+                      {availableCrops.map(c => (
+                        <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                      ))}
+                    </select>
                   </div>
                 )}
                 {type === 'crops' && (

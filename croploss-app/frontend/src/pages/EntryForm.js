@@ -96,13 +96,13 @@ export default function EntryForm() {
         };
         const masterKey = masterKeyMap[field];
         if (masterKey) {
-          const apiVal = field === 'variety' ? { name: properVal, crop: form.crop || '' } : properVal;
+          const apiVal = field === 'variety' ? { name: properVal, crop: form.previousCrop || '' } : properVal;
 
           // Optimistic update so the new option is selectable immediately
-          if (field === 'variety' && form.crop) {
+          if (field === 'variety' && form.previousCrop) {
             setMasterData(prev => {
               const next = { ...(prev || {}) };
-              const cropKey = form.crop.toLowerCase();
+              const cropKey = form.previousCrop.toLowerCase();
               const raw = next.varieties;
               if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
                 const list = Array.isArray(raw[cropKey]) ? raw[cropKey] : [];
@@ -134,7 +134,12 @@ export default function EntryForm() {
         setForm(prev => ({ ...prev, [field]: properVal }));
       }
     } else {
-      setForm(prev => ({ ...prev, [field]: val }));
+      setForm(prev => {
+        const next = { ...prev, [field]: val };
+        // Variety is scoped to previousCrop — reset it when previousCrop changes.
+        if (field === 'previousCrop' && val !== prev.previousCrop) next.variety = '';
+        return next;
+      });
     }
   };
 
@@ -251,7 +256,7 @@ export default function EntryForm() {
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const onCropChange = (crop) => {
-    setForm(f => ({ ...f, crop, variety: "" }));
+    setField("crop", crop);
     if (observations.length === 0 && crop) {
       setObservations([blankRow(crop)]);
     }
@@ -427,7 +432,7 @@ export default function EntryForm() {
   const availableIrrigationTypes = getMasterList('irrigation');
   const availableCropStages = getMasterList('crop-stages');
   const availableSowingDates = masterData?.sowingDates || [];
-  const availableVarieties = getMasterVarieties(form.crop);
+  const availableVarieties = getMasterVarieties(form.previousCrop);
 
   return (
     <div className="entry-form-page">
