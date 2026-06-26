@@ -12,12 +12,19 @@ const optionalProtect = (req, res, next) => {
   next();
 };
 
-// GET /api/personal-entries  – get all entries for user
+// GET /api/personal-entries
+// - super_admin sees every entry
+// - other authed users see entries they own OR entries with no owner (legacy/anonymous)
+// - unauthenticated callers see only ownerless entries
 router.get('/', optionalProtect, async (req, res, next) => {
   try {
-    const filter = {};
-    if (req.user) {
-      filter.user = req.user._id;
+    let filter;
+    if (req.user?.role === 'super_admin') {
+      filter = {};
+    } else if (req.user) {
+      filter = { $or: [{ user: req.user._id }, { user: { $exists: false } }, { user: null }] };
+    } else {
+      filter = { $or: [{ user: { $exists: false } }, { user: null }] };
     }
     const entries = await PersonalEntry.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, data: entries });
@@ -60,13 +67,19 @@ router.post('/', optionalProtect, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Build access filter for one entry — super_admin can touch any, others
+// only ones they own or that have no owner.
+const ownedOrLegacy = (req) => {
+  const base = { _id: req.params.id };
+  if (req.user?.role === 'super_admin') return base;
+  if (req.user) return { ...base, $or: [{ user: req.user._id }, { user: { $exists: false } }, { user: null }] };
+  return { ...base, $or: [{ user: { $exists: false } }, { user: null }] };
+};
+
 // PUT /api/personal-entries/:id  – update one
 router.put('/:id', optionalProtect, async (req, res, next) => {
   try {
-    const filter = { _id: req.params.id };
-    if (req.user) filter.user = req.user._id;
-
-    const entry = await PersonalEntry.findOneAndUpdate(filter, req.body, { new: true });
+    const entry = await PersonalEntry.findOneAndUpdate(ownedOrLegacy(req), req.body, { new: true });
     if (!entry) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, data: entry });
   } catch (err) { next(err); }
@@ -75,10 +88,7 @@ router.put('/:id', optionalProtect, async (req, res, next) => {
 // DELETE /api/personal-entries/:id  – delete one
 router.delete('/:id', optionalProtect, async (req, res, next) => {
   try {
-    const filter = { _id: req.params.id };
-    if (req.user) filter.user = req.user._id;
-
-    const entry = await PersonalEntry.findOneAndDelete(filter);
+    const entry = await PersonalEntry.findOneAndDelete(ownedOrLegacy(req));
     if (!entry) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, message: 'Deleted successfully' });
   } catch (err) { next(err); }
