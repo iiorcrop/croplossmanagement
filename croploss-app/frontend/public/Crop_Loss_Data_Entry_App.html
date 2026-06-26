@@ -1077,7 +1077,7 @@
     
     // Backend sync logic
     var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    var apiBase = isLocal ? 'http://localhost:5000/api/personal-entries' : '/api/personal-entries';
+    var apiBase = isLocal ? 'http://localhost:7070/api/personal-entries' : '/api/personal-entries';
 
     // Helper to persist entries
     async function persistEntries() {
@@ -1211,7 +1211,8 @@
       var token = localStorage.getItem('croploss_token');
       if (!token) return;
       try {
-        var res = await fetch('/api/master-data', { headers: { 'Authorization': 'Bearer ' + token } });
+        var url = isLocal ? 'http://localhost:7070/api/master-data' : '/api/master-data';
+        var res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
         var json = await res.json();
         if (json.success) masterDataCache = json.data;
       } catch(e) { console.error('Error fetching DB', e); }
@@ -1221,7 +1222,8 @@
       var token = localStorage.getItem('croploss_token');
       if (!token) return;
       try {
-        await fetch('/api/master-data/' + key + '/append', {
+        var url = (isLocal ? 'http://localhost:7070/api/master-data/' : '/api/master-data/') + key + '/append';
+        await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
           body: JSON.stringify({ value: value })

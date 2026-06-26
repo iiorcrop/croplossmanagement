@@ -266,9 +266,6 @@ export default function EntryForm() {
 
   const onCropChange = (crop) => {
     setField("crop", crop);
-    if (observations.length === 0 && crop) {
-      setObservations([blankRow(crop)]);
-    }
   };
 
   const validateStep = (step) => {

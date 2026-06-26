@@ -7,6 +7,9 @@ import {
   StatusBadge, WorkflowStepper, Alert, Modal, WiltValue, fmtDate, fmtDateTime, Spinner, CropTag
 } from '../components/common';
 import ObservationTable from '../components/common/ObservationTable';
+import CastorEntomologyForm from '../components/castor/CastorEntomologyForm';
+import SunflowerEntomologyForm from '../components/sunflower/SunflowerEntomologyForm';
+import SunflowerPathologyForm from '../components/sunflower/SunflowerPathologyForm';
 import { CROP_EMOJI, CROP_LABEL } from '../utils/constants';
 
 import { generateEntryPDF } from '../utils/pdfExport';
@@ -222,7 +225,15 @@ export default function EntryDetail() {
           📍 Observation Records ({obs.length} locations)
         </div>
         {obs.length > 0 ? (
-          <ObservationTable crop={entry.crop} rows={obs} onChange={() => {}} readOnly={true} />
+          entry.crop === 'castor' && entry.discipline === 'Entomology' ? (
+            <CastorEntomologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+          ) : entry.crop === 'sunflower' && entry.discipline === 'Entomology' ? (
+            <SunflowerEntomologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+          ) : entry.crop === 'sunflower' && entry.discipline === 'Pathology' ? (
+            <SunflowerPathologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+          ) : (
+            <ObservationTable crop={entry.crop} discipline={entry.discipline} rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+          )
         ) : (
           <p style={{ color: 'var(--gray)', fontSize: 13, textAlign: 'center', padding: 20 }}>No observation records.</p>
         )}

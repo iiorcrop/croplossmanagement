@@ -129,20 +129,40 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                 <tr key={i} className="hover-row-premium" style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '20px 24px', color: '#94a3b8', fontWeight: 600 }}>{i + 1}</td>
                   <td style={{ padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                      {dcols.slice(0, 3).map(c => (
-                        <div key={c.key}>
-                          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>{c.label}</div>
-                          <div style={{ fontSize: 15, fontWeight: 800, color: r[c.key] === '>50% (Specify)' ? '#ef4444' : '#1e293b' }}>
-                            {r[c.key] === '>50% (Specify)' ? r[`${c.key}_specify`] + '%' : r[c.key]}
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      {[...dcols, ...icols]
+                        .filter(c => r[c.key] !== undefined && r[c.key] !== '' && r[c.key] !== '-')
+                        .map(c => (
+                          <div key={c.key} style={{ minWidth: '100px', background: '#f8fafc', padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>{c.label}</div>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: r[c.key] === '>50% (Specify)' ? '#ef4444' : '#1e293b', marginTop: 4 }}>
+                              {r[c.key] === '>50% (Specify)' ? (r[`${c.key}_specify`] || '50+') + '%' : r[c.key]}
+                            </div>
+                          </div>
+                        ))}
+                      {r.cropDamage && r.cropDamage !== '-' && r.cropDamage !== '' && (
+                        <div style={{ minWidth: '100px', background: '#fee2e2', padding: '8px 12px', borderRadius: 8, border: '1px solid #fecaca' }}>
+                          <div style={{ fontSize: 10, color: '#991b1b', textTransform: 'uppercase', fontWeight: 700 }}>% Crop Damage</div>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: '#991b1b', marginTop: 4 }}>
+                            {r.cropDamage === '>50% (Specify)' ? (r.cropDamage_specify || '50+') + '%' : r.cropDamage}
                           </div>
                         </div>
-                      ))}
+                      )}
+                    </div>
+                    <div style={{ marginTop: 8, fontSize: 12.5, color: '#475569', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                      {r.location && <span>📍 <strong>Location:</strong> {r.location}</span>}
+                      {r.variety && <span>🌱 <strong>Variety:</strong> {r.variety}</span>}
+                      {r.remarks && <span>💬 <strong>Remarks:</strong> {r.remarks}</span>}
+                      {r.newDiseaseReported === 'Yes' && (
+                        <span style={{ color: '#b91c1c', fontWeight: 600 }}>⚠️ New Disease: {r.newDiseaseDetails || 'Yes'}</span>
+                      )}
                     </div>
                   </td>
                   <td style={{ padding: '20px 24px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                      <button type="button" className="p-action-btn" onClick={() => handleOpenEdit(i)} style={{ background: '#f1f5f9', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer' }}>✏️</button>
+                      <button type="button" className="p-action-btn" onClick={() => handleOpenEdit(i)} style={{ background: '#f1f5f9', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer' }}>
+                        {readOnly ? '👁️' : '✏️'}
+                      </button>
                       {!readOnly && <button type="button" className="p-action-btn delete" onClick={() => delRow(i)} style={{ background: '#fee2e2', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer' }}>🗑️</button>}
                     </div>
                   </td>
@@ -227,7 +247,7 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                       <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>{c.label}</label>
                       {c.type === 'percent' ? (
                         <>
-                          <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={handleDropdownChange(c.key, 'percent')}>
+                          <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={handleDropdownChange(c.key, 'percent')} disabled={readOnly}>
                             {PCT_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
                             {customPctOpts.map(o => <option key={o} value={o}>{o}</option>)}
                             <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
@@ -239,11 +259,12 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                               placeholder="Specify %"
                               value={formData[`${c.key}_specify`] || ''}
                               onChange={e => setFormData({ ...formData, [`${c.key}_specify`]: e.target.value })}
+                              disabled={readOnly}
                             />
                           )}
                         </>
                       ) : (
-                        <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={handleDropdownChange(c.key, 'severity')}>
+                        <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData[c.key] || ''} onChange={handleDropdownChange(c.key, 'severity')} disabled={readOnly}>
                           <option value="-">— Select —</option>
                           <option value="Low">Low</option>
                           <option value="Moderate">Moderate</option>
@@ -258,7 +279,7 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
 
                   <div className="form-group">
                     <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>% Crop Damage</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.cropDamage || ''} onChange={handleDropdownChange('cropDamage', 'percent')}>
+                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.cropDamage || ''} onChange={handleDropdownChange('cropDamage', 'percent')} disabled={readOnly}>
                       {PCT_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
                       {customPctOpts.map(o => <option key={o} value={o}>{o}</option>)}
                       <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
@@ -270,13 +291,14 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                         placeholder="Specify %"
                         value={formData.cropDamage_specify || ''}
                         onChange={e => setFormData({ ...formData, cropDamage_specify: e.target.value })}
+                        disabled={readOnly}
                       />
                     )}
                   </div>
 
                   <div className="form-group">
                     <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>Any new disease reported?</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.newDiseaseReported || ''} onChange={e => setFormData({ ...formData, newDiseaseReported: e.target.value })}>
+                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.newDiseaseReported || ''} onChange={e => setFormData({ ...formData, newDiseaseReported: e.target.value })} disabled={readOnly}>
                       <option value="">— Select —</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
@@ -293,6 +315,7 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                         placeholder="Enter new disease details"
                         value={formData.newDiseaseDetails || ''}
                         onChange={e => setFormData({ ...formData, newDiseaseDetails: e.target.value })}
+                        disabled={readOnly}
                       />
                     </div>
                   )}
@@ -308,15 +331,17 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                     {(formData.images || []).map((img, idx) => (
                       <div key={idx} style={{ position: 'relative', width: 80, height: 80, borderRadius: 8, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
                         <img src={img} alt={`Preview ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button type="button" onClick={() => {
-                          const newImgs = [...formData.images];
-                          newImgs.splice(idx, 1);
-                          setFormData({ ...formData, images: newImgs });
-                        }} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                        {!readOnly && (
+                          <button type="button" onClick={() => {
+                            const newImgs = [...formData.images];
+                            newImgs.splice(idx, 1);
+                            setFormData({ ...formData, images: newImgs });
+                          }} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                        )}
                       </div>
                     ))}
 
-                    {(!formData.images || formData.images.length < 5) && (
+                    {(!formData.images || formData.images.length < 5) && !readOnly && (
                       <label style={{ width: 80, height: 80, border: '1px dashed #94a3b8', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', background: '#fff' }}>
                         <span style={{ fontSize: 24 }}>+</span>
                         <span style={{ fontSize: 10, fontWeight: 600 }}>Add Photo</span>
@@ -342,15 +367,21 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
 
                 <div className="form-group" style={{ marginTop: 24 }}>
                   <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>Field Remarks</label>
-                  <textarea className="p-input" rows={3} style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} placeholder="Add any observational remarks..." value={formData.remarks || ''} onChange={e => setFormData({ ...formData, remarks: e.target.value })} />
+                  <textarea className="p-input" rows={3} style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} placeholder="Add any observational remarks..." value={formData.remarks || ''} onChange={e => setFormData({ ...formData, remarks: e.target.value })} disabled={readOnly} />
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: 16, marginTop: 40 }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} style={{ flex: 1, height: 50, borderRadius: 12, fontSize: 16, fontWeight: 700, background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer' }}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleSave} style={{ flex: 2, height: 50, borderRadius: 12, fontSize: 16, fontWeight: 700, background: '#16a34a', border: 'none', color: '#fff', cursor: 'pointer' }}>
-                  {editingIdx !== null ? 'Update Record' : 'Save Record'}
-                </button>
+                {readOnly ? (
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} style={{ flex: 1, height: 50, borderRadius: 12, fontSize: 16, fontWeight: 700, background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer' }}>Close</button>
+                ) : (
+                  <>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} style={{ flex: 1, height: 50, borderRadius: 12, fontSize: 16, fontWeight: 700, background: '#f1f5f9', border: 'none', color: '#475569', cursor: 'pointer' }}>Cancel</button>
+                    <button type="button" className="btn btn-primary" onClick={handleSave} style={{ flex: 2, height: 50, borderRadius: 12, fontSize: 16, fontWeight: 700, background: '#16a34a', border: 'none', color: '#fff', cursor: 'pointer' }}>
+                      {editingIdx !== null ? 'Update Record' : 'Save Record'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
