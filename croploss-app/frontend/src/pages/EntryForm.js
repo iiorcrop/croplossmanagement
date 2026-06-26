@@ -5,12 +5,10 @@ import { useAuth } from "../context/AuthContext";
 import api, { entriesAPI } from "../utils/api";
 import { Alert, Spinner } from "../components/common";
 import ObservationTable, { blankRow } from "../components/common/ObservationTable";
-import { CROPS, DISCIPLINES, CROP_EMOJI, CROP_LABEL, SEASONS, IRRIGATION_TYPES, SOIL_TYPES,
-         PREVIOUS_CROPS, VARIETIES, SOWING_DATES, CROP_STAGES } from "../utils/constants";
+import { CROP_EMOJI, CROP_LABEL } from "../utils/constants";
 import CastorEntomologyForm from "../components/castor/CastorEntomologyForm";
 import SunflowerEntomologyForm from "../components/sunflower/SunflowerEntomologyForm";
 import SunflowerPathologyForm from "../components/sunflower/SunflowerPathologyForm";
-import { INITIAL_DATA } from "./MasterData";
 
 // --- Stepper Component ---
 const Stepper = ({ currentStep, steps }) => (
@@ -98,28 +96,38 @@ export default function EntryForm() {
         };
         const masterKey = masterKeyMap[field];
         if (masterKey) {
-          const lsKey = `master_data_v3_${masterKey}`;
-          const saved = localStorage.getItem(lsKey);
-          let items = saved ? JSON.parse(saved) : (INITIAL_DATA[masterKey] || []);
-          
-          const isDuplicate = field === 'variety' 
-            ? items.some(i => i.name.toLowerCase() === properVal.toLowerCase() && (i.crop || '').toLowerCase() === (form.previousCrop || '').toLowerCase())
-            : items.some(i => i.name.toLowerCase() === properVal.toLowerCase());
+          const apiVal = field === 'variety' ? { name: properVal, crop: form.crop || '' } : properVal;
 
-          if (!isDuplicate) {
-            const nextId = items.length > 0 ? Math.max(...items.map(i => Number(i.id) || 0)) + 1 : 1;
-            const newObj = { id: nextId, name: properVal, status: 'Active', color: '#cbd5e1' };
-            if (field === 'variety') {
-              // Store it with the currently selected previous crop context
-              newObj.crop = form.previousCrop || '';
-              newObj.type = 'Unknown';
-              newObj.year = new Date().getFullYear().toString();
-            }
-            items.push(newObj);
-            localStorage.setItem(lsKey, JSON.stringify(items));
-            // Sync with backend database
-            api.put(`/master-data/${masterKey}`, { value: items.map(i => i.name || i) }).catch(console.error);
+          // Optimistic update so the new option is selectable immediately
+          if (field === 'variety' && form.crop) {
+            setMasterData(prev => {
+              const next = { ...(prev || {}) };
+              const cropKey = form.crop.toLowerCase();
+              const raw = next.varieties;
+              if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+                const list = Array.isArray(raw[cropKey]) ? raw[cropKey] : [];
+                if (!list.some(v => (typeof v === 'string' ? v : v.name)?.toLowerCase() === properVal.toLowerCase())) {
+                  next.varieties = { ...raw, [cropKey]: [...list, properVal] };
+                }
+              } else {
+                const list = Array.isArray(raw) ? raw : [];
+                if (!list.some(v => v?.name?.toLowerCase() === properVal.toLowerCase() && v?.crop?.toLowerCase() === cropKey)) {
+                  next.varieties = [...list, { name: properVal, crop: cropKey, status: 'Active' }];
+                }
+              }
+              return next;
+            });
           }
+
+          api.post(`/master-data/${masterKey}/append`, { value: apiVal })
+            .then(res => { if (res?.data?.data) setMasterData(res.data.data); })
+            .catch(err => { console.error(err); toast.error('Failed to save new option'); });
+        }
+
+        // Skip customOpts for varieties — it isn't crop-scoped and would leak across crops.
+        if (field === 'variety') {
+          setForm(prev => ({ ...prev, [field]: properVal }));
+          return;
         }
 
         setCustomOpts(prev => ({ ...prev, [customKey]: [...new Set([...prev[customKey], properVal])] }));
@@ -243,7 +251,7 @@ export default function EntryForm() {
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const onCropChange = (crop) => {
-    setField("crop", crop);
+    setForm(f => ({ ...f, crop, variety: "" }));
     if (observations.length === 0 && crop) {
       setObservations([blankRow(crop)]);
     }
@@ -365,23 +373,47 @@ export default function EntryForm() {
 
   const maxWilt = observations.length ? Math.max(0, ...observations.map((r) => parseFloat(r.wilt) || 0)) : 0;
 
-  // Read directly from MasterData localStorage / INITIAL_DATA to ensure perfect sync
+  // Read directly from database master data
   const getMasterList = (type) => {
-    const saved = localStorage.getItem(`master_data_v3_${type}`);
-    const items = saved ? JSON.parse(saved) : (INITIAL_DATA[type] || []);
-    return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed').map(i => i.name);
+    const dbKeyMap = {
+      'previous-crops': 'previousCrops',
+      'soil-types': 'soilTypes',
+      'irrigation': 'irrigationTypes',
+      'crop-stages': 'cropStages',
+      'crops': 'crops',
+      'seasons': 'seasons',
+      'disciplines': 'disciplines'
+    };
+    const dbKey = dbKeyMap[type] || type;
+    const dbItems = masterData?.[dbKey] || [];
+    const items = dbItems.map(i => typeof i === 'string' ? { name: i, status: 'Active' } : i);
+    return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed').map(i => i.name || i);
   };
 
   const getMasterCrops = () => {
-    const saved = localStorage.getItem(`master_data_v3_crops`);
-    const items = saved ? JSON.parse(saved) : (INITIAL_DATA['crops'] || []);
+    const dbItems = masterData?.crops || [];
+    const items = dbItems.map(i => typeof i === 'string' ? { name: i, status: 'Active' } : i);
     return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed');
   };
 
   const getMasterVarieties = (cropName) => {
-    const saved = localStorage.getItem(`master_data_v3_varieties`);
-    const items = saved ? JSON.parse(saved) : (INITIAL_DATA['varieties'] || []);
-    return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed' && (!cropName || i.crop?.toLowerCase() === cropName.toLowerCase())).map(i => i.name);
+    const items = [];
+    const raw = masterData?.varieties;
+    if (Array.isArray(raw)) {
+      raw.forEach(v => items.push(typeof v === 'string' ? { name: v, status: 'Active' } : v));
+    } else if (raw && typeof raw === 'object') {
+      Object.keys(raw).forEach(crop => {
+        const list = raw[crop];
+        if (Array.isArray(list)) {
+          list.forEach(v => {
+            items.push(typeof v === 'string' ? { name: v, crop: crop, status: 'Active' } : v);
+          });
+        }
+      });
+    }
+    return items
+      .filter(i => i.status !== 'Inactive' && i.status !== 'Closed' && (!cropName || i.crop?.toLowerCase() === cropName.toLowerCase()))
+      .map(i => i.name || i);
   };
 
   const masterCrops = getMasterCrops();
@@ -394,8 +426,8 @@ export default function EntryForm() {
   const availablePreviousCrops = getMasterList('previous-crops');
   const availableIrrigationTypes = getMasterList('irrigation');
   const availableCropStages = getMasterList('crop-stages');
-  const availableSowingDates = masterData?.sowingDates || SOWING_DATES; // Not in INITIAL_DATA, use fallback
-  const availableVarieties = getMasterVarieties(form.previousCrop) || VARIETIES[form.previousCrop?.toLowerCase()] || [];
+  const availableSowingDates = masterData?.sowingDates || [];
+  const availableVarieties = getMasterVarieties(form.crop);
 
   return (
     <div className="entry-form-page">
@@ -660,7 +692,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Previous Crop —</option>
-                  {[...availablePreviousCrops, ...customOpts.previousCrops].map(c => (
+                  {Array.from(new Set([...availablePreviousCrops, ...customOpts.previousCrops])).filter(Boolean).map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                   <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
@@ -676,7 +708,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Variety —</option>
-                  {[...availableVarieties, ...customOpts.varieties].filter(Boolean).map(v => (
+                  {Array.from(new Set(availableVarieties)).filter(Boolean).map(v => (
                     <option key={v} value={v}>{v}</option>
                   ))}
                   <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
@@ -692,7 +724,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Irrigation —</option>
-                  {[...availableIrrigationTypes, ...customOpts.irrigatedRainfed].map(o => (
+                  {Array.from(new Set([...availableIrrigationTypes, ...customOpts.irrigatedRainfed])).filter(Boolean).map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                   <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
@@ -723,7 +755,7 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Stage —</option>
-                  {[...availableCropStages, ...customOpts.stagesOfCrop].map(s => (
+                  {Array.from(new Set([...availableCropStages, ...customOpts.stagesOfCrop])).filter(Boolean).map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                   <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>

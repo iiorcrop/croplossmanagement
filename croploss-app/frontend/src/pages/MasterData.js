@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
@@ -63,17 +63,14 @@ export default function MasterData() {
   const { type } = useParams();
   const config = CATEGORY_CONFIG[type] || CATEGORY_CONFIG.crops;
   
-  // Persistence logic: Load from localStorage (v3) or use INITIAL_DATA
-  const [data, setData] = useState(() => {
-    const saved = localStorage.getItem(`master_data_v3_${type}`);
-    return saved ? JSON.parse(saved) : (INITIAL_DATA[type] || []);
-  });
+  const [data, setData] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({ 
     name: '', description: '', emoji: '', status: 'Active', 
     code: '', area: '', startDate: '', endDate: '', color: '#10b981', 
@@ -81,15 +78,72 @@ export default function MasterData() {
     year: '2024', cost: 'Medium', duration: '', importance: 'High' 
   });
 
+  // Fetch master data from database on mount or type change
+  useEffect(() => {
+    setLoading(true);
+    api.get('/master-data')
+      .then(res => {
+        const dbData = res.data.data;
+        if (dbData) {
+          const dbKeyMap = {
+            'previous-crops': 'previousCrops',
+            'soil-types': 'soilTypes',
+            'irrigation': 'irrigationTypes',
+            'crop-stages': 'cropStages',
+            'crops': 'crops',
+            'seasons': 'seasons',
+            'disciplines': 'disciplines'
+          };
+          const dbKey = dbKeyMap[type] || type;
+          if (type === 'varieties' && dbData.varieties && !Array.isArray(dbData.varieties)) {
+            const list = [];
+            let idx = 1;
+            Object.keys(dbData.varieties).forEach(crop => {
+              const varList = dbData.varieties[crop];
+              if (Array.isArray(varList)) {
+                varList.forEach(v => {
+                  list.push({
+                    id: idx++,
+                    name: typeof v === 'object' ? v.name : v,
+                    crop: crop.charAt(0).toUpperCase() + crop.slice(1),
+                    type: typeof v === 'object' ? (v.type || 'Unknown') : 'Unknown',
+                    year: typeof v === 'object' ? (v.year || '2024') : '2024',
+                    status: typeof v === 'object' ? (v.status || 'Active') : 'Active',
+                    color: typeof v === 'object' ? (v.color || '#10b981') : '#10b981'
+                  });
+                });
+              }
+            });
+            setData(list);
+          } else if (dbData[dbKey]) {
+            const items = dbData[dbKey];
+            const normalized = items.map((i, idx) => {
+              if (typeof i === 'string') {
+                return { id: idx + 1, name: i, status: 'Active', color: '#10b981' };
+              }
+              return i;
+            });
+            setData(normalized);
+          } else {
+            setData([]);
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch master data from database', err);
+      })
+      .finally(() => setLoading(false));
+  }, [type]);
+
   const label = type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const singularLabel = label.endsWith('ies') ? label.slice(0, -3) + 'y' : label.slice(0, -1);
 
   const handleReset = () => {
     if (window.confirm('Reset this category to default data? All custom entries will be lost.')) {
-      localStorage.removeItem(`master_data_v3_${type}`);
       const defData = INITIAL_DATA[type] || [];
       setData(defData);
-      api.put(`/master-data/${type}`, { value: defData.map(i => i.name || i) }).catch(console.error);
+      
+      persistToDb(defData);
       toast.success('Reset successful');
     }
   };
@@ -131,18 +185,32 @@ export default function MasterData() {
       toast.success(`${singularLabel} added successfully`);
     }
     setData(updated);
-    localStorage.setItem(`master_data_v3_${type}`, JSON.stringify(updated));
-    api.put(`/master-data/${type}`, { value: updated.map(i => i.name || i) }).catch(console.error);
+    persistToDb(updated);
     setShowModal(false);
   };
 
   const handleDelete = (id) => {
-    // Removed browser confirmation to prevent popup-blockers from stopping the delete action
     const updated = data.filter(i => String(i.id) !== String(id));
     setData(updated);
-    localStorage.setItem(`master_data_v3_${type}`, JSON.stringify(updated));
-    api.put(`/master-data/${type}`, { value: updated.map(i => i.name || i) }).catch(console.error);
+    persistToDb(updated);
     toast.success('Deleted successfully');
+  };
+
+  const persistToDb = (items) => {
+    let apiValue = items.map(i => i.name || i);
+    if (type === 'varieties') {
+      apiValue = {};
+      items.forEach(item => {
+        const crop = (item.crop || 'others').toLowerCase();
+        if (!apiValue[crop]) apiValue[crop] = [];
+        apiValue[crop].push(item.name || item);
+      });
+    }
+    return api.put(`/master-data/${type}`, { value: apiValue })
+      .catch(err => {
+        console.error(err);
+        toast.error('Failed to save to server');
+      });
   };
 
   return (

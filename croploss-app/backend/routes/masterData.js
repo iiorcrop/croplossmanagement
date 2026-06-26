@@ -89,9 +89,28 @@ router.post('/:key/append', protect, async (req, res, next) => {
     const rawKey = req.params.key;
     const key = mapKey(rawKey);
     const { value } = req.body;
-    const allowedKeys = ['centers','states','locations','cultivars','agroEcologicalZones','zonesList','crops','seasons','years','pests','diseases','rodents','vertebrates','weeds','mites','nematodes','previousCrops'];
+    const allowedKeys = [
+      'centers','states','locations','cultivars','agroEcologicalZones','zonesList','crops','seasons','years',
+      'pests','diseases','rodents','vertebrates','weeds','mites','nematodes',
+      'previousCrops','varieties','irrigationTypes','cropStages','soilTypes'
+    ];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid append key' });
-    let data = await MasterData.findOneAndUpdate({}, { $addToSet: { [key]: value } }, { new: true, upsert: true });
+    
+    let data;
+    if (key === 'varieties') {
+      const doc = await MasterData.findOne();
+      if (doc && Array.isArray(doc.varieties)) {
+        data = await MasterData.findOneAndUpdate({}, { $push: { varieties: value } }, { new: true, upsert: true });
+      } else {
+        const cropName = typeof value === 'object' ? value.crop : req.body.crop;
+        const varName = typeof value === 'object' ? value.name : value;
+        const crop = (cropName || 'others').toLowerCase();
+        const cropKey = `varieties.${crop}`;
+        data = await MasterData.findOneAndUpdate({}, { $addToSet: { [cropKey]: varName } }, { new: true, upsert: true });
+      }
+    } else {
+      data = await MasterData.findOneAndUpdate({}, { $addToSet: { [key]: value } }, { new: true, upsert: true });
+    }
     res.json({ success: true, data });
   } catch (err) {
     next(err);
