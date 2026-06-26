@@ -92,9 +92,6 @@ export default function MasterData() {
             .filter(Boolean)
             .map(c => c.toLowerCase());
           setAvailableCrops(cropNames);
-          if (type === 'varieties' && cropNames.length && !selectedCrop) {
-            setSelectedCrop(cropNames[0]);
-          }
 
           const dbKeyMap = {
             'previous-crops': 'previousCrops',
@@ -258,23 +255,23 @@ export default function MasterData() {
       {/* Crop tabs for varieties */}
       {type === 'varieties' && availableCrops.length > 0 && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-          {availableCrops.map(c => (
+          {['all', ...availableCrops].map(c => (
             <button
               key={c}
-              onClick={() => setSelectedCrop(c)}
+              onClick={() => setSelectedCrop(c === 'all' ? '' : c)}
               style={{
                 padding: '10px 18px',
                 borderRadius: 12,
-                border: selectedCrop === c ? '2px solid #1e293b' : '1px solid #e2e8f0',
-                background: selectedCrop === c ? '#1e293b' : '#fff',
-                color: selectedCrop === c ? '#fff' : '#475569',
+                border: ((c === 'all' && !selectedCrop) || selectedCrop === c) ? '2px solid #1e293b' : '1px solid #e2e8f0',
+                background: ((c === 'all' && !selectedCrop) || selectedCrop === c) ? '#1e293b' : '#fff',
+                color: ((c === 'all' && !selectedCrop) || selectedCrop === c) ? '#fff' : '#475569',
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: 'pointer',
                 textTransform: 'capitalize'
               }}
             >
-              {c}
+              {c === 'all' ? 'All' : c}
             </button>
           ))}
         </div>

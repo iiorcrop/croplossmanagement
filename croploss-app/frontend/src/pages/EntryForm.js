@@ -138,6 +138,15 @@ export default function EntryForm() {
         const next = { ...prev, [field]: val };
         // Variety is scoped to previousCrop — reset it when previousCrop changes.
         if (field === 'previousCrop' && val !== prev.previousCrop) next.variety = '';
+        // When picking a variety, auto-fill previousCrop with the variety's crop.
+        if (field === 'variety' && val) {
+          const all = getMasterVarietyObjects();
+          const match = all.find(v => (v.name || '').toLowerCase() === val.toLowerCase());
+          if (match?.crop) {
+            const properCrop = match.crop.charAt(0).toUpperCase() + match.crop.slice(1).toLowerCase();
+            next.previousCrop = properCrop;
+          }
+        }
         return next;
       });
     }
@@ -401,7 +410,7 @@ export default function EntryForm() {
     return items.filter(i => i.status !== 'Inactive' && i.status !== 'Closed');
   };
 
-  const getMasterVarieties = (cropName) => {
+  const getMasterVarietyObjects = (cropName) => {
     const items = [];
     const raw = masterData?.varieties;
     if (Array.isArray(raw)) {
@@ -416,9 +425,10 @@ export default function EntryForm() {
         }
       });
     }
-    return items
-      .filter(i => i.status !== 'Inactive' && i.status !== 'Closed' && (!cropName || i.crop?.toLowerCase() === cropName.toLowerCase()))
-      .map(i => i.name || i);
+    return items.filter(i =>
+      i.status !== 'Inactive' && i.status !== 'Closed' &&
+      (!cropName || i.crop?.toLowerCase() === cropName.toLowerCase())
+    );
   };
 
   const masterCrops = getMasterCrops();
@@ -432,7 +442,10 @@ export default function EntryForm() {
   const availableIrrigationTypes = getMasterList('irrigation');
   const availableCropStages = getMasterList('crop-stages');
   const availableSowingDates = masterData?.sowingDates || [];
-  const availableVarieties = getMasterVarieties(form.previousCrop);
+  // When previousCrop is empty, show ALL varieties so the user can pick one and
+  // we auto-fill previousCrop. Once set, filter to just that crop's varieties.
+  const varietyObjects = getMasterVarietyObjects(form.previousCrop);
+  const availableVarieties = varietyObjects;
 
   return (
     <div className="entry-form-page">
@@ -713,8 +726,10 @@ export default function EntryForm() {
                   disabled={!isEditable}
                 >
                   <option value="">— Select Variety —</option>
-                  {Array.from(new Set(availableVarieties)).filter(Boolean).map(v => (
-                    <option key={v} value={v}>{v}</option>
+                  {Array.from(new Map(varietyObjects.map(v => [v.name, v])).values()).filter(v => v.name).map(v => (
+                    <option key={v.name} value={v.name}>
+                      {v.name}{!form.previousCrop && v.crop ? ` (${v.crop.charAt(0).toUpperCase() + v.crop.slice(1)})` : ''}
+                    </option>
                   ))}
                   <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                 </select>
