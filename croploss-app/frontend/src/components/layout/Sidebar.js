@@ -63,8 +63,11 @@ export default function Sidebar({ pendingCount = 0 }) {
           <div className={`nav-item ${active("/all-entries") ? "active" : ""}`} onClick={() => go("/all-entries")}>
             <span className="nav-icon">📋</span> All Surveys
           </div>
-          <div className={`nav-item ${active("/reports") ? "active" : ""}`} onClick={() => go("/reports")}>
+          <div className={`nav-item ${loc.pathname === "/reports" ? "active" : ""}`} onClick={() => go("/reports")}>
             <span className="nav-icon">📈</span> Reports
+          </div>
+          <div className={`nav-item ${active("/reports/submissions") ? "active" : ""}`} onClick={() => go("/reports/submissions")}>
+            <span className="nav-icon">🏛️</span> Submission Tracking
           </div>
         </>
       )}
@@ -83,8 +86,11 @@ export default function Sidebar({ pendingCount = 0 }) {
           <div className={`nav-item ${active("/users") ? "active" : ""}`} onClick={() => go("/users")}>
             <span className="nav-icon">👥</span> Users &amp; Roles
           </div>
-          <div className={`nav-item ${active("/reports") ? "active" : ""}`} onClick={() => go("/reports")}>
+          <div className={`nav-item ${loc.pathname === "/reports" ? "active" : ""}`} onClick={() => go("/reports")}>
             <span className="nav-icon">📈</span> Reports
+          </div>
+          <div className={`nav-item ${active("/reports/submissions") ? "active" : ""}`} onClick={() => go("/reports/submissions")}>
+            <span className="nav-icon">🏛️</span> Submission Tracking
           </div>
 
           <div className={`nav-item ${active("/settings") ? "active" : ""}`} onClick={() => go("/settings")}>

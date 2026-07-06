@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const CropEntry = require('../models/CropEntry');
 const MasterData = require('../models/MasterData');
+const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 
 // Super‑admin only
@@ -155,6 +156,139 @@ router.get('/crop-loss', adminOnly, async (req, res, next) => {
     });
 
     res.json({ success: true, data: report });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/reports/submission-status
+ * Returns submission status matrix for centers and crops by year/season.
+ */
+router.get('/submission-status', [protect, authorize('super_admin', 'crop_head')], async (req, res, next) => {
+  try {
+    const { year, season } = req.query;
+
+    // 1. Get all unique years and seasons from CropEntry for filtering
+    const distinctYears = await CropEntry.distinct('year');
+    const distinctSeasons = await CropEntry.distinct('season');
+
+    // 2. Determine filter. If year or season are not specified, we can try to use the latest from CropEntry
+    let filterYear = year ? parseInt(year, 10) : null;
+    let filterSeason = season || '';
+
+    if (!filterYear && distinctYears.length > 0) {
+      filterYear = Math.max(...distinctYears);
+    }
+    if (!filterSeason && distinctSeasons.length > 0) {
+      const matchingSeason = distinctSeasons.find(s => s.includes(String(filterYear)));
+      filterSeason = matchingSeason || distinctSeasons[0];
+    }
+
+    // 3. Find all active center users and group them by centerName
+    const centerUsers = await User.find({ role: 'center_user', isActive: true });
+    
+    // We construct a map of centerName -> set of assigned crops
+    const centerExpectedCrops = {};
+    centerUsers.forEach(u => {
+      if (!u.centerName) return;
+      if (!centerExpectedCrops[u.centerName]) {
+        centerExpectedCrops[u.centerName] = new Set();
+      }
+      if (Array.isArray(u.assignedCrops)) {
+        u.assignedCrops.forEach(c => centerExpectedCrops[u.centerName].add(c.toLowerCase()));
+      }
+    });
+
+    // 4. Get active crops from MasterData
+    const master = await MasterData.findOne();
+    let allCrops = [];
+    if (master && Array.isArray(master.crops)) {
+      allCrops = master.crops.map(c => (typeof c === 'string' ? c : c.name).toLowerCase());
+    } else {
+      allCrops = ['castor', 'sunflower', 'safflower', 'sesame', 'niger', 'linseed'];
+    }
+
+    // Display all crops in reports
+    let visibleCrops = allCrops;
+
+    // 5. Query actual submissions for the selected year and season
+    const matchFilter = {};
+    if (filterYear) matchFilter.year = filterYear;
+    if (filterSeason) matchFilter.season = filterSeason;
+
+    const entries = await CropEntry.find(matchFilter).select('crop centerName status submittedAt updatedAt submittedByName');
+
+    // Group actual entries by centerName -> crop -> entry detail
+    const actualSubmissions = {};
+    entries.forEach(e => {
+      if (!e.centerName) return;
+      if (!actualSubmissions[e.centerName]) {
+        actualSubmissions[e.centerName] = {};
+      }
+      const cropKey = e.crop.toLowerCase();
+      actualSubmissions[e.centerName][cropKey] = {
+        id: e._id,
+        status: e.status,
+        submittedAt: e.submittedAt,
+        updatedAt: e.updatedAt,
+        submittedByName: e.submittedByName
+      };
+    });
+
+    // 6. Build the final matrix
+    const allCenterNames = new Set([
+      ...Object.keys(centerExpectedCrops),
+      ...Object.keys(actualSubmissions)
+    ]);
+
+    const matrix = [];
+    allCenterNames.forEach(center => {
+      const cropStatuses = {};
+      const expectedCropsForCenter = centerExpectedCrops[center] || new Set();
+
+      visibleCrops.forEach(crop => {
+        const actual = actualSubmissions[center] && actualSubmissions[center][crop];
+        if (actual) {
+          cropStatuses[crop] = {
+            status: actual.status,
+            entryId: actual.id,
+            submittedAt: actual.submittedAt,
+            submittedByName: actual.submittedByName
+          };
+        } else {
+          if (expectedCropsForCenter.has(crop)) {
+            cropStatuses[crop] = {
+              status: 'not_submitted',
+            };
+          } else {
+            cropStatuses[crop] = {
+              status: 'not_assigned',
+            };
+          }
+        }
+      });
+
+      matrix.push({
+        centerName: center,
+        crops: cropStatuses
+      });
+    });
+
+    matrix.sort((a, b) => a.centerName.localeCompare(b.centerName));
+
+    res.json({
+      success: true,
+      data: {
+        year: filterYear,
+        season: filterSeason,
+        availableYears: distinctYears.sort((a, b) => b - a),
+        availableSeasons: distinctSeasons,
+        crops: visibleCrops,
+        matrix
+      }
+    });
+
   } catch (err) {
     next(err);
   }

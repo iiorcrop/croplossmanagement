@@ -9,6 +9,7 @@ import EntryDetail from './pages/EntryDetail';
 import EntriesList from './pages/EntriesList';
 import Users from './pages/Users';
 import Reports from './pages/Reports';
+import SubmissionStatusReport from './pages/SubmissionStatusReport';
 import Profile from './pages/Profile';
 import MasterData from './pages/MasterData';
 import SystemSettings from './pages/SystemSettings';
@@ -112,6 +113,9 @@ function AppRoutes() {
       {/* Reports — crop head and admin */}
       <Route path="/reports" element={
         <ProtectedRoute roles={['crop_head','super_admin']}><Reports /></ProtectedRoute>
+      } />
+      <Route path="/reports/submissions" element={
+        <ProtectedRoute roles={['crop_head','super_admin']}><SubmissionStatusReport /></ProtectedRoute>
       } />
 
       {/* Super Admin – Final Crop Loss Report */}

@@ -61,7 +61,10 @@ router.get('/reports/summary', protect, async (req, res, next) => {
     const { season, year } = req.query;
     const matchFilter = {};
 
-    if (req.user.role === 'crop_head') matchFilter.crop = { $in: req.user.reviewCrops };
+    // Allow crop_head to view all crops in reports summary
+    if (req.user.role === 'crop_head') {
+      // No filter, show all crops
+    }
     if (season) matchFilter.season = season;
     if (year) matchFilter.year = parseInt(year);
 
@@ -85,7 +88,7 @@ router.get('/reports/summary', protect, async (req, res, next) => {
     ]);
 
     const statusBreakdown = await CropEntry.aggregate([
-      { $match: req.user.role === 'crop_head' ? { crop: { $in: req.user.reviewCrops } } : {} },
+      { $match: {} },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
