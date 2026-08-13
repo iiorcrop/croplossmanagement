@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Eye, Edit } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api, { entriesAPI } from '../utils/api';
 import { StatusBadge, WiltValue, fmtDate, EmptyState, Spinner } from '../components/common';
@@ -268,9 +269,13 @@ export default function EntriesList({ mode = 'all' }) {
                     {showBy && <td style={{ fontSize: 11.5 }}>{e.submittedBy?.name || e.submittedByName || '–'}</td>}
                     <td style={{ fontSize: 11.5 }}>{fmtDate(e.updatedAt)}</td>
                     <td style={{ whiteSpace: 'nowrap' }} onClick={e2 => e2.stopPropagation()}>
-                      <button className="btn btn-outline btn-xs" onClick={() => navigate(`/entry/${e._id}`)}>View</button>
+                      <button className="btn btn-outline btn-xs" onClick={() => navigate(`/entry/${e._id}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Eye size={13} /> View
+                      </button>
                       {['draft','needs_correction'].includes(e.status) && (isAdmin || e.submittedBy?._id === user?._id) && (
-                        <button className="btn btn-primary btn-xs" style={{ marginLeft: 4 }} onClick={() => navigate(`/entry/edit/${e._id}`)}>Edit</button>
+                        <button className="btn btn-primary btn-xs" style={{ marginLeft: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }} onClick={() => navigate(`/entry/edit/${e._id}`)}>
+                          <Edit size={13} /> Edit
+                        </button>
                       )}
                     </td>
                   </tr>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Edit, FileText, Send, CheckCircle2, XCircle, RotateCcw, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { entriesAPI } from '../utils/api';
 import {
@@ -133,26 +134,38 @@ export default function EntryDetail() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button className="btn btn-outline btn-sm" onClick={() => navigate(-1)}>← Back</button>
           {entry.status !== 'draft' && (
-            <button className="btn btn-outline btn-sm" onClick={handleExportPDF} disabled={exportingPDF}>
-              {exportingPDF ? 'Exporting…' : '📄 PDF Report'}
+            <button className="btn btn-outline btn-sm" onClick={handleExportPDF} disabled={exportingPDF} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <FileText size={15} /> PDF Report
             </button>
           )}
           {canEdit && (
             <>
-              <button className="btn btn-outline btn-sm" onClick={() => navigate(`/entry/edit/${id}`)}>✏️ Edit</button>
+              <button className="btn btn-outline btn-sm" onClick={() => navigate(`/entry/edit/${id}`)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Edit size={15} /> Edit
+              </button>
               {obs.length > 0 && (
-                <button className="btn btn-primary btn-sm" onClick={handleSubmit}>📤 Submit</button>
+                <button className="btn btn-primary btn-sm" onClick={handleSubmit} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Send size={15} /> Submit
+                </button>
               )}
             </>
           )}
           {canDoReview && entry.status === 'submitted' && (
-            <button className="btn btn-teal btn-sm" onClick={handleStartReview}>🔍 Start Review</button>
+            <button className="btn btn-teal btn-sm" onClick={handleStartReview} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Search size={15} /> Start Review
+            </button>
           )}
           {canDoReview && (
             <>
-              <button className="btn btn-amber btn-sm" onClick={() => openReview('correction')}>🔄 Request Correction</button>
-              <button className="btn btn-danger btn-sm" onClick={() => openReview('reject')}>❌ Reject</button>
-              <button className="btn btn-primary btn-sm" onClick={() => openReview('approve')}>✅ Approve</button>
+              <button className="btn btn-amber btn-sm" onClick={() => openReview('correction')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <RotateCcw size={15} /> Request Correction
+              </button>
+              <button className="btn btn-danger btn-sm" onClick={() => openReview('reject')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <XCircle size={15} /> Reject
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={() => openReview('approve')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle2 size={15} /> Approve
+              </button>
             </>
           )}
         </div>

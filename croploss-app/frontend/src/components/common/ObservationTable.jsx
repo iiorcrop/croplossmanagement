@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 import { PCT_OPTS, getColsByDiscipline } from '../../utils/constants';
 import axios from 'axios';
 
@@ -160,10 +161,14 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                   </td>
                   <td style={{ padding: '20px 24px', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                      <button type="button" className="p-action-btn" onClick={() => handleOpenEdit(i)} style={{ background: '#f1f5f9', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer' }}>
-                        {readOnly ? '👁️' : '✏️'}
+                      <button type="button" className="p-action-btn" onClick={() => handleOpenEdit(i)} style={{ background: '#f1f5f9', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} title={readOnly ? "View" : "Edit"}>
+                        {readOnly ? <Eye size={16} /> : <Edit size={16} />}
                       </button>
-                      {!readOnly && <button type="button" className="p-action-btn delete" onClick={() => delRow(i)} style={{ background: '#fee2e2', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer' }}>🗑️</button>}
+                      {!readOnly && (
+                        <button type="button" className="p-action-btn delete" onClick={() => delRow(i)} style={{ background: '#fee2e2', border: 'none', padding: 8, borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} title="Delete">
+                          <Trash2 size={16} color="#ef4444" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 import api from '../utils/api';
 
 // Initial data for the demonstration
@@ -369,9 +370,9 @@ export default function MasterData() {
                 {item.emoji || config.icon}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="icon-btn" onClick={() => handleOpenView(item)}>👁️</button>
-                <button className="icon-btn" onClick={() => handleOpenEdit(item)}>✏️</button>
-                <button className="icon-btn delete" onClick={() => handleDelete(item.id)}>🗑️</button>
+                <button className="icon-btn" title="View" onClick={() => handleOpenView(item)}><Eye size={16} /></button>
+                <button className="icon-btn" title="Edit" onClick={() => handleOpenEdit(item)}><Edit size={16} /></button>
+                <button className="icon-btn delete" title="Delete" onClick={() => handleDelete(item.id)}><Trash2 size={16} /></button>
               </div>
             </div>
 

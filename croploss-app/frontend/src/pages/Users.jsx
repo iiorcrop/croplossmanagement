@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { Edit } from 'lucide-react';
 import { usersAPI } from '../utils/api';
 import { RoleBadge, Avatar, CropTag, Modal, Spinner, EmptyState } from '../components/common';
 import { CROP_EMOJI, CROP_LABEL, ROLE_LABELS, AV_COLORS } from '../utils/constants';
@@ -205,7 +206,9 @@ export default function Users() {
                       </span>
                     </td>
                     <td>
-                      <button className="btn btn-outline btn-xs" onClick={()=>openEdit(u)}>Edit</button>
+                      <button className="btn btn-outline btn-xs" onClick={()=>openEdit(u)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Edit size={13} /> Edit
+                      </button>
                     </td>
                   </tr>
                 ))}
