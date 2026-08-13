@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '/api',
+  baseURL: (import.meta.env && import.meta.env.VITE_API_URL) || process.env.REACT_APP_API_URL || '/api',
   timeout: 120000, // 120s for large report fetches
   headers: { 'Content-Type': 'application/json' },
 });
