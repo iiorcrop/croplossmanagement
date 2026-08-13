@@ -94,7 +94,7 @@ export default function Login() {
         {/* Demo credentials */}
         <div style={{ marginTop: 20, padding: '10px 14px', background: 'var(--g0)', border: '1px solid var(--g1)', borderRadius: 8, fontSize: 11.5, color: 'var(--g8)', lineHeight: 1.9 }}>
           <strong>Demo accounts:</strong><br />
-          admin@icar.gov.in / Admin@2025 — Super Admin<br />
+          P.madhuri@icar.org.in / Iior@2026 — Super Admin<br />
           head@icar.gov.in&nbsp; / Head@2025 — Crop Head<br />
           user@center.in&nbsp;&nbsp; / User@2025 — Center User
         </div>

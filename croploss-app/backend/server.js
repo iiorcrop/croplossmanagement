@@ -75,7 +75,7 @@ const startServer = async () => {
     console.log(`🚀 Backend running: http://localhost:${PORT}`);
     console.log(`📡 API base: http://localhost:${PORT}/api`);
     console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(`\n📋 Default login: admin@icar.gov.in / Admin@2025\n`);
+    console.log(`\n📋 Default login: P.madhuri@icar.org.in / Iior@2026\n`);
   });
 };
 
@@ -90,10 +90,10 @@ async function seedInitialData() {
 
     // Super Admin
     await User.create({
-      name: "Dr. IIOR Admin",
-      email: "admin@icar.gov.in",
+      name: "P. Madhuri",
+      email: "P.madhuri@icar.org.in",
       phone: "+919876543210",
-      password: "Admin@2025",
+      password: "Iior@2026",
       role: "super_admin",
       designation: "System Administrator",
       assignedCrops: CROPS,
@@ -179,7 +179,7 @@ async function seedInitialData() {
     });
 
     console.log("✅ Initial users seeded successfully");
-    console.log("   admin@icar.gov.in    / Admin@2025 (Super Admin)");
+    console.log("   P.madhuri@icar.org.in / Iior@2026 (Super Admin)");
     console.log("   head@icar.gov.in     / Head@2025  (Crop Head – Castor, Sunflower)");
     console.log("   mreddy@icar.gov.in   / Head@2025  (Crop Head – Sesame, Niger, Linseed)");
     console.log("   user@center.in       / User@2025  (Center User – Castor)");

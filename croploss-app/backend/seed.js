@@ -22,8 +22,8 @@ async function seed() {
   // ── Users ──────────────────────────────────────────────────────────────
   const usersData = [
     {
-      name: 'P. Madhuri', email: 'admin@icar.gov.in', phone: '+919876543210',
-      password: 'Admin@2025', role: 'super_admin', designation: 'Director',
+      name: 'P. Madhuri', email: 'P.madhuri@icar.org.in', phone: '+919876543210',
+      password: 'Iior@2026', role: 'super_admin', designation: 'Director',
       assignedCrops: CROPS, reviewCrops: CROPS,
       centerName: 'ICAR-IIOR HQ', centerState: 'Telangana', centerDistrict: 'Hyderabad',
       notifyWhatsApp: true, notifyEmail: true,
@@ -314,7 +314,7 @@ async function seed() {
   console.log('\n🎉 Seeding complete!');
   console.log('═══════════════════════════════════════');
   console.log('Login credentials:');
-  console.log('  admin@icar.gov.in  / Admin@2025  → Super Admin');
+  console.log('  P.madhuri@icar.org.in / Iior@2026 → Super Admin');
   console.log('  head@icar.gov.in   / Head@2025   → Crop Head (Castor, Sunflower)');
   console.log('  mreddy@icar.gov.in / Head@2025   → Crop Head (Sesame, Niger, Linseed)');
   console.log('  pjoshi@icar.gov.in / Head@2025   → Crop Head (Safflower)');
