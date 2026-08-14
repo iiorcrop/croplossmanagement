@@ -307,6 +307,14 @@ export default function EntryForm() {
         toast.error("Please select a village");
         return false;
       }
+      if (!form.latitude) {
+        toast.error("Please enter Latitude");
+        return false;
+      }
+      if (!form.longitude) {
+        toast.error("Please enter Longitude");
+        return false;
+      }
     }
     if (step === 2) {
       if (observations.length === 0) {
@@ -706,7 +714,7 @@ export default function EntryForm() {
             <div className="form-grid grid-2">
               {/* Latitude */}
               <div className="form-group">
-                <label className="form-label">Latitude</label>
+                <label className="form-label required">Latitude</label>
                 <input
                   className="form-control"
                   type="number"
@@ -719,7 +727,7 @@ export default function EntryForm() {
               </div>
               {/* Longitude */}
               <div className="form-group">
-                <label className="form-label">Longitude</label>
+                <label className="form-label required">Longitude</label>
                 <input
                   className="form-control"
                   type="number"

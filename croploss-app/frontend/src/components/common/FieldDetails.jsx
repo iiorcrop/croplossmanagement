@@ -11,8 +11,8 @@ import React from 'react';
  */
 export const FIELD_DETAILS = [
   { key: 'location',         label: 'Location',          type: 'datalist', options: 'villages', placeholder: 'Village / field location' },
-  { key: 'latitude',         label: 'Latitude',          type: 'number',   placeholder: 'e.g. 16.8712' },
-  { key: 'longitude',        label: 'Longitude',         type: 'number',   placeholder: 'e.g. 79.5641' },
+  { key: 'latitude',         label: 'Latitude',          type: 'number',   placeholder: 'e.g. 16.8712', required: true },
+  { key: 'longitude',        label: 'Longitude',         type: 'number',   placeholder: 'e.g. 79.5641', required: true },
   { key: 'soilType',         label: 'Soil Type',         type: 'select',   options: 'soilTypes' },
   { key: 'previousCrop',     label: 'Previous Crop',     type: 'select',   options: 'previousCrops' },
   { key: 'variety',          label: 'Variety',           type: 'select',   options: 'varieties' },
@@ -49,7 +49,7 @@ export default function FieldDetails({ values = {}, onChange, options = {}, read
           return (
             <div key={f.key} className="form-group">
               <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>
-                {f.label}
+                {f.label} {f.required && <span style={{ color: '#ef4444' }}>*</span>}
               </label>
 
               {f.type === 'select' && (

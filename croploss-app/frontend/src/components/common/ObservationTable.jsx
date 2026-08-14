@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, Edit, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { PCT_OPTS, getColsByDiscipline } from '../../utils/constants';
 import FieldDetails, { withFieldDefaults } from './FieldDetails';
 import axios from 'axios';
@@ -65,6 +66,14 @@ export default function ObservationTable({
   const setField = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
   const handleSave = () => {
+    if (!formData.latitude) {
+      toast.error('Latitude is required');
+      return;
+    }
+    if (!formData.longitude) {
+      toast.error('Longitude is required');
+      return;
+    }
     if (editingIdx !== null) {
       const updated = rows.map((r, i) => i === editingIdx ? formData : r);
       onChange(updated);
@@ -149,14 +158,6 @@ export default function ObservationTable({
                             </div>
                           </div>
                         ))}
-                      {r.cropDamage && r.cropDamage !== '-' && r.cropDamage !== '' && (
-                        <div style={{ minWidth: '100px', background: '#fee2e2', padding: '8px 12px', borderRadius: 8, border: '1px solid #fecaca' }}>
-                          <div style={{ fontSize: 10, color: '#991b1b', textTransform: 'uppercase', fontWeight: 700 }}>% Crop Damage</div>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: '#991b1b', marginTop: 4 }}>
-                            {r.cropDamage === '>50% (Specify)' ? (r.cropDamage_specify || '50+') + '%' : r.cropDamage}
-                          </div>
-                        </div>
-                      )}
                     </div>
                     <div style={{ marginTop: 8, fontSize: 12.5, color: '#475569', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                       {r.location && <span>📍 <strong>Location:</strong> {r.location}</span>}
@@ -301,24 +302,7 @@ export default function ObservationTable({
                     </div>
                   ))}
 
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>% Crop Damage</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.cropDamage || ''} onChange={handleDropdownChange('cropDamage', 'percent')} disabled={readOnly}>
-                      {PCT_OPTS.map(o => <option key={o} value={o}>{o}</option>)}
-                      {customPctOpts.map(o => <option key={o} value={o}>{o}</option>)}
-                      <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
-                    </select>
-                    {formData.cropDamage === '>50% (Specify)' && (
-                      <input
-                        type="text"
-                        style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8, marginTop: 10 }}
-                        placeholder="Specify %"
-                        value={formData.cropDamage_specify || ''}
-                        onChange={e => setFormData({ ...formData, cropDamage_specify: e.target.value })}
-                        disabled={readOnly}
-                      />
-                    )}
-                  </div>
+                  {/* Removed Crop Damage field per request */}
 
                   <div className="form-group">
                     <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>Any new disease reported?</label>
