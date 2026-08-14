@@ -17,7 +17,7 @@ Run from repo root unless noted.
 - `cd backend && node seed_msp.js` — MSP seeding
 - `cd frontend && npm test -- --testPathPattern=<file>` — run a single CRA test file
 
-Docker (production-style): `docker-compose up --build` — backend on `7070`, frontend on `7001`, nginx reverse proxy on `7000`. Backend reads `./backend/.env`.
+Docker (production-style): `docker-compose up --build` — backend on `7070`, frontend on `7001`. Backend reads `./backend/.env`, frontend reads `./frontend/.env`.
 
 Note: `server.js` also auto-seeds initial users on first boot when no `super_admin` exists. Default login is printed in the boot banner (`admin@icar.gov.in / Admin@2025`).
 

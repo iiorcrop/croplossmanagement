@@ -8,10 +8,6 @@ RUN npm install
 
 COPY . .
 
-# Build arguments for Vite environment variables
-ARG VITE_API_URL=/api
-ENV VITE_API_URL=$VITE_API_URL
-
 RUN npm run build
 
 # Stage 2: Serve with Nginx
