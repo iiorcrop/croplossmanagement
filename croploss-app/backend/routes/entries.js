@@ -125,10 +125,14 @@ router.get('/reports/summary', protect, async (req, res, next) => {
 router.get('/reports/export', protect, async (req, res, next) => {
   try {
     const filter = buildEntryFilter(req.user, req.query);
-    // IMPORTANT: do NOT exclude observations — we need them for the detailed sheet
+    // IMPORTANT: do NOT exclude observations — we need them for the detailed sheet.
+    // .lean() matters too: observations are `strict:false`, so keys the schema
+    // doesn't declare (fusariumWilt, cercosporaLeafSpot, *_specify …) are only
+    // reachable on plain objects, not through Mongoose document getters.
     const entries = await CropEntry.find(filter)
       .populate('submittedBy', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const wb = await generateExcelReport(entries, req.query);
     const filename = `CropLoss_Report_${new Date().toISOString().split('T')[0]}.xlsx`;

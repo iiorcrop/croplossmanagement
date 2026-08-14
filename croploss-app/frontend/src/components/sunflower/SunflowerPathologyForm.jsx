@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './SunflowerPathologyForm.css';
 import api from '../../utils/api';
+import FieldDetails, { withFieldDefaults } from '../common/FieldDetails';
 
 const DEFAULT_DISEASES = [
   { cropStage: 'Seedling', diseaseObserved: 'Alternaria Leaf Blight' },
@@ -34,7 +35,7 @@ const defaultDiseaseRow = (overrides = {}) => ({
   ...overrides,
 });
 
-const defaultObservation = () => ({
+const defaultObservation = (defaults = {}) => withFieldDefaults({
   location: '',
   latitude: '',
   longitude: '',
@@ -49,10 +50,10 @@ const defaultObservation = () => ({
     diseases: DEFAULT_DISEASES.map(d => defaultDiseaseRow(d)),
   },
   images: [],
-});
+}, defaults);
 
-const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, taluka }) => {
-  const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [defaultObservation()]);
+const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, taluka, defaults = {}, options = {} }) => {
+  const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [defaultObservation(defaults)]);
 
 
   useEffect(() => {
@@ -60,7 +61,9 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
     // eslint-disable-next-line
   }, [observations]);
 
-
+  const handleLocChange = (locIdx, field, value) => {
+    setObservations(prev => prev.map((o, i) => (i === locIdx ? { ...o, [field]: value } : o)));
+  };
 
   const addDisease = (locIdx) => {
     const updated = [...observations];
@@ -119,6 +122,13 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
         return (
           <div key={locIdx} className="sfp-card">
 
+            <FieldDetails
+              values={obs}
+              onChange={(key, value) => handleLocChange(locIdx, key, value)}
+              options={options}
+              readOnly={readOnly}
+              idPrefix={`sf-path-${locIdx}`}
+            />
 
             {/* Disease Section */}
             <div className="sfp-section">

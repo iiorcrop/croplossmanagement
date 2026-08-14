@@ -11,13 +11,16 @@ const observationSchema = new mongoose.Schema({
   latitude: { type: Number },
   longitude: { type: Number },
 
-  // Field info (all dropdowns)
-  soilType:         { type: mongoose.Schema.Types.Mixed, default: 'Black' },
-  previousCrop: { type: mongoose.Schema.Types.Mixed, default: 'Castor' },
-  variety: { type: String, trim: true, default: '' },
-  irrigatedRainfed: { type: String, enum: IRRIGATION_TYPES, default: 'Irrigated' },
-  dateOfSowing: { type: String, enum: SOWING_DATES },
-  stageOfCrop: { type: String, enum: ['', ...CROP_STAGES], default: '' },
+  // Field info (all dropdowns). No enums or seeded defaults: these lists are
+  // editable at runtime from the Master Data screen, and a placeholder default
+  // ('Black', 'Castor', 'Irrigated') is indistinguishable from a real reading
+  // once it reaches a report.
+  soilType:         { type: mongoose.Schema.Types.Mixed, default: '' },
+  previousCrop:     { type: mongoose.Schema.Types.Mixed, default: '' },
+  variety:          { type: String, trim: true, default: '' },
+  irrigatedRainfed: { type: String, trim: true, default: '' },
+  dateOfSowing:     { type: String, trim: true, default: '' },
+  stageOfCrop:      { type: String, trim: true, default: '' },
 
   // ── Disease fields (dynamic strings like "1-10%", ">50%") ──────────────────
   wilt: { type: mongoose.Schema.Types.Mixed, default: '-' },
@@ -143,7 +146,7 @@ const cropEntrySchema = new mongoose.Schema({
   soilTypeField:    { type: String, trim: true, default: '' },
   previousCrop:     { type: String, trim: true, default: '' },
   variety:          { type: String, trim: true, default: '' },
-  irrigatedRainfed: { type: String, enum: ['Irrigated', 'Rainfed', ''], default: 'Irrigated' },
+  irrigatedRainfed: { type: String, trim: true, default: '' }, // master-data driven, see observationSchema
   dateOfSowing:     { type: String, trim: true, default: '' },
   stageOfCrop:      { type: String, trim: true, default: '' },
 

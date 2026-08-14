@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
+const { seedInitialLocations } = require("./scripts/syncLgdLocations");
 const { errorHandler } = require("./middleware/auth");
 
 const app = express();
@@ -68,6 +69,7 @@ app.use(errorHandler);
 const startServer = async () => {
   await connectDB();
   await seedInitialData();
+  await seedInitialLocations();
 
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {

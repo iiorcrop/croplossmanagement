@@ -77,7 +77,8 @@ export default function EntryForm() {
     previousCrops: [],
     varieties: [],
     irrigatedRainfed: [],
-    stagesOfCrop: []
+    stagesOfCrop: [],
+    sowingDates: []
   });
 
   const handleAddNew = (field, customKey) => (e) => {
@@ -92,7 +93,8 @@ export default function EntryForm() {
           'previousCrop': 'previous-crops',
           'variety': 'varieties',
           'irrigatedRainfed': 'irrigation',
-          'stageOfCrop': 'crop-stages'
+          'stageOfCrop': 'crop-stages',
+          'dateOfSowing': 'sowing-dates'
         };
         const masterKey = masterKeyMap[field];
         if (masterKey) {
@@ -130,7 +132,7 @@ export default function EntryForm() {
           return;
         }
 
-        setCustomOpts(prev => ({ ...prev, [customKey]: [...new Set([...prev[customKey], properVal])] }));
+        setCustomOpts(prev => ({ ...prev, [customKey]: [...new Set([...(prev[customKey] || []), properVal])] }));
         setForm(prev => ({ ...prev, [field]: properVal }));
       }
     } else {
@@ -438,11 +440,50 @@ export default function EntryForm() {
   const availablePreviousCrops = getMasterList('previous-crops');
   const availableIrrigationTypes = getMasterList('irrigation');
   const availableCropStages = getMasterList('crop-stages');
-  const availableSowingDates = masterData?.sowingDates || [];
+  const availableSowingDates = (masterData?.sowingDates && masterData.sowingDates.length > 0)
+    ? masterData.sowingDates
+    : [
+        '1st Wk Jan', '2nd Wk Jan', '3rd Wk Jan', '4th Wk Jan',
+        '1st Wk Feb', '2nd Wk Feb', '3rd Wk Feb', '4th Wk Feb',
+        '1st Wk Mar', '2nd Wk Mar', '3rd Wk Mar', '4th Wk Mar',
+        '1st Wk Apr', '2nd Wk Apr', '3rd Wk Apr', '4th Wk Apr',
+        '1st Wk May', '2nd Wk May', '3rd Wk May', '4th Wk May',
+        '1st Wk Jun', '2nd Wk Jun', '3rd Wk Jun', '4th Wk Jun',
+        '1st Wk Jul', '2nd Wk Jul', '3rd Wk Jul', '4th Wk Jul',
+        '1st Wk Aug', '2nd Wk Aug', 'Mid Aug', '3rd Wk Aug', '4th Wk Aug',
+        '1st Wk Sep', '2nd Wk Sep', '3rd Wk Sep', '4th Wk Sep',
+        '1st Wk Oct', '2nd Wk Oct', '3rd Wk Oct', '4th Wk Oct',
+        '1st Wk Nov', '2nd Wk Nov', '3rd Wk Nov', '4th Wk Nov',
+        '1st Wk Dec', '2nd Wk Dec', '3rd Wk Dec', '4th Wk Dec'
+      ];
   // When previousCrop is empty, show ALL varieties so the user can pick one and
   // we auto-fill previousCrop. Once set, filter to just that crop's varieties.
   const varietyObjects = getMasterVarietyObjects(form.previousCrop);
   const availableVarieties = varietyObjects;
+
+  // Every observation row records its own field details (location, coordinates,
+  // variety, stage …) — these seed a new row so they only need typing once, and
+  // they are what the PDF/Excel reports print for each row.
+  const rowDefaults = {
+    location: form.village,
+    latitude: form.latitude,
+    longitude: form.longitude,
+    soilType: form.soilTypeField,
+    previousCrop: form.previousCrop,
+    variety: form.variety,
+    irrigatedRainfed: form.irrigatedRainfed,
+    dateOfSowing: form.dateOfSowing,
+    stageOfCrop: form.stageOfCrop,
+  };
+  const rowOptions = {
+    villages: availableVillages,
+    soilTypes: availableSoilTypes,
+    previousCrops: availablePreviousCrops,
+    varieties: availableVarieties.map(v => v.name).filter(Boolean),
+    irrigationTypes: availableIrrigationTypes,
+    sowingDates: availableSowingDates,
+    cropStages: availableCropStages,
+  };
 
   return (
     <div className="entry-form-page">
@@ -627,29 +668,36 @@ export default function EntryForm() {
                 {/* Village Dropdown */}
                 <div className="form-group">
                   <label className="form-label required">Village</label>
-                  <select
+                  <input
+                    type="text"
                     className="form-control"
+                    list="villages-datalist"
+                    placeholder={form.taluka ? "Search or select Village..." : "Select Taluka first"}
                     value={form.village}
                     onChange={(e) => {
                       const val = e.target.value;
-                      if (val === '__ADD_NEW_VILLAGE__') {
-                        const newVal = window.prompt('Enter new Village name:');
-                        if (newVal && newVal.trim()) {
-                          setAvailableVillages(prev => [...new Set([...prev, newVal.trim()])]);
-                          setField('village', newVal.trim());
-                        }
-                      } else {
-                        setField('village', val);
+                      setField('village', val);
+                    }}
+                    onBlur={(e) => {
+                      const val = e.target.value.trim();
+                      if (val && form.state && form.district && form.taluka && !availableVillages.includes(val)) {
+                        api.post('/locations/add-village', {
+                          state: form.state,
+                          district: form.district,
+                          taluka: form.taluka,
+                          village: val
+                        }).then(() => {
+                          setAvailableVillages(prev => [...new Set([...prev, val])]);
+                        }).catch(err => console.error('Failed to add custom village', err));
                       }
                     }}
                     disabled={!isEditable || !form.taluka}
-                  >
-                    <option value="">{form.taluka ? '— Select Village —' : 'Select Taluka first'}</option>
+                  />
+                  <datalist id="villages-datalist">
                     {availableVillages.map((v) => (
-                      <option key={v} value={v}>{v}</option>
+                      <option key={v} value={v} />
                     ))}
-                    <option value="__ADD_NEW_VILLAGE__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Village...</option>
-                  </select>
+                  </datalist>
                 </div>
             </div>
 
@@ -753,13 +801,14 @@ export default function EntryForm() {
                 <select
                   className="form-control"
                   value={form.dateOfSowing}
-                  onChange={(e) => setField('dateOfSowing', e.target.value)}
+                  onChange={handleAddNew('dateOfSowing', 'sowingDates')}
                   disabled={!isEditable}
                 >
                   <option value="">— Select Period —</option>
-                  {availableSowingDates.map(o => (
+                  {Array.from(new Set([...availableSowingDates, ...(customOpts.sowingDates || [])])).filter(Boolean).map(o => (
                     <option key={o} value={o}>{o}</option>
                   ))}
+                  <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>
                 </select>
               </div>
               {/* Stage of Crop */}
@@ -812,6 +861,8 @@ export default function EntryForm() {
                 state={form.state}
                 district={form.district}
                 taluka={form.taluka}
+                defaults={rowDefaults}
+                options={rowOptions}
               />
             ) : form.crop === 'sunflower' && form.discipline === 'Entomology' ? (
               <SunflowerEntomologyForm
@@ -821,6 +872,8 @@ export default function EntryForm() {
                 state={form.state}
                 district={form.district}
                 taluka={form.taluka}
+                defaults={rowDefaults}
+                options={rowOptions}
               />
             ) : form.crop === 'sunflower' && form.discipline === 'Pathology' ? (
               <SunflowerPathologyForm
@@ -830,6 +883,8 @@ export default function EntryForm() {
                 state={form.state}
                 district={form.district}
                 taluka={form.taluka}
+                defaults={rowDefaults}
+                options={rowOptions}
               />
             ) : (
               <ObservationTable
@@ -841,6 +896,8 @@ export default function EntryForm() {
                 state={form.state}
                 district={form.district}
                 taluka={form.taluka}
+                defaults={rowDefaults}
+                options={rowOptions}
               />
             )}
             </div>

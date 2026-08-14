@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable'; // v5: standalone function, NOT doc.autoTable()
-import { CROP_LABEL, CROP_COLS } from './constants';
+import { CROP_LABEL, CROP_COLS, getColsByDiscipline } from './constants';
+import { resolveField, mergeColumns } from './observationFields';
 
 // Safe value: handles Mixed types (strings like '1-10%', numbers, null, undefined)
 const sv = (v) => {
@@ -8,8 +9,128 @@ const sv = (v) => {
   return String(v);
 };
 
+// Resolve one report column for one observation row: the row itself, then its
+// nested pest/disease records, then the entry-level survey context.
+const cell = (entry, obs, key) => sv(resolveField(entry, obs, key));
+
+// Survey-context columns shared by the detailed exports
+const CONTEXT_COLUMNS = [
+  { key: 'location',         label: 'Location' },
+  { key: 'latitude',         label: 'Latitude' },
+  { key: 'longitude',        label: 'Longitude' },
+  { key: 'soilType',         label: 'Soil Type' },
+  { key: 'previousCrop',     label: 'Previous Crops' },
+  { key: 'variety',          label: 'Variety' },
+  { key: 'irrigatedRainfed', label: 'Irrigated/Rainfed' },
+  { key: 'dateOfSowing',     label: 'Date of Sowing' },
+  { key: 'stageOfCrop',      label: 'Stage of Crop' },
+];
+
 // Safe filename string
 const safeName = (s) => (s || 'All').replace(/[^a-zA-Z0-9]/g, '_');
+
+const MARGIN = 14;
+
+/**
+ * Renders a table that is wider than the page by splitting its columns into
+ * blocks stacked down the page, repeating the identity columns (Location …) on
+ * each one. Squeezing 30+ columns into A4 landscape shreds the headers into a
+ * letter-per-line smear, so we cap how narrow a column may get instead.
+ *
+ * @returns {number} y position below the last block
+ */
+const renderWideTable = (doc, {
+  head, body, startY,
+  identityWidths = [30],   // fixed width of each repeated leading column
+  minColWidth = 16,        // narrowest a data column may become
+  headStyles = {},
+  continuedLabel,
+}) => {
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const identityCols = Math.min(identityWidths.length, head.length);
+  const identityWidth = identityWidths.reduce((a, b) => a + b, 0);
+
+  const usable = pageWidth - MARGIN * 2;
+  const slots = Math.max(1, Math.floor((usable - identityWidth) / minColWidth));
+  const slotWidth = (usable - identityWidth) / slots;
+
+  // Free-text columns get a double slot; everything else is a fixed grid, so
+  // columns line up across blocks.
+  const weightOf = (label) => (/remark|detail|note/i.test(String(label)) ? 2 : 1);
+
+  // Pack the data columns into blocks of at most `slots` weight
+  const blocks = [];
+  let current = [];
+  let used = 0;
+  for (let i = identityCols; i < head.length; i++) {
+    const w = Math.min(weightOf(head[i]), slots);
+    if (used + w > slots && current.length) {
+      blocks.push(current);
+      current = [];
+      used = 0;
+    }
+    current.push(i);
+    used += w;
+  }
+  if (current.length) blocks.push(current);
+  if (!blocks.length) blocks.push([]);
+
+  const fontSize = slots > 16 ? 6.5 : slots > 12 ? 7 : 8;
+
+  let y = startY;
+  for (let b = 0; b < blocks.length; b++) {
+    const idx = [];
+    for (let i = 0; i < identityCols; i++) idx.push(i);
+    idx.push(...blocks[b]);
+
+    if (b > 0) {
+      // Continuation blocks need room for a heading plus a couple of rows
+      if (y > pageHeight - 45) {
+        doc.addPage();
+        y = 20;
+      }
+      if (continuedLabel) {
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(90);
+        doc.text(`${continuedLabel} (columns continued)`, MARGIN, y);
+        y += 4;
+      }
+    }
+
+    const columnStyles = {};
+    identityWidths.slice(0, identityCols).forEach((w, i) => {
+      columnStyles[i] = { cellWidth: w, halign: i === identityCols - 1 ? 'left' : 'center' };
+    });
+    idx.slice(identityCols).forEach((srcIdx, i) => {
+      columnStyles[identityCols + i] = { cellWidth: slotWidth * weightOf(head[srcIdx]) };
+    });
+
+    autoTable(doc, {
+      startY: y,
+      head: [idx.map(i => head[i])],
+      body: body.map(row => idx.map(i => row[i])),
+      theme: 'grid',
+      styles: { fontSize, cellPadding: 1.6, halign: 'center', valign: 'middle', overflow: 'linebreak' },
+      headStyles: { fontSize: fontSize + 0.5, valign: 'middle', ...headStyles },
+      columnStyles,
+      tableWidth: 'wrap', // short blocks stay compact instead of stretching
+      margin: { left: MARGIN, right: MARGIN },
+    });
+
+    y = ((doc.lastAutoTable && doc.lastAutoTable.finalY) || y) + 8;
+  }
+
+  return y;
+};
+
+/** Column indexes that hold at least one real value across all rows. */
+const nonEmptyColumns = (body, skip = 0) => {
+  const keep = new Set();
+  body.forEach(row => row.forEach((v, i) => { if (i < skip || v !== '--') keep.add(i); }));
+  return keep;
+};
 
 // ── Summary PDF ────────────────────────────────────────────────────────────────
 export const generatePDFReport = (summaryData, label = 'All') => {
@@ -112,7 +233,7 @@ export const generateEntryPDF = (entry) => {
   autoTable(doc, {
     startY: 38,
     body: [
-      ['State', entry.centerState || '--', 'Survey Date', entry.surveyDate ? new Date(entry.surveyDate).toLocaleDateString() : '--'],
+      ['State', entry.state || entry.centerState || '--', 'Survey Date', entry.surveyDate ? new Date(entry.surveyDate).toLocaleDateString() : '--'],
       ['Taluka', entry.taluka || '--', 'Submitted By', entry.submittedByName || '--'],
       ['Surveyor', entry.surveyorName || '--', 'Designation', entry.surveyorDesig || '--'],
       ['Avg Wilt', `${(entry.avgWilt || 0).toFixed(1)}%`, 'Max Wilt', `${(entry.maxWilt || 0).toFixed(1)}%`],
@@ -123,25 +244,36 @@ export const generateEntryPDF = (entry) => {
   });
 
   const obs = entry.observations || [];
+
+  // Columns follow the crop + discipline the entry was recorded against
+  const entryCols = getColsByDiscipline(entry.crop, entry.discipline);
+  const measureCols = [...(entryCols.disease || []), ...(entryCols.insect || [])];
+
   const obsBody = obs.map((row, i) => [
     i + 1,
-    sv(row.location), sv(row.soilType), sv(row.previousCrop), sv(row.variety),
-    sv(row.irrigatedRainfed), sv(row.dateOfSowing), sv(row.stageOfCrop),
-    sv(row.wilt), sv(row.rootRot), sv(row.cls), sv(row.als), sv(row.remarks),
+    ...CONTEXT_COLUMNS.filter(c => c.key !== 'latitude' && c.key !== 'longitude')
+      .map(c => cell(entry, row, c.key)),
+    ...measureCols.map(c => cell(entry, row, c.key)),
+    cell(entry, row, 'remarks'),
   ]);
 
   const obsY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : 80;
   doc.setFontSize(13);
   doc.setTextColor(0);
-  doc.text('Observation Records', 14, obsY);
+  doc.text('Observation Records', MARGIN, obsY);
 
-  autoTable(doc, {
-    startY: obsY + 5,
-    head: [['#', 'Location', 'Soil', 'Prev Crop', 'Variety', 'Irrig.', 'Sowing', 'Stage', 'Wilt', 'Root Rot', 'CLS', 'ALS', 'Remarks']],
+  renderWideTable(doc, {
+    head: [
+      '#',
+      ...CONTEXT_COLUMNS.filter(c => c.key !== 'latitude' && c.key !== 'longitude').map(c => c.label),
+      ...measureCols.map(c => c.label),
+      'Remarks',
+    ],
     body: obsBody,
-    theme: 'grid',
-    headStyles: { fillColor: [46, 125, 50], fontSize: 8 },
-    styles: { fontSize: 8, cellPadding: 1.5 },
+    startY: obsY + 5,
+    identityWidths: [8, 28],
+    headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
+    continuedLabel: 'Observation Records',
   });
 
   if (entry.workflowHistory && entry.workflowHistory.length > 0) {
@@ -184,17 +316,6 @@ export const generateDetailedMasterPDF = (entries, label = 'All') => {
   if (!entries || !entries.length) return;
   const doc = new jsPDF('l', 'mm', 'a4');
 
-  // Prepare dynamic disease/insect columns across all entries
-  const allDiseaseMap = new Map(); // key -> label
-  entries.forEach(entry => {
-    const cols = CROP_COLS[entry.crop] || CROP_COLS.castor;
-    [...(cols.disease || []), ...(cols.insect || [])].forEach(c => {
-      if (!allDiseaseMap.has(c.key)) allDiseaseMap.set(c.key, c.label);
-    });
-  });
-  const diseaseHeaders = [...allDiseaseMap.entries()].map(([k, l]) => l);
-  const diseaseKeys = [...allDiseaseMap.keys()];
-
   // Group by center
   const centers = [...new Set(entries.map(e => e.centerName || 'Unknown Center'))];
 
@@ -210,20 +331,37 @@ export const generateDetailedMasterPDF = (entries, label = 'All') => {
       14, 13
     );
 
-    const tableBody = [];
+    // Columns are scoped to the crops on this page — a union across every crop
+    // would squeeze the table to an unreadable width.
+    const cropColumns = [];
     centerEntries.forEach(entry => {
-      (entry.observations || []).forEach(obs => {
+      const cols = CROP_COLS[entry.crop] || CROP_COLS.castor;
+      cropColumns.push(...(cols.disease || []), ...(cols.insect || []));
+    });
+    const measureColumns = mergeColumns(cropColumns);
+
+    const rowsPerEntry = centerEntries.map(entry => ({
+      entry,
+      // Entries with no observation rows still carry their survey context
+      observations: (entry.observations || []).length ? entry.observations : [{}],
+    }));
+
+    // Drop measurements nobody recorded on this page
+    const usedColumns = measureColumns.filter(col =>
+      rowsPerEntry.some(({ entry, observations }) =>
+        observations.some(obs => cell(entry, obs, col.key) !== '--')
+      )
+    );
+    const diseaseHeaders = usedColumns.map(c => c.label);
+    const diseaseKeys = usedColumns.map(c => c.key);
+
+    const tableBody = [];
+    rowsPerEntry.forEach(({ entry, observations }) => {
+      observations.forEach(obs => {
         tableBody.push([
-          sv(obs.location),
-          sv(obs.latitude),
-          sv(obs.longitude),
-          sv(obs.soilType),
-          sv(obs.previousCrop),
-          sv(obs.variety),
-          sv(obs.irrigatedRainfed),
-          sv(obs.dateOfSowing),
-          sv(obs.stageOfCrop),
-          ...diseaseKeys.map(k => sv(obs[k]))
+          ...CONTEXT_COLUMNS.map(c => cell(entry, obs, c.key)),
+          ...diseaseKeys.map(k => cell(entry, obs, k)),
+          cell(entry, obs, 'remarks'),
         ]);
       });
     });
@@ -233,38 +371,19 @@ export const generateDetailedMasterPDF = (entries, label = 'All') => {
       doc.setFont('helvetica', 'normal');
       doc.text('No observation records found for this center.', 14, 22);
     } else {
-      const result = autoTable(doc, {
-        startY: 17,
-        head: [['Location', 'Latitude', 'Longitude', 'Soil Type', 'Previous Crops', 'Variety',
-          'Irrigated/Rainfed', 'Date of Sowing', 'Stage of Crop', ...diseaseHeaders]],
+      const finalY = renderWideTable(doc, {
+        head: [...CONTEXT_COLUMNS.map(c => c.label), ...diseaseHeaders, 'Remarks'],
         body: tableBody,
-        theme: 'grid',
-        styles: { fontSize: 7.5, cellPadding: 1.5, halign: 'center', overflow: 'linebreak' },
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2, fontSize: 8 },
-        columnStyles: {
-          0: { halign: 'left', cellWidth: 22 },
-          1: { cellWidth: 16 }, 2: { cellWidth: 16 },
-          3: { cellWidth: 18 }, 4: { cellWidth: 22 },
-          5: { cellWidth: 18 }, 6: { cellWidth: 18 },
-          7: { cellWidth: 20 }, 8: { cellWidth: 20 },
-          9: { cellWidth: 14 }, 10: { cellWidth: 16 },
-          11: { cellWidth: 12 }, 12: { cellWidth: 12 },
-        },
-        didDrawPage: (data) => {
-          if (data.pageNumber > 1) {
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0);
-            doc.text(`(Continued) ${center}, ${label}`, 14, 10);
-          }
-        },
+        startY: 17,
+        identityWidths: [26],
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.2 },
+        continuedLabel: `${center}, ${label}`,
       });
 
-      const finalY = result.lastAutoTable.finalY || 200;
       doc.setFontSize(8);
       doc.setFont('helvetica', 'italic');
       doc.setTextColor(60);
-      doc.text('CLS: Cercospora leaf spot; ALS: Alternaria leaf spot.', 14, finalY + 5);
+      doc.text('CLS: Cercospora leaf spot; ALS: Alternaria leaf spot.', MARGIN, finalY - 3);
     }
   });
 
@@ -316,56 +435,70 @@ export const generateCustomPDF = (entries, selectedFields, label = 'Custom') => 
     downyMildew: 'D. Mildew',
     leafCurl: 'Leaf Curl',
     stemRot: 'Stem Rot',
+    seedlingBlight: 'Seedling Blight',
+    grayMold: 'Gray Mold',
+    bacterialLeafSpot: 'Bact. Leaf Spot',
+    bacterialBlight: 'Bact. Blight',
+    capsuleRot: 'Capsule Rot',
     capsuleBorer: 'Cap. Borer',
     semiLooper: 'Semi Looper',
     jassids: 'Jassids',
     whitefly: 'Whitefly',
     thrips: 'Thrips',
     aphids: 'Aphids',
+    spodopteraLitura: 'Spodoptera',
+    hairyCaterpillar: 'Hairy Cat.',
+    spinyCaterpillar: 'Spiny Cat.',
+    parasitization: 'Parasitization',
+    visualScore: 'Visual Score',
+    cropDamage: 'Crop Damage',
+    newDiseaseReported: 'New Disease',
     remarks: 'Remarks'
   };
 
-  const headers = selectedFields.map(f => fieldMap[f] || f.charAt(0).toUpperCase() + f.slice(1));
-  const tableBody = [];
-
+  const allRows = [];
   entries.forEach(entry => {
-    (entry.observations || []).forEach(obs => {
-      tableBody.push(selectedFields.map(f => {
-        // Special logic: if 'wilt' is selected but missing, try 'fusariumWilt'
-        if (f === 'wilt' && obs[f] === undefined && obs['fusariumWilt'] !== undefined) return sv(obs['fusariumWilt']);
-        // If 'cls' is selected but missing, try 'cercosporaLeafSpot'
-        if (f === 'cls' && obs[f] === undefined && obs['cercosporaLeafSpot'] !== undefined) return sv(obs['cercosporaLeafSpot']);
-        // If 'als' is selected but missing, try 'alternariaLeafSpot'
-        if (f === 'als' && obs[f] === undefined && obs['alternariaLeafSpot'] !== undefined) return sv(obs['alternariaLeafSpot']);
-        
-        return sv(obs[f]);
-      }));
+    // Entries with no observation rows still carry their survey context
+    const obsList = (entry.observations || []).length ? entry.observations : [{}];
+    obsList.forEach(obs => {
+      allRows.push(selectedFields.map(f => cell(entry, obs, f)));
     });
   });
 
+  // Selected columns that nobody recorded are dropped (and named below the
+  // table) — carrying 20 empty columns is what made this report unreadable.
+  const keep = nonEmptyColumns(allRows, 1);
+  const shownFields = selectedFields.filter((f, i) => keep.has(i));
+  const omittedFields = selectedFields.filter((f, i) => !keep.has(i));
+  const headers = shownFields.map(f => fieldMap[f] || f.charAt(0).toUpperCase() + f.slice(1));
+  const tableBody = allRows.map(row => row.filter((v, i) => keep.has(i)));
+
   doc.setFontSize(14);
   doc.setTextColor(46, 125, 50);
-  doc.text(`Custom Observation Report (${label})`, 14, 15);
+  doc.text(`Custom Observation Report (${label})`, MARGIN, 15);
   doc.setFontSize(9);
   doc.setTextColor(100);
-  doc.text(`Generated on: ${new Date().toLocaleString()} | Total Records: ${tableBody.length}`, 14, 20);
+  doc.text(`Generated on: ${new Date().toLocaleString()} | Total Records: ${tableBody.length}`, MARGIN, 20);
 
-  autoTable(doc, {
-    startY: 25,
-    head: [headers],
+  const endY = renderWideTable(doc, {
+    head: headers,
     body: tableBody,
-    theme: 'grid',
-    styles: { 
-      fontSize: selectedFields.length > 10 ? 7 : 8, 
-      cellPadding: 1.5, 
-      halign: 'center',
-      overflow: 'linebreak'
-    },
+    startY: 25,
+    identityWidths: [32],
     headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
-    columnStyles: {
-      0: { halign: 'left' }
-    }
+    continuedLabel: `Custom Observation Report (${label})`,
   });
+
+  if (omittedFields.length) {
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(120);
+    doc.text(
+      `No data recorded for: ${omittedFields.map(f => fieldMap[f] || f).join(', ')}`,
+      MARGIN, Math.min(endY - 2, doc.internal.pageSize.height - 14),
+      { maxWidth: doc.internal.pageSize.width - MARGIN * 2 }
+    );
+  }
 
   const pageCount = doc.internal.getNumberOfPages();
   const pageWidth = doc.internal.pageSize.width;

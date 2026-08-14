@@ -11,11 +11,55 @@ const STATUS_COLORS = {
 
 import { generatePDFReport, generateDetailedMasterPDF, generateCustomPDF } from '../utils/pdfExport';
 
+// Selectable columns for the custom report. Keys resolve through
+// utils/observationFields, so one key covers its crop-specific variants
+// (wilt ← fusariumWilt, cls ← cercosporaLeafSpot, jassids ← leafhopper …).
+const CUSTOM_FIELDS = [
+  { id: 'location', label: 'Location' },
+  { id: 'latitude', label: 'Latitude' },
+  { id: 'longitude', label: 'Longitude' },
+  { id: 'soilType', label: 'Soil Type' },
+  { id: 'previousCrop', label: 'Prev Crop' },
+  { id: 'variety', label: 'Variety' },
+  { id: 'irrigatedRainfed', label: 'Irrig/Rain' },
+  { id: 'dateOfSowing', label: 'Sowing' },
+  { id: 'stageOfCrop', label: 'Stage' },
+  { id: 'wilt', label: 'Wilt %' },
+  { id: 'rootRot', label: 'Root Rot %' },
+  { id: 'cls', label: 'CLS' },
+  { id: 'als', label: 'ALS' },
+  { id: 'rust', label: 'Rust %' },
+  { id: 'powderyMildew', label: 'P. Mildew' },
+  { id: 'downyMildew', label: 'D. Mildew' },
+  { id: 'leafCurl', label: 'Leaf Curl' },
+  { id: 'stemRot', label: 'Stem Rot' },
+  { id: 'seedlingBlight', label: 'Seedling Blight' },
+  { id: 'grayMold', label: 'Gray Mold' },
+  { id: 'bacterialLeafSpot', label: 'Bact. Leaf Spot' },
+  { id: 'bacterialBlight', label: 'Bact. Blight' },
+  { id: 'capsuleRot', label: 'Capsule Rot' },
+  { id: 'capsuleBorer', label: 'Cap Borer' },
+  { id: 'semiLooper', label: 'SemiLooper' },
+  { id: 'spodopteraLitura', label: 'Spodoptera' },
+  { id: 'hairyCaterpillar', label: 'Hairy Cat.' },
+  { id: 'spinyCaterpillar', label: 'Spiny Cat.' },
+  { id: 'parasitization', label: 'Parasitization' },
+  { id: 'visualScore', label: 'Visual Score' },
+  { id: 'jassids', label: 'Jassids' },
+  { id: 'whitefly', label: 'Whitefly' },
+  { id: 'thrips', label: 'Thrips' },
+  { id: 'aphids', label: 'Aphids' },
+  { id: 'cropDamage', label: '% Crop Damage' },
+  { id: 'newDiseaseReported', label: 'New Disease' },
+  { id: 'remarks', label: 'Remarks' },
+];
+
 export default function Reports() {
   const [summary, setSummary]   = useState(null);
   const [loading, setLoading]   = useState(true);
   const [exporting, setExport]  = useState(false);
   const [exportingPDF, setExportPDF] = useState(false);
+  const [crop, setCrop]         = useState('');
   const [season, setSeason]     = useState('');
   const [status, setStatus]     = useState('approved'); // Default to approved
   const [showCustom, setShowCustom] = useState(false);
@@ -36,19 +80,22 @@ export default function Reports() {
     try {
       const params = {};
       if (season) params.season = season;
+      if (crop) params.crop = crop;
       // Summary API shows aggregate data; status filter applied at export time
       const res = await entriesAPI.summary(params);
       setSummary(res.data.data);
     } catch { toast.error('Failed to load report data'); }
     finally { setLoading(false); }
-  }, [season]);
+  }, [season, crop]);
 
   useEffect(() => { load(); }, [load]);
 
   const handleExport = async (onlyApproved = false) => {
     setExport(true);
     try {
-      const params = season ? { season } : {};
+      const params = {};
+      if (season) params.season = season;
+      if (crop) params.crop = crop;
       params.status = onlyApproved ? 'approved' : (status === 'all' ? '' : status);
       
       const res = await entriesAPI.exportExcel(params);
@@ -91,6 +138,7 @@ export default function Reports() {
       // Fetch entries matching the current season+status selection
       const params = { limit: 2000 };
       if (season) params.season = season;
+      if (crop) params.crop = crop;
       
       const effectiveStatus = onlyApproved ? 'approved' : status;
       if (effectiveStatus !== 'all') params.status = effectiveStatus;
@@ -119,8 +167,8 @@ export default function Reports() {
         if (e.centerName) m.centers.add(e.centerName);
       });
 
-      const stats = Object.entries(cropMap).map(([crop, m]) => ({
-        crop,
+      const stats = Object.entries(cropMap).map(([cName, m]) => ({
+        crop: cName,
         totalEntries: m.totalEntries,
         appEntries:   m.appEntries,
         pendingEntries: m.pendingEntries,
@@ -132,7 +180,7 @@ export default function Reports() {
         centers:      m.centers.size,
       }));
 
-      const label = `${season || 'All Seasons'} – ${status === 'all' ? 'All Status' : status.replace('_', ' ').toUpperCase()}`;
+      const label = `${crop ? CROP_LABEL(crop) + ' – ' : ''}${season || 'All Seasons'} – ${status === 'all' ? 'All Status' : status.replace('_', ' ').toUpperCase()}`;
       generatePDFReport({ cropStats: stats }, label);
       toast.success('Summary PDF generated', { id: toastId });
     } catch (err) {
@@ -149,17 +197,18 @@ export default function Reports() {
     try {
       const params = { limit: 1000, includeObs: 'true' };
       if (season) params.season = season;
+      if (crop) params.crop = crop;
       if (status && status !== 'all') params.status = status;
 
       const res = await entriesAPI.list(params);
       const allEntries = (res.data.data || []).filter(e => e.status !== 'draft');
 
       if (!allEntries.length) {
-        toast.error('No data found for the selected Season & Status', { id: toastId });
+        toast.error('No data found for the selected Crop, Season & Status', { id: toastId });
         return;
       }
 
-      const label = `${season || 'All Seasons'} – ${status === 'all' ? 'All Status' : status.replace('_', ' ').toUpperCase()}`;
+      const label = `${crop ? CROP_LABEL(crop) + ' – ' : ''}${season || 'All Seasons'} – ${status === 'all' ? 'All Status' : status.replace('_', ' ').toUpperCase()}`;
       generateDetailedMasterPDF(allEntries, label);
       toast.success(`Detailed Report generated — ${allEntries.length} entr${allEntries.length === 1 ? 'y' : 'ies'}`, { id: toastId });
     } catch (err) {
@@ -177,17 +226,18 @@ export default function Reports() {
     try {
       const params = { limit: 1000, includeObs: 'true' };
       if (season) params.season = season;
+      if (crop) params.crop = crop;
       if (status && status !== 'all') params.status = status;
 
       const res = await entriesAPI.list(params);
       const allEntries = (res.data.data || []).filter(e => e.status !== 'draft');
 
       if (!allEntries.length) {
-        toast.error('No data found for the selected Season & Status', { id: toastId });
+        toast.error('No data found for the selected Crop, Season & Status', { id: toastId });
         return;
       }
 
-      const label = `${season || 'All Seasons'} – Custom Fields`;
+      const label = `${crop ? CROP_LABEL(crop) + ' – ' : ''}${season || 'All Seasons'} – Custom Fields`;
       generateCustomPDF(allEntries, selectedFields, label);
       toast.success('Custom Report generated', { id: toastId });
     } catch (err) {
@@ -251,6 +301,18 @@ export default function Reports() {
         <h2>Reports &amp; Analytics</h2>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: 'var(--gray)' }}>Crop:</span>
+            <select className="filter-control" value={crop} onChange={e => setCrop(e.target.value)}>
+              <option value="">All Crops</option>
+              {crops.map(c => (
+                <option key={c} value={c}>
+                  {CROP_EMOJI[c] || '🌱'} {CROP_LABEL(c)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
             <span style={{ fontSize: 12, color: 'var(--gray)' }}>Season:</span>
             <select className="filter-control" value={season} onChange={e => setSeason(e.target.value)}>
               <option value="">All Seasons</option>
@@ -266,26 +328,13 @@ export default function Reports() {
               <option value="submitted">Submitted Only</option>
               <option value="under_review">Under Review</option>
               <option value="needs_correction">Needs Correction</option>
+              <option value="rejected">Rejected Only</option>
+              <option value="draft">Draft Only</option>
             </select>
           </div>
 
-          <button className="btn btn-outline btn-sm" onClick={() => handleExport(false)} disabled={exporting}>
-            {exporting ? 'Exporting…' : '📥 Excel (Fixed)'}
-          </button>
-          <button className="btn btn-outline btn-sm" onClick={() => handleExport(true)} disabled={exporting}>
-            {exporting ? 'Exporting…' : '✅ Approved Only Excel (Fixed)'}
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={() => handleExportPDF(false)} disabled={exportingPDF}>
-            {exportingPDF ? 'Exporting…' : '📄 Summary PDF (Fixed)'}
-          </button>
-          <button className="btn btn-teal btn-sm" onClick={() => handleExportPDF(true)} disabled={exportingPDF}>
-            {exportingPDF ? 'Exporting…' : '✅ Approved Only PDF (Fixed)'}
-          </button>
-          <button className="btn btn-danger btn-sm" onClick={handleExportDetailedPDF} disabled={exportingPDF}>
-            {exportingPDF ? 'Exporting…' : '📕 Detailed Report (PDF) (Fixed)'}
-          </button>
-          <button className="btn btn-outline btn-sm" onClick={() => setShowCustom(true)} style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}>
-            🛠️ Custom Report
+          <button className="btn btn-primary btn-sm" onClick={() => setShowCustom(true)}>
+            📊 Custom Report
           </button>
         </div>
       </div>
@@ -301,15 +350,10 @@ export default function Reports() {
             <div style={{ padding: '20px 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
                 <p style={{ fontSize: 13, color: 'var(--gray)', margin: 0 }}>Select the fields you want to include:</p>
-                <button 
-                  className="btn btn-xs btn-outline" 
+                <button
+                  className="btn btn-xs btn-outline"
                   onClick={() => {
-                    const allIds = [
-                      'location', 'latitude', 'longitude', 'soilType', 'previousCrop', 'variety', 
-                      'irrigatedRainfed', 'dateOfSowing', 'stageOfCrop', 'wilt', 'rootRot', 'cls', 'als',
-                      'rust', 'powderyMildew', 'downyMildew', 'leafCurl', 'stemRot', 'capsuleBorer', 
-                      'semiLooper', 'jassids', 'whitefly', 'thrips', 'aphids', 'remarks'
-                    ];
+                    const allIds = CUSTOM_FIELDS.map(f => f.id);
                     if (selectedFields.length === allIds.length) setSelectedFields(['location', 'variety', 'wilt']);
                     else setSelectedFields(allIds);
                   }}
@@ -317,34 +361,8 @@ export default function Reports() {
                   {selectedFields.length > 10 ? 'Deselect All' : 'Select All'}
                 </button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px 15px', maxHeigh: '300px', overflowY: 'auto', padding: '5px' }}>
-                {[
-                  { id: 'location', label: 'Location' },
-                  { id: 'latitude', label: 'Latitude' },
-                  { id: 'longitude', label: 'Longitude' },
-                  { id: 'soilType', label: 'Soil Type' },
-                  { id: 'previousCrop', label: 'Prev Crop' },
-                  { id: 'variety', label: 'Variety' },
-                  { id: 'irrigatedRainfed', label: 'Irrig/Rain' },
-                  { id: 'dateOfSowing', label: 'Sowing' },
-                  { id: 'stageOfCrop', label: 'Stage' },
-                  { id: 'wilt', label: 'Wilt %' },
-                  { id: 'rootRot', label: 'Root Rot %' },
-                  { id: 'cls', label: 'CLS %' },
-                  { id: 'als', label: 'ALS %' },
-                  { id: 'rust', label: 'Rust %' },
-                  { id: 'powderyMildew', label: 'P. Mildew' },
-                  { id: 'downyMildew', label: 'D. Mildew' },
-                  { id: 'leafCurl', label: 'Leaf Curl' },
-                  { id: 'stemRot', label: 'Stem Rot' },
-                  { id: 'capsuleBorer', label: 'Cap Borer' },
-                  { id: 'semiLooper', label: 'SemiLooper' },
-                  { id: 'jassids', label: 'Jassids' },
-                  { id: 'whitefly', label: 'Whitefly' },
-                  { id: 'thrips', label: 'Thrips' },
-                  { id: 'aphids', label: 'Aphids' },
-                  { id: 'remarks', label: 'Remarks' },
-                ].map(f => (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px 15px', maxHeight: '300px', overflowY: 'auto', padding: '5px' }}>
+                {CUSTOM_FIELDS.map(f => (
                   <label key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, cursor: 'pointer' }}>
                     <input 
                       type="checkbox" 
@@ -361,8 +379,11 @@ export default function Reports() {
             </div>
             <div className="modal-footer" style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button className="btn btn-outline btn-sm" onClick={() => setShowCustom(false)}>Cancel</button>
-              <button className="btn btn-primary btn-sm" onClick={handleExportCustomPDF} disabled={selectedFields.length === 0}>
-                🚀 Generate Custom PDF
+              <button className="btn btn-primary btn-sm" onClick={handleExportCustomPDF} disabled={selectedFields.length === 0 || exportingPDF}>
+                {exportingPDF ? 'Exporting PDF…' : '📄 Export PDF'}
+              </button>
+              <button className="btn btn-teal btn-sm" onClick={() => handleExport(false)} disabled={exporting}>
+                {exporting ? 'Exporting Excel…' : '📥 Export Excel'}
               </button>
             </div>
           </div>

@@ -47,6 +47,7 @@ const mapKey = (key) => {
     'soil-types': 'soilTypes',
     'irrigation': 'irrigationTypes',
     'crop-stages': 'cropStages',
+    'sowing-dates': 'sowingDates',
     'percent-options': 'percentOptions'
   };
   return mapping[key] || key;
@@ -92,7 +93,7 @@ router.post('/:key/append', protect, async (req, res, next) => {
     const allowedKeys = [
       'centers','states','locations','cultivars','agroEcologicalZones','zonesList','crops','seasons','years',
       'pests','diseases','rodents','vertebrates','weeds','mites','nematodes',
-      'previousCrops','varieties','irrigationTypes','cropStages','soilTypes'
+      'previousCrops','varieties','irrigationTypes','cropStages','soilTypes','sowingDates'
     ];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid append key' });
     

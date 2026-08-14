@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { PCT_OPTS, getColsByDiscipline } from '../../utils/constants';
+import FieldDetails, { withFieldDefaults } from './FieldDetails';
 import axios from 'axios';
 
-export function blankRow(crop, discipline = 'Both') {
-  const row = {
+export function blankRow(crop, discipline = 'Both', defaults = {}) {
+  const row = withFieldDefaults({
     location: '', latitude: '', longitude: '',
-    soilType: 'Black', previousCrop: 'Castor', variety: '', otherVariety: '',
-    irrigatedRainfed: 'Irrigated', dateOfSowing: '1st Wk Aug', stageOfCrop: '',
+    soilType: '', previousCrop: '', variety: '', otherVariety: '',
+    irrigatedRainfed: '', dateOfSowing: '', stageOfCrop: '',
     cropDamage: '', remarks: '',
     newDiseaseReported: '',
     newDiseaseDetails: ''
-  };
+  }, defaults);
   const cols = getColsByDiscipline(crop, discipline);
   [...cols.disease, ...cols.insect].forEach(c => { row[c.key] = '-'; });
   return row;
 }
 
-export default function ObservationTable({ crop, discipline = 'Both', rows, onChange, readOnly = false, state, district, taluka }) {
+export default function ObservationTable({
+  crop, discipline = 'Both', rows, onChange, readOnly = false,
+  state, district, taluka, defaults = {}, options = {},
+}) {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingIdx, setEditingIdx] = useState(null);
@@ -46,15 +50,19 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
 
   const handleOpenAdd = () => {
     setEditingIdx(null);
-    setFormData(blankRow(crop, discipline));
+    setFormData(blankRow(crop, discipline, defaults));
     setShowModal(true);
   };
 
   const handleOpenEdit = (idx) => {
     setEditingIdx(idx);
-    setFormData({ ...rows[idx] });
+    // Older rows were saved before field details were captured per row — seed
+    // the blanks from the survey-level Crop Details so they can be completed.
+    setFormData(withFieldDefaults(rows[idx], defaults));
     setShowModal(true);
   };
+
+  const setField = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
   const handleSave = () => {
     if (editingIdx !== null) {
@@ -152,7 +160,11 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
                     </div>
                     <div style={{ marginTop: 8, fontSize: 12.5, color: '#475569', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                       {r.location && <span>📍 <strong>Location:</strong> {r.location}</span>}
+                      {(r.latitude || r.longitude) && (
+                        <span>🧭 <strong>Coords:</strong> {r.latitude || '—'}, {r.longitude || '—'}</span>
+                      )}
                       {r.variety && <span>🌱 <strong>Variety:</strong> {r.variety}</span>}
+                      {r.stageOfCrop && <span>🌾 <strong>Stage:</strong> {r.stageOfCrop}</span>}
                       {r.remarks && <span>💬 <strong>Remarks:</strong> {r.remarks}</span>}
                       {r.newDiseaseReported === 'Yes' && (
                         <span style={{ color: '#b91c1c', fontWeight: 600 }}>⚠️ New Disease: {r.newDiseaseDetails || 'Yes'}</span>
@@ -239,9 +251,16 @@ export default function ObservationTable({ crop, discipline = 'Both', rows, onCh
             {/* Modal Body */}
             <div style={{ padding: 40 }}>
 
+              {/* Section 1: Field Details — printed on every report row */}
+              <FieldDetails
+                values={formData}
+                onChange={setField}
+                options={options}
+                readOnly={readOnly}
+                idPrefix="obs-modal"
+              />
 
-
-              {/* Section 3: Incidence & Severity */}
+              {/* Section 2: Incidence & Severity */}
               <div style={{ background: '#f8fafc', padding: 32, borderRadius: 24, border: '1px solid #e2e8f0', marginBottom: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#065f46', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#065f46' }} /> Incidence & Severity

@@ -1,11 +1,26 @@
 const ExcelJS = require('exceljs');
 const { RAW_COLUMNS } = require('../config/constants');
+const { cellValue, mergeColumns } = require('./observationFields');
 
-// Helper: safely format a mixed value (string, number, null)
-const fmtVal = (v) => {
-  if (v === null || v === undefined || v === '' || v === '-') return '--';
-  return v;
-};
+// Survey-context columns — resolved per observation, falling back to the
+// entry-level values the form actually collects (see utils/observationFields).
+const CONTEXT_COLUMNS = [
+  { key: 'location',         label: 'Location' },
+  { key: 'latitude',         label: 'Latitude' },
+  { key: 'longitude',        label: 'Longitude' },
+  { key: 'soilType',         label: 'Soil Type' },
+  { key: 'previousCrop',     label: 'Previous Crop' },
+  { key: 'variety',          label: 'Variety' },
+  { key: 'irrigatedRainfed', label: 'Irrigated/Rainfed' },
+  { key: 'dateOfSowing',     label: 'Date of Sowing' },
+  { key: 'stageOfCrop',      label: 'Stage of Crop' },
+];
+
+const TRAILING_COLUMNS = [
+  { key: 'cropDamage',         label: 'Crop Damage %' },
+  { key: 'newDiseaseReported', label: 'New Disease?' },
+  { key: 'remarks',            label: 'Remarks' },
+];
 
 async function generateExcelReport(entries, filters = {}) {
   const wb = new ExcelJS.Workbook();
@@ -17,9 +32,30 @@ async function generateExcelReport(entries, filters = {}) {
     pageSetup: { orientation: 'landscape', fitToPage: true },
   });
 
-  // Title row
-  const TOTAL_COLS = 35; // rough max
-  detailSheet.mergeCells(`A1:AI1`);
+  // Fixed headers that apply to every row
+  const fixedHeaders = [
+    '#', 'Entry ID', 'Crop', 'Discipline', 'Season',
+    'State', 'District', 'Taluka', 'Center',
+    'Survey Date', 'Surveyor Name', 'Designation', 'Status',
+    // Observation-level columns
+    ...CONTEXT_COLUMNS.map(c => c.label),
+  ];
+
+  // Collect the disease/insect columns of every crop present, collapsing keys
+  // that mean the same thing across crop schemas (wilt/fusariumWilt, cls/…)
+  const cropColumns = [];
+  entries.forEach(entry => {
+    const cols = RAW_COLUMNS[entry.crop] || RAW_COLUMNS.castor;
+    cropColumns.push(...(cols.disease || []), ...(cols.insect || []));
+  });
+  const measureColumns = mergeColumns(cropColumns);
+  const diseaseHeaders = measureColumns.map(c => c.label);
+  const diseaseKeys    = measureColumns.map(c => c.key);
+
+  const allHeaders = [...fixedHeaders, ...diseaseHeaders, ...TRAILING_COLUMNS.map(c => c.label)];
+
+  // Title rows — merged across the full (crop-dependent) header width
+  detailSheet.mergeCells(1, 1, 1, allHeaders.length);
   const titleCell = detailSheet.getCell('A1');
   titleCell.value = 'CropLoss Management Portal – Detailed Observation Report';
   titleCell.font = { bold: true, size: 13, color: { argb: 'FFFFFFFF' } };
@@ -27,34 +63,10 @@ async function generateExcelReport(entries, filters = {}) {
   titleCell.alignment = { horizontal: 'center' };
   detailSheet.getRow(1).height = 25;
 
-  detailSheet.mergeCells(`A2:AI2`);
+  detailSheet.mergeCells(2, 1, 2, allHeaders.length);
   const subTitle = detailSheet.getCell('A2');
   subTitle.value = `Generated: ${new Date().toLocaleString('en-IN')} | Filters: ${JSON.stringify(filters)}`;
   subTitle.font = { size: 9, color: { argb: 'FF666666' } };
-
-  // Fixed headers that apply to every row
-  const fixedHeaders = [
-    '#', 'Entry ID', 'Crop', 'Discipline', 'Season',
-    'State', 'District', 'Taluka', 'Center',
-    'Survey Date', 'Surveyor Name', 'Designation', 'Status',
-    // Observation-level columns
-    'Location', 'Latitude', 'Longitude',
-    'Soil Type', 'Previous Crop', 'Variety',
-    'Irrigated/Rainfed', 'Date of Sowing', 'Stage of Crop',
-  ];
-
-  // Collect all unique disease/insect column keys across all crops
-  const allDiseaseKeys = new Map(); // key -> label
-  entries.forEach(entry => {
-    const cols = RAW_COLUMNS[entry.crop] || RAW_COLUMNS.castor;
-    [...(cols.disease || []), ...(cols.insect || [])].forEach(c => {
-      if (!allDiseaseKeys.has(c.key)) allDiseaseKeys.set(c.key, c.label);
-    });
-  });
-  const diseaseHeaders = [...allDiseaseKeys.entries()].map(([key, label]) => label);
-  const diseaseKeys    = [...allDiseaseKeys.keys()];
-
-  const allHeaders = [...fixedHeaders, ...diseaseHeaders, 'Remarks'];
 
   const headerRow = detailSheet.addRow(allHeaders);
   headerRow.height = 22;
@@ -65,74 +77,52 @@ async function generateExcelReport(entries, filters = {}) {
     cell.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
   });
 
+  // Columns holding a wilt reading — highlighted when severe
+  const wiltCellIndexes = allHeaders
+    .map((label, i) => (/wilt/i.test(label) ? i : -1))
+    .filter(i => i > -1);
+
+  const entryCells = (entry) => [
+    entry._id.toString().slice(-6).toUpperCase(),
+    (entry.crop || '').charAt(0).toUpperCase() + (entry.crop || '').slice(1),
+    entry.discipline || '--',
+    entry.season || '--',
+    entry.state || '--',
+    entry.district || '--',
+    entry.taluka || '--',
+    entry.centerName || '--',
+    entry.surveyDate ? new Date(entry.surveyDate).toLocaleDateString('en-IN') : '--',
+    entry.surveyorName || '--',
+    entry.surveyorDesig || '--',
+    entry.status || '--',
+  ];
+
   let rowNum = 1;
   entries.forEach(entry => {
     const obs = entry.observations || [];
+    // Entries without observation rows still export their survey context.
+    const rows = obs.length ? obs : [{}];
 
-    if (obs.length === 0) {
-      // Still add a row for entries with no observations
+    rows.forEach(o => {
       const row = detailSheet.addRow([
         rowNum++,
-        entry._id.toString().slice(-6).toUpperCase(),
-        (entry.crop || '').charAt(0).toUpperCase() + (entry.crop || '').slice(1),
-        entry.discipline || '--',
-        entry.season || '--',
-        entry.state || '--',
-        entry.district || '--',
-        entry.taluka || '--',
-        entry.centerName || '--',
-        entry.surveyDate ? new Date(entry.surveyDate).toLocaleDateString('en-IN') : '--',
-        entry.surveyorName || '--',
-        entry.surveyorDesig || '--',
-        entry.status || '--',
-        '--', '--', '--', '--', '--', '--', '--', '--', '--',
-        ...diseaseKeys.map(() => '--'),
-        '--',
+        ...entryCells(entry),
+        // Survey context: observation row first, then the entry-level values
+        ...CONTEXT_COLUMNS.map(c => cellValue(entry, o, c.key)),
+        // Dynamic disease/insect columns (incl. nested pest/disease records)
+        ...diseaseKeys.map(k => cellValue(entry, o, k)),
+        ...TRAILING_COLUMNS.map(c => cellValue(entry, o, c.key)),
       ]);
       styleDataRow(row, rowNum);
-    } else {
-      obs.forEach((o, oIdx) => {
-        const row = detailSheet.addRow([
-          rowNum++,
-          entry._id.toString().slice(-6).toUpperCase(),
-          (entry.crop || '').charAt(0).toUpperCase() + (entry.crop || '').slice(1),
-          entry.discipline || '--',
-          entry.season || '--',
-          entry.state || '--',
-          entry.district || '--',
-          entry.taluka || '--',
-          entry.centerName || '--',
-          entry.surveyDate ? new Date(entry.surveyDate).toLocaleDateString('en-IN') : '--',
-          entry.surveyorName || '--',
-          entry.surveyorDesig || '--',
-          entry.status || '--',
-          // Observation fields
-          fmtVal(o.location),
-          fmtVal(o.latitude),
-          fmtVal(o.longitude),
-          fmtVal(o.soilType),
-          fmtVal(o.previousCrop),
-          fmtVal(o.variety),
-          fmtVal(o.irrigatedRainfed),
-          fmtVal(o.dateOfSowing),
-          fmtVal(o.stageOfCrop),
-          // Dynamic disease/insect columns
-          ...diseaseKeys.map(k => fmtVal(o[k])),
-          fmtVal(o.remarks),
-        ]);
-        styleDataRow(row, rowNum);
 
-        // Highlight wilt column if high
-        const wiltIdx = allHeaders.indexOf('Wilt %');
-        if (wiltIdx > -1) {
-          const wiltCell = row.getCell(wiltIdx + 1);
-          if (parseFloat(wiltCell.value) >= 20) {
-            wiltCell.font = { bold: true, color: { argb: 'FFDC2626' } };
-            wiltCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
-          }
+      wiltCellIndexes.forEach(idx => {
+        const wiltCell = row.getCell(idx + 1);
+        if (parseFloat(wiltCell.value) >= 20) {
+          wiltCell.font = { bold: true, color: { argb: 'FFDC2626' } };
+          wiltCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
         }
       });
-    }
+    });
   });
 
   // Auto-width
@@ -142,6 +132,7 @@ async function generateExcelReport(entries, filters = {}) {
   detailSheet.getColumn(14).width = 20; // Location
   detailSheet.getColumn(1).width = 5;
   detailSheet.getColumn(2).width = 10;
+  detailSheet.getColumn(allHeaders.length).width = 40; // Remarks
 
   // ── Sheet 2: Summary (one row per survey entry) ────────────────────────────
   const summarySheet = wb.addWorksheet('Summary');

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './CastorEntomologyForm.css';
 import api from '../../utils/api';
+import FieldDetails, { withFieldDefaults } from '../common/FieldDetails';
 
 const DEFOLIATORS = [
   'Semilooper', 'Tobacco caterpillar', 'Serpentine leaf miner', 'Red hairy caterpillar',
@@ -46,7 +47,7 @@ const WHITEFLY_SCALES = [
   { value: '5', label: '5 : >500 nymphs & pupae and honey dew secretion with black sooty mould fungus' }
 ];
 
-const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka }) => {
+const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka, defaults = {}, options = {} }) => {
   const [observations, setObservations] = useState(rows || []);
   const [customOpts, setCustomOpts] = useState({
     defoliators: [],
@@ -62,12 +63,12 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
   }, [observations]);
 
   const addRow = () => {
-    setObservations([...observations, { 
+    setObservations([...observations, withFieldDefaults({
       location: '', latitude: '', longitude: '',
       defoliators: [], capsuleSpikeBorers: [], suckingPests: [], rootPests: [], otherPests: [],
       yieldLoss: { method1: '', method2: '', method3: '' },
       images: []
-    }]);
+    }, defaults)]);
   };
 
   const removeRow = (idx) => {
@@ -157,6 +158,14 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
               <button className="btn btn-danger btn-sm" onClick={() => removeRow(i)}>✕ Remove Location</button>
             )}
           </div>
+
+          <FieldDetails
+            values={obs}
+            onChange={(key, value) => handleLocChange(i, key, value)}
+            options={options}
+            readOnly={readOnly}
+            idPrefix={`castor-ento-${i}`}
+          />
           
 
 

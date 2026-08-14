@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './SunflowerEntomologyForm.css';
 import api from '../../utils/api';
+import FieldDetails, { withFieldDefaults } from '../common/FieldDetails';
 
 /**
  * SunflowerEntomologyForm – dynamic observation form for Crop: Sunflower & Discipline: Entomology.
@@ -22,8 +23,8 @@ const SUNFLOWER_PESTS = [
   'Natural enemies Name2',
 ];
 
-const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka }) => {
-  const defaultObservation = {
+const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka, defaults = {}, options = {} }) => {
+  const defaultObservation = withFieldDefaults({
     location: '',
     latitude: '',
     longitude: '',
@@ -37,7 +38,7 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
     sunflowerPests: [],
     yieldLoss: { method1: '', method2: '', method3: '' },
     images: [],
-  };
+  }, defaults);
 
   const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [defaultObservation]);
   const [customOpts, setCustomOpts] = useState({
@@ -140,6 +141,13 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
       {observations.map((obs, locIdx) => (
         <div key={locIdx} className="sf-card">
 
+          <FieldDetails
+            values={obs}
+            onChange={(key, value) => handleLocChange(locIdx, key, value)}
+            options={options}
+            readOnly={readOnly}
+            idPrefix={`sf-ento-${locIdx}`}
+          />
 
           {/* Dynamic Pest Section */}
           <div className="sf-section">

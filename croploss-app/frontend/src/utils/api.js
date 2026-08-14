@@ -1,7 +1,17 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  return '/api';
+};
+
 const api = axios.create({
-  baseURL: (import.meta.env && import.meta.env.VITE_API_URL) || process.env.REACT_APP_API_URL || '/api',
+  baseURL: getBaseURL(),
   timeout: 120000, // 120s for large report fetches
   headers: { 'Content-Type': 'application/json' },
 });

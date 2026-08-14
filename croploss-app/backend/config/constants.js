@@ -12,12 +12,18 @@ const PREVIOUS_CROPS = ['Castor', 'Cotton', 'Maize', 'Pigeon Pea', 'Groundnut',
 const IRRIGATION_TYPES = ['Irrigated', 'Rainfed'];
 
 const SOWING_DATES = [
+  '1st Wk Jan', '2nd Wk Jan', '3rd Wk Jan', '4th Wk Jan',
+  '1st Wk Feb', '2nd Wk Feb', '3rd Wk Feb', '4th Wk Feb',
+  '1st Wk Mar', '2nd Wk Mar', '3rd Wk Mar', '4th Wk Mar',
+  '1st Wk Apr', '2nd Wk Apr', '3rd Wk Apr', '4th Wk Apr',
+  '1st Wk May', '2nd Wk May', '3rd Wk May', '4th Wk May',
   '1st Wk Jun', '2nd Wk Jun', '3rd Wk Jun', '4th Wk Jun',
   '1st Wk Jul', '2nd Wk Jul', '3rd Wk Jul', '4th Wk Jul',
   '1st Wk Aug', '2nd Wk Aug', 'Mid Aug', '3rd Wk Aug', '4th Wk Aug',
   '1st Wk Sep', '2nd Wk Sep', '3rd Wk Sep', '4th Wk Sep',
   '1st Wk Oct', '2nd Wk Oct', '3rd Wk Oct', '4th Wk Oct',
   '1st Wk Nov', '2nd Wk Nov', '3rd Wk Nov', '4th Wk Nov',
+  '1st Wk Dec', '2nd Wk Dec', '3rd Wk Dec', '4th Wk Dec',
 ];
 
 const CROP_STAGES = [
@@ -40,11 +46,21 @@ const VARIETIES = {
 // Raw definitions for columns
 const RAW_COLUMNS = {
   castor: {
+    // Keys must match frontend/src/utils/constants.js CROP_COLS.castor — that is
+    // the list the entry form writes. Legacy rows stored `wilt`/`cls`/`als`;
+    // utils/observationFields.js maps those onto the columns below.
     disease: [
-      { key: 'wilt',       label: 'Wilt %',      type: 'percent' },
-      { key: 'rootRot',    label: 'Root Rot %',   type: 'percent' },
-      { key: 'cls',        label: 'CLS',           type: 'scale'   },
-      { key: 'als',        label: 'ALS',           type: 'scale'   },
+      { key: 'seedlingBlight',     label: 'Seedling Blight',     type: 'percent' },
+      { key: 'fusariumWilt',       label: 'Fusarium Wilt',       type: 'percent' },
+      { key: 'grayMold',           label: 'Gray Mold',           type: 'percent' },
+      { key: 'rootRot',            label: 'Root Rot',            type: 'percent' },
+      { key: 'rust',               label: 'Rust',                type: 'percent' },
+      { key: 'alternariaLeafSpot', label: 'Alternaria Leaf Spot (ALS)',  type: 'percent' },
+      { key: 'cercosporaLeafSpot', label: 'Cercospora Leaf Spot (CLS)',  type: 'percent' },
+      { key: 'powderyMildew',      label: 'Powdery Mildew',      type: 'percent' },
+      { key: 'bacterialLeafSpot',  label: 'Bacterial Leaf Spot', type: 'percent' },
+      { key: 'capsuleRot',         label: 'Capsule Rot',         type: 'percent' },
+      { key: 'bacterialBlight',    label: 'Bacterial Blight',    type: 'percent' },
     ],
     insect: [
       { key: 'leafhopper', label: 'Leafhopper (No./3 leaves/plant)', type: 'scale' },
