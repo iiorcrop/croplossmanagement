@@ -82,9 +82,11 @@ async function generateExcelReport(entries, filters = {}) {
     .map((label, i) => (/wilt/i.test(label) ? i : -1))
     .filter(i => i > -1);
 
-  const entryCells = (entry) => [
-    entry._id.toString().slice(-6).toUpperCase(),
-    (entry.crop || '').charAt(0).toUpperCase() + (entry.crop || '').slice(1),
+  const entryCells = (entry) => {
+    const cStr = typeof entry.crop === 'string' ? entry.crop : (entry.crop?.name || entry.crop?.crop || '');
+    return [
+      entry._id.toString().slice(-6).toUpperCase(),
+      cStr ? cStr.charAt(0).toUpperCase() + cStr.slice(1) : '--',
     entry.discipline || '--',
     entry.season || '--',
     entry.state || '--',
@@ -95,7 +97,8 @@ async function generateExcelReport(entries, filters = {}) {
     entry.surveyorName || '--',
     entry.surveyorDesig || '--',
     entry.status || '--',
-  ];
+    ];
+  };
 
   let rowNum = 1;
   entries.forEach(entry => {
@@ -164,9 +167,10 @@ async function generateExcelReport(entries, filters = {}) {
   });
 
   entries.forEach((entry, i) => {
+    const cStr = typeof entry.crop === 'string' ? entry.crop : (entry.crop?.name || entry.crop?.crop || '');
     const row = summarySheet.addRow([
       i + 1,
-      (entry.crop || '').charAt(0).toUpperCase() + (entry.crop || '').slice(1),
+      cStr ? cStr.charAt(0).toUpperCase() + cStr.slice(1) : '--',
       entry.discipline || '--',
       entry.season || '--',
       entry.state || '--',

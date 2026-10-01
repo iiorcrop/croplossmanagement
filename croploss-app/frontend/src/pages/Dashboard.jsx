@@ -78,12 +78,15 @@ export default function Dashboard() {
   ];
 
   // Crop summary rows (avg wilt)
-  const cropRows = cropSummary.map(cs => ({
-    label: `${CROP_EMOJI[cs._id.crop] || ''} ${CROP_LABEL(cs._id.crop)}`,
-    value: parseFloat((cs.avgWilt || 0).toFixed(1)),
-    display: `${parseFloat((cs.avgWilt || 0).toFixed(1))}%`,
-    color: (cs.avgWilt || 0) >= 20 ? '#dc2626' : (cs.avgWilt || 0) >= 10 ? '#d97706' : '#1b5e20',
-  }));
+  const cropRows = cropSummary.map(cs => {
+    const cropKey = cs._id?.crop || cs._id;
+    return {
+      label: `${CROP_EMOJI[cropKey] || ''} ${CROP_LABEL(cropKey)}`,
+      value: parseFloat((cs.avgWilt || 0).toFixed(1)),
+      display: `${parseFloat((cs.avgWilt || 0).toFixed(1))}%`,
+      color: (cs.avgWilt || 0) >= 20 ? '#dc2626' : (cs.avgWilt || 0) >= 10 ? '#d97706' : '#1b5e20',
+    };
+  });
 
   // Pending action items
   const actionItems = recentActivity.filter(e =>

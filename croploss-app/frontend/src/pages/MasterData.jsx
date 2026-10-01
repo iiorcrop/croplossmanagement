@@ -114,7 +114,7 @@ export default function MasterData() {
                   list.push({
                     id: idx++,
                     name: typeof v === 'object' ? v.name : v,
-                    crop: crop.charAt(0).toUpperCase() + crop.slice(1),
+                    crop: typeof crop === 'string' && crop ? crop.charAt(0).toUpperCase() + crop.slice(1) : String(crop || ''),
                     type: typeof v === 'object' ? (v.type || 'Unknown') : 'Unknown',
                     year: typeof v === 'object' ? (v.year || '2024') : '2024',
                     status: typeof v === 'object' ? (v.status || 'Active') : 'Active',
@@ -173,7 +173,7 @@ export default function MasterData() {
       name: '', description: '', emoji: '', status: 'Active',
       code: '', area: '', startDate: '', endDate: '', color: '#10b981',
       fertility: 'Medium', impact: 'Neutral',
-      crop: type === 'varieties' ? (selectedCrop.charAt(0).toUpperCase() + selectedCrop.slice(1)) : '',
+      crop: type === 'varieties' && typeof selectedCrop === 'string' && selectedCrop ? (selectedCrop.charAt(0).toUpperCase() + selectedCrop.slice(1)) : '',
       type: 'Hybrid', year: '2024', cost: 'Medium', duration: '', importance: 'High'
     });
     setShowModal(true);
@@ -331,7 +331,7 @@ export default function MasterData() {
               
               autoTable(doc, {
                 startY: 25,
-                head: [keys.map(k => k.charAt(0).toUpperCase() + k.slice(1))],
+                head: [keys.map(k => typeof k === 'string' && k ? k.charAt(0).toUpperCase() + k.slice(1) : String(k || ''))],
                 body: tableData,
                 theme: 'grid',
                 headStyles: { fillColor: [71, 85, 105] },
@@ -419,11 +419,13 @@ export default function MasterData() {
                 {type === 'varieties' && (
                   <div className="form-group">
                     <label className="form-label">Crop</label>
-                    <select className="form-control" value={(formData.crop || '').toLowerCase()} onChange={e => setFormData({...formData, crop: e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1)})}>
+                    <select className="form-control" value={(formData.crop || '').toLowerCase()} onChange={e => setFormData({...formData, crop: e.target.value ? (typeof e.target.value === 'string' ? e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) : String(e.target.value)) : ''})}>
                       <option value="">— Select Crop —</option>
-                      {availableCrops.map(c => (
-                        <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-                      ))}
+                      {availableCrops.map(c => {
+                        const val = typeof c === 'string' ? c : (c?.name || String(c));
+                        const label = typeof c === 'string' && c ? c.charAt(0).toUpperCase() + c.slice(1) : (c?.name || String(c));
+                        return <option key={val} value={val}>{label}</option>;
+                      })}
                     </select>
                   </div>
                 )}

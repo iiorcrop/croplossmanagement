@@ -76,7 +76,7 @@ export default function EntriesList({ mode = 'all' }) {
       
       const formattedData = dataToExport.map((e, i) => ({
         '#': i + 1,
-        'Crop': e.crop ? e.crop.charAt(0).toUpperCase() + e.crop.slice(1) : '',
+        'Crop': CROP_LABEL(e.crop),
         'District': e.district || '',
         'Center': e.centerName || '',
         'State': e.centerState || '',
@@ -137,7 +137,7 @@ export default function EntriesList({ mode = 'all' }) {
 
       const tableData = dataToExport.map((e, i) => [
         i + 1,
-        e.crop ? e.crop.charAt(0).toUpperCase() + e.crop.slice(1) : '',
+        CROP_LABEL(e.crop),
         e.district || '-',
         e.centerName || '-',
         e.season || '-',

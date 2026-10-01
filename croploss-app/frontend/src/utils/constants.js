@@ -1,11 +1,42 @@
 export const CROPS = ['castor','sunflower','safflower','sesame','niger','linseed'];
 export const DISCIPLINES = ['Pathology', 'Entomology', 'Both'];
 
-export const CROP_EMOJI = {
-  castor:'🌿', sunflower:'🌻', safflower:'🌼', sesame:'🌱', niger:'🍃', linseed:'🌾'
+const BASE_CROP_EMOJI = {
+  castor: '🌿',
+  sunflower: '🌻',
+  safflower: '🌼',
+  sesame: '🌱',
+  niger: '🍃',
+  linseed: '🌾',
+  maize: '🌽',
 };
 
-export const CROP_LABEL = c => c ? c.charAt(0).toUpperCase()+c.slice(1) : '';
+export const CROP_EMOJI = new Proxy(BASE_CROP_EMOJI, {
+  get(target, prop) {
+    if (typeof prop === 'string') {
+      const lower = prop.toLowerCase();
+      if (target[lower]) return target[lower];
+    } else if (prop && typeof prop === 'object') {
+      const key = (prop.name || prop.crop || prop.label || prop.title || '').toLowerCase();
+      if (target[key]) return target[key];
+    }
+    return target[prop] || '🌱';
+  },
+});
+
+export const CROP_LABEL = (c) => {
+  if (!c) return '';
+  let str = '';
+  if (typeof c === 'string') {
+    str = c;
+  } else if (typeof c === 'object') {
+    str = c.name || c.crop || c.label || c.title || c.value || '';
+  } else {
+    str = String(c);
+  }
+  if (!str || typeof str !== 'string') return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
 
 export const SOIL_TYPES = ['Black','Red','Sandy loam','Alluvial','Clay','Loam','Sandy clay loam'];
 

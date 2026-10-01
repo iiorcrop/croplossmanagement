@@ -58,8 +58,9 @@ export function AuthProvider({ children }) {
   const hasCropAccess = useCallback((crop) => {
     if (!user) return false;
     if (isAdmin) return true;
-    const all = [...(user.assignedCrops||[]), ...(user.reviewCrops||[])];
-    return all.includes(crop);
+    const all = [...(user.assignedCrops || []), ...(user.reviewCrops || [])]
+      .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase());
+    return all.includes((crop || '').toLowerCase());
   }, [user, isAdmin]);
 
   return (

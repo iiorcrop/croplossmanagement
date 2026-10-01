@@ -145,7 +145,7 @@ export default function EntryForm() {
           const all = getMasterVarietyObjects();
           const match = all.find(v => (v.name || '').toLowerCase() === val.toLowerCase());
           if (match?.crop) {
-            const properCrop = match.crop.charAt(0).toUpperCase() + match.crop.slice(1).toLowerCase();
+            const properCrop = typeof match.crop === 'string' && match.crop ? (match.crop.charAt(0).toUpperCase() + match.crop.slice(1).toLowerCase()) : CROP_LABEL(match.crop);
             next.previousCrop = properCrop;
           }
         }
@@ -781,7 +781,7 @@ export default function EntryForm() {
                   <option value="">— Select Variety —</option>
                   {Array.from(new Map(varietyObjects.map(v => [v.name, v])).values()).filter(v => v.name).map(v => (
                     <option key={v.name} value={v.name}>
-                      {v.name}{!form.previousCrop && v.crop ? ` (${v.crop.charAt(0).toUpperCase() + v.crop.slice(1)})` : ''}
+                      {v.name}{!form.previousCrop && v.crop ? ` (${CROP_LABEL(v.crop)})` : ''}
                     </option>
                   ))}
                   <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>➕ Add New Option...</option>

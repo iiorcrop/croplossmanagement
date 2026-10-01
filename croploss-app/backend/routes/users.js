@@ -64,12 +64,22 @@ router.post('/', ...adminOnly, async (req, res, next) => {
     }
 
     const md = await MasterData.findOne();
-    const allCrops = md ? md.crops : [];
+    const allCrops = (md?.crops || [])
+      .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase())
+      .filter(Boolean);
+
+    const cleanAssigned = (assignedCrops || [])
+      .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase())
+      .filter(Boolean);
+
+    const cleanReview = (reviewCrops || [])
+      .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase())
+      .filter(Boolean);
 
     const user = await User.create({
       name, email, phone, password, role, designation: designation || '',
-      assignedCrops: role === 'super_admin' ? allCrops : (assignedCrops || []),
-      reviewCrops: role === 'crop_head' ? reviewCrops : (role === 'super_admin' ? allCrops : []),
+      assignedCrops: role === 'super_admin' ? allCrops : cleanAssigned,
+      reviewCrops: role === 'crop_head' ? cleanReview : (role === 'super_admin' ? allCrops : []),
       centerName: centerName || '',
       centerState: centerState || '',
       centerDistrict: centerDistrict || '',
@@ -120,13 +130,23 @@ router.put('/:id', ...adminOnly, async (req, res, next) => {
       centerDistrict, centerPI, isActive, notifyWhatsApp, notifyEmail, designation, password } = req.body;
 
     const md = await MasterData.findOne();
-    const allCrops = md ? md.crops : [];
+    const allCrops = (md?.crops || [])
+      .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase())
+      .filter(Boolean);
+
+    const cleanAssigned = (assignedCrops || [])
+      .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase())
+      .filter(Boolean);
+
+    const cleanReview = (reviewCrops || [])
+      .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase())
+      .filter(Boolean);
 
     const updates = {
       name, phone, role, centerName, centerState, centerDistrict, centerPI,
       isActive, notifyWhatsApp, notifyEmail, designation,
-      assignedCrops: role === 'super_admin' ? allCrops : (assignedCrops || []),
-      reviewCrops: role === 'crop_head' ? reviewCrops : (role === 'super_admin' ? allCrops : []),
+      assignedCrops: role === 'super_admin' ? allCrops : cleanAssigned,
+      reviewCrops: role === 'crop_head' ? cleanReview : (role === 'super_admin' ? allCrops : []),
     };
 
     // Remove undefined

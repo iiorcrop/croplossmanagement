@@ -21,13 +21,17 @@ function CropCheckboxGrid({ gridId, selected, onChange, label }) {
     <div>
       {label && <div style={{ fontSize:11,fontWeight:700,color:'var(--g8)',marginBottom:8,textTransform:'uppercase',letterSpacing:.5 }}>{label}</div>}
       <div className="crop-checkbox-grid">
-        {(window.masterDataCrops || []).map(c => (
-          <label key={c} className={`crop-checkbox-item ${selected.includes(c)?'checked':''}`}>
-            <input type="checkbox" checked={selected.includes(c)} onChange={()=>toggle(c)} style={{accentColor:'var(--g7)'}} />
-            <span style={{fontSize:15}}>{CROP_EMOJI[c] || '🌱'}</span>
-            {CROP_LABEL(c) || c}
-          </label>
-        ))}
+        {(window.masterDataCrops || []).map(rawCrop => {
+          const c = typeof rawCrop === 'string' ? rawCrop.toLowerCase() : (rawCrop?.name || rawCrop?.crop || '').toLowerCase();
+          if (!c) return null;
+          return (
+            <label key={c} className={`crop-checkbox-item ${selected.includes(c)?'checked':''}`}>
+              <input type="checkbox" checked={selected.includes(c)} onChange={()=>toggle(c)} style={{accentColor:'var(--g7)'}} />
+              <span style={{fontSize:15}}>{CROP_EMOJI[c] || '🌱'}</span>
+              {CROP_LABEL(rawCrop) || c}
+            </label>
+          );
+        })}
       </div>
     </div>
   );
@@ -51,8 +55,12 @@ export default function Users() {
       setUsers(res.data.data);
       setStats(res.data.stats || {});
       const mdRes = await api.get('/master-data');
-      setMasterData(mdRes.data.data);
-      window.masterDataCrops = mdRes.data.data.crops;
+      const md = mdRes.data?.data || {};
+      const normalizedCrops = (md.crops || [])
+        .map(c => typeof c === 'string' ? c.toLowerCase() : (c?.name || c?.crop || '').toLowerCase())
+        .filter(Boolean);
+      setMasterData({ ...md, crops: normalizedCrops });
+      window.masterDataCrops = normalizedCrops;
     } catch { toast.error('Failed to load users'); }
     finally { setLoading(false); }
   }, [filters]);
@@ -111,7 +119,13 @@ export default function Users() {
     } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
   };
 
-  const allCrops = (u) => [...new Set([...(u.assignedCrops||[]),...(u.reviewCrops||[])])];
+  const allCrops = (u) => [
+    ...new Set(
+      [...(u.assignedCrops || []), ...(u.reviewCrops || [])]
+        .map(c => (typeof c === 'string' ? c : (c?.name || c?.crop || '')))
+        .filter(Boolean)
+    )
+  ];
 
   return (
     <div>
@@ -147,7 +161,10 @@ export default function Users() {
         </select>
         <select className="filter-control" value={filters.crop} onChange={e=>setFilters(f=>({...f,crop:e.target.value}))}>
           <option value="">All Crops</option>
-          {(masterData?.crops || []).map(c=><option key={c} value={c}>{CROP_EMOJI[c] || '🌱'} {CROP_LABEL(c) || c}</option>)}
+          {(masterData?.crops || []).map(c => {
+            const val = typeof c === 'string' ? c : (c?.name || c?.crop || '');
+            return <option key={val} value={val}>{CROP_EMOJI[val] || '🌱'} {CROP_LABEL(c) || val}</option>;
+          })}
         </select>
         <select className="filter-control" value={filters.status} onChange={e=>setFilters(f=>({...f,status:e.target.value}))}>
           <option value="">All Status</option>

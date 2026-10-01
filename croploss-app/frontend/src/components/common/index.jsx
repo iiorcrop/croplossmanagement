@@ -97,12 +97,14 @@ export function WiltValue({ value = 0, bold = true }) {
 
 // ── Crop Tag ──────────────────────────────────────────────────────────────
 export function CropTag({ crop }) {
+  const cropStr = typeof crop === 'string' ? crop : (crop?.name || crop?.crop || crop?.label || '');
+  const cropKey = (typeof cropStr === 'string' ? cropStr : '').toLowerCase();
   return (
     <span style={{
       display: 'inline-block', background: 'var(--g1)', color: 'var(--g8)',
       borderRadius: 12, padding: '1px 7px', fontSize: 10.5, fontWeight: 600, margin: 1,
     }}>
-      {CROP_EMOJI[crop]} {CROP_LABEL(crop)}
+      {CROP_EMOJI[cropKey] || CROP_EMOJI[crop] || '🌱'} {CROP_LABEL(crop)}
     </span>
   );
 }

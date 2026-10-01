@@ -11,7 +11,13 @@ export default function Sidebar({ pendingCount = 0 }) {
   const go = (path) => navigate(path);
   const active = (path) => loc.pathname === path || loc.pathname.startsWith(path + "/");
 
-  const crops = [...new Set([...(user?.assignedCrops || []), ...(user?.reviewCrops || [])])];
+  const crops = [
+    ...new Set(
+      [...(user?.assignedCrops || []), ...(user?.reviewCrops || [])]
+        .map(c => (typeof c === 'string' ? c : (c?.name || c?.crop || '')))
+        .filter(Boolean)
+    )
+  ];
 
   return (
     <nav className="sidebar">

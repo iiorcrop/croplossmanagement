@@ -51,7 +51,13 @@ export default function Profile() {
     }
   };
 
-  const crops = [...new Set([...(user?.assignedCrops || []), ...(user?.reviewCrops || [])])];
+  const crops = [
+    ...new Set(
+      [...(user?.assignedCrops || []), ...(user?.reviewCrops || [])]
+        .map(c => (typeof c === 'string' ? c : (c?.name || c?.crop || '')))
+        .filter(Boolean)
+    )
+  ];
 
   return (
     <div style={{ maxWidth: 700 }}>

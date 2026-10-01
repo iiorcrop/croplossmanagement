@@ -242,12 +242,15 @@ export default function SubmissionStatusReport() {
               <thead>
                 <tr>
                   <th style={{ textAlign: 'left', minWidth: '180px' }}>Center Name</th>
-                  {data.crops.map(crop => (
-                    <th key={crop} style={{ textAlign: 'center', minWidth: '120px' }}>
-                      <span style={{ fontSize: '15px', marginRight: '4px' }}>{CROP_EMOJI[crop] || '🌱'}</span>
-                      {CROP_LABEL(crop)}
-                    </th>
-                  ))}
+                  {data.crops.map(crop => {
+                    const cKey = typeof crop === 'string' ? crop : (crop?.name || crop?.crop || String(crop));
+                    return (
+                      <th key={cKey} style={{ textAlign: 'center', minWidth: '120px' }}>
+                        <span style={{ fontSize: '15px', marginRight: '4px' }}>{CROP_EMOJI[cKey] || '🌱'}</span>
+                        {CROP_LABEL(crop)}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>

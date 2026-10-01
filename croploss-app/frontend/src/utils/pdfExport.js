@@ -470,7 +470,7 @@ export const generateCustomPDF = (entries, selectedFields, label = 'Custom') => 
   const keep = nonEmptyColumns(allRows, 1);
   const shownFields = selectedFields.filter((f, i) => keep.has(i));
   const omittedFields = selectedFields.filter((f, i) => !keep.has(i));
-  const headers = shownFields.map(f => fieldMap[f] || f.charAt(0).toUpperCase() + f.slice(1));
+  const headers = shownFields.map(f => fieldMap[f] || (typeof f === 'string' && f ? f.charAt(0).toUpperCase() + f.slice(1) : String(f || '')));
   const tableBody = allRows.map(row => row.filter((v, i) => keep.has(i)));
 
   doc.setFontSize(14);
