@@ -54,7 +54,7 @@ export const usersAPI = {
   create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
   deactivate: (id) => api.delete(`/users/${id}`),
-  cropHeads: (crop) => api.get(`/users/crop-heads/${crop}`),
+  cropHeads: (crop, params) => api.get(`/users/crop-heads/${crop}`, { params }),
 };
 
 // ── Crop Entries ──────────────────────────────────────────────────────────

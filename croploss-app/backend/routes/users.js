@@ -10,17 +10,29 @@ const adminOnly = [protect, authorize('super_admin')];
 // GET /api/users  – list all (with filters)
 router.get('/', ...adminOnly, async (req, res, next) => {
   try {
-    const { role, crop, status, search, page = 1, limit = 50 } = req.query;
+    const { role, crop, status, discipline, search, page = 1, limit = 50 } = req.query;
     const filter = {};
     if (role) filter.role = role;
     if (status === 'active') filter.isActive = true;
     if (status === 'inactive') filter.isActive = false;
-    if (crop) filter.$or = [{ assignedCrops: crop }, { reviewCrops: crop }];
-    if (search) filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { centerName: { $regex: search, $options: 'i' } },
-    ];
+    if (discipline) filter.discipline = discipline;
+
+    const andConditions = [];
+    if (crop) {
+      andConditions.push({ $or: [{ assignedCrops: crop.toLowerCase() }, { reviewCrops: crop.toLowerCase() }] });
+    }
+    if (search) {
+      andConditions.push({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { centerName: { $regex: search, $options: 'i' } },
+        ]
+      });
+    }
+    if (andConditions.length > 0) {
+      filter.$and = andConditions;
+    }
 
     const total = await User.countDocuments(filter);
     const users = await User.find(filter)
@@ -46,7 +58,7 @@ router.get('/', ...adminOnly, async (req, res, next) => {
 router.post('/', ...adminOnly, async (req, res, next) => {
   try {
     const { name, email, phone, password, role, assignedCrops, reviewCrops,
-      centerName, centerState, centerDistrict, centerPI,
+      centerName, centerState, centerDistrict, centerPI, discipline,
       notifyWhatsApp, notifyEmail, designation } = req.body;
 
     if (!name || !email || !phone || !password || !role) {
@@ -84,6 +96,7 @@ router.post('/', ...adminOnly, async (req, res, next) => {
       centerState: centerState || '',
       centerDistrict: centerDistrict || '',
       centerPI: centerPI || '',
+      discipline: discipline || '',
       notifyWhatsApp: notifyWhatsApp !== false,
       notifyEmail: notifyEmail !== false,
     });
@@ -105,11 +118,25 @@ router.get('/stats', ...adminOnly, async (req, res, next) => {
 // GET /api/users/crop-heads/:crop  – get crop heads for a specific crop
 router.get('/crop-heads/:crop', protect, async (req, res, next) => {
   try {
-    const heads = await User.find({
+    const crop = (req.params.crop || '').toLowerCase();
+    const baseQuery = {
       role: 'crop_head',
-      reviewCrops: req.params.crop,
+      reviewCrops: crop,
       isActive: true,
-    }).select('-password');
+    };
+    if (req.query.discipline) {
+      const disc = req.query.discipline;
+      if (disc !== 'Both') {
+        const exactMatch = await User.find({
+          ...baseQuery,
+          $or: [{ discipline: disc }, { discipline: 'Both' }]
+        }).select('-password');
+        if (exactMatch.length > 0) {
+          return res.json({ success: true, data: exactMatch });
+        }
+      }
+    }
+    const heads = await User.find(baseQuery).select('-password');
     res.json({ success: true, data: heads });
   } catch (err) { next(err); }
 });
@@ -127,7 +154,7 @@ router.get('/:id', ...adminOnly, async (req, res, next) => {
 router.put('/:id', ...adminOnly, async (req, res, next) => {
   try {
     const { name, phone, role, assignedCrops, reviewCrops, centerName, centerState,
-      centerDistrict, centerPI, isActive, notifyWhatsApp, notifyEmail, designation, password } = req.body;
+      centerDistrict, centerPI, discipline, isActive, notifyWhatsApp, notifyEmail, designation, password } = req.body;
 
     const md = await MasterData.findOne();
     const allCrops = (md?.crops || [])
@@ -143,7 +170,7 @@ router.put('/:id', ...adminOnly, async (req, res, next) => {
       .filter(Boolean);
 
     const updates = {
-      name, phone, role, centerName, centerState, centerDistrict, centerPI,
+      name, phone, role, centerName, centerState, centerDistrict, centerPI, discipline,
       isActive, notifyWhatsApp, notifyEmail, designation,
       assignedCrops: role === 'super_admin' ? allCrops : cleanAssigned,
       reviewCrops: role === 'crop_head' ? cleanReview : (role === 'super_admin' ? allCrops : []),

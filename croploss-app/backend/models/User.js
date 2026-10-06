@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema({
   // Crops this crop_head reviews (receives alerts for)
   reviewCrops: [{ type: String }],
 
+  // Discipline for crop_head and center_user (Pathology, Entomology, Both)
+  discipline: { type: String, trim: true, default: '' },
+
   isActive:      { type: Boolean, default: true },
   lastLogin:     { type: Date },
   passwordChangedAt: { type: Date },
