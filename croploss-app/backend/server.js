@@ -7,7 +7,6 @@ const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const { seedInitialLocations } = require("./scripts/syncLgdLocations");
 const { errorHandler } = require("./middleware/auth");
-
 const app = express();
 
 // ── Security Middleware ────────────────────────────────────────────────────
@@ -39,16 +38,14 @@ app.use("/api/", limiter);
 app.use("/api/auth/login", authLimiter);
 
 // ── Routes ────────────────────────────────────────────────────────────────
-app.use('/api/auth',      require('./routes/auth'));
-app.use('/api/users',     require('./routes/users'));
-app.use('/api/entries',   require('./routes/entries'));
-app.use('/api/personal-entries', require('./routes/personalEntries'));
-app.use('/api/locations', require('./routes/locations'));
-app.use('/api/settings',  require('./routes/settings'));
-app.use('/api/master-data', require('./routes/masterData'));
-app.use('/api/reports', require('./routes/report'));
-
-
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/users", require("./routes/users"));
+app.use("/api/entries", require("./routes/entries"));
+app.use("/api/personal-entries", require("./routes/personalEntries"));
+app.use("/api/locations", require("./routes/locations"));
+app.use("/api/settings", require("./routes/settings"));
+app.use("/api/master-data", require("./routes/masterData"));
+app.use("/api/reports", require("./routes/report"));
 
 app.get("/api/health", (req, res) =>
   res.json({
@@ -71,7 +68,7 @@ const startServer = async () => {
   await seedInitialData();
   await seedInitialLocations();
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 8080;
   app.listen(PORT, () => {
     console.log(`\n🌾 CropLoss Management Portal`);
     console.log(`🚀 Backend running: http://localhost:${PORT}`);
