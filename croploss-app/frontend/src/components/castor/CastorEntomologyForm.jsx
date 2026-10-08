@@ -49,7 +49,34 @@ const WHITEFLY_SCALES = [
 ];
 
 const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka, defaults = {}, options = {} }) => {
-  const [observations, setObservations] = useState(rows || []);
+  const [observations, setObservations] = useState(
+    rows && rows.length > 0
+      ? rows
+      : [
+          withFieldDefaults(
+            {
+              location: "",
+              latitude: "",
+              longitude: "",
+              soilType: "",
+              previousCrop: "",
+              variety: "",
+              irrigatedRainfed: "",
+              dateOfSowing: "",
+              stageOfCrop: "",
+              plotType: "",
+              defoliators: [],
+              capsuleSpikeBorers: [],
+              suckingPests: [],
+              rootPests: [],
+              otherPests: [],
+              yieldLoss: { method1: "", method2: "", method3: "" },
+              images: [],
+            },
+            defaults,
+          ),
+        ],
+  );
   const [customOpts, setCustomOpts] = useState({
     defoliators: [],
     capsuleSpikeBorers: [],
@@ -70,6 +97,13 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
           location: "",
           latitude: "",
           longitude: "",
+          soilType: "",
+          previousCrop: "",
+          variety: "",
+          irrigatedRainfed: "",
+          dateOfSowing: "",
+          stageOfCrop: "",
+          plotType: "",
           defoliators: [],
           capsuleSpikeBorers: [],
           suckingPests: [],

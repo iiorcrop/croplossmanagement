@@ -24,33 +24,41 @@ const SUNFLOWER_PESTS = [
 ];
 
 const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, taluka, defaults = {}, options = {} }) => {
-  const defaultObservation = withFieldDefaults({
+  const createObservation = () => withFieldDefaults({
     location: '',
     latitude: '',
     longitude: '',
-    soilType: 'Black',
-    previousCrop: 'Castor',
+    soilType: '',
+    previousCrop: '',
     variety: '',
     otherVariety: '',
-    irrigatedRainfed: 'Irrigated',
-    dateOfSowing: '1st Wk Aug',
+    irrigatedRainfed: '',
+    dateOfSowing: '',
     stageOfCrop: '',
+    plotType: '',
     sunflowerPests: [],
     yieldLoss: { method1: '', method2: '', method3: '' },
     images: [],
   }, defaults);
 
-  const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [defaultObservation]);
+  const [observations, setObservations] = useState(rows && rows.length > 0 ? rows : [createObservation()]);
   const [customOpts, setCustomOpts] = useState({
     sunflowerPests: []
   });
-
 
   useEffect(() => {
     // Only notify parent if rows actually changed
     onChange(observations);
     // eslint-disable-next-line
   }, [observations]);
+
+  const addLocation = () => {
+    setObservations([...observations, createObservation()]);
+  };
+
+  const removeLocation = (locIdx) => {
+    setObservations(observations.filter((_, idx) => idx !== locIdx));
+  };
 
   const handleLocChange = (locIdx, field, value) => {
     const updated = [...observations];
@@ -138,8 +146,20 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
 
   return (
     <div className="sf-form-container">
+      <button className="btn btn-outline" onClick={addLocation} disabled={readOnly} style={{ marginBottom: 16 }}>
+        + Add Location Observation
+      </button>
+
       {observations.map((obs, locIdx) => (
         <div key={locIdx} className="sf-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1e293b' }}>Location #{locIdx + 1}</h4>
+            {!readOnly && observations.length > 1 && (
+              <button className="btn btn-danger btn-sm" onClick={() => removeLocation(locIdx)}>
+                ✕ Remove Location
+              </button>
+            )}
+          </div>
 
           <FieldDetails
             values={obs}
