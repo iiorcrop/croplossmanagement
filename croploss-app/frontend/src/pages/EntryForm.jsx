@@ -553,7 +553,6 @@ export default function EntryForm() {
     irrigatedRainfed: form.irrigatedRainfed,
     dateOfSowing: form.dateOfSowing,
     stageOfCrop: form.stageOfCrop,
-    plotType: form.plotType,
   };
   const rowOptions = {
     villages: availableVillages,
@@ -950,28 +949,6 @@ export default function EntryForm() {
                   </option>
                 </select>
               </div>
-              {/* Plot Type */}
-              <div className="form-group">
-                <label className="form-label">Plot Type</label>
-                <select
-                  className="form-control"
-                  value={form.plotType}
-                  onChange={handleAddNew("plotType", "plotTypes")}
-                  disabled={!isEditable}
-                >
-                  <option value="">— Select Plot Type —</option>
-                  {Array.from(new Set([...availablePlotTypes, ...(customOpts.plotTypes || [])]))
-                    .filter(Boolean)
-                    .map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>
-                    ➕ Add New Option...
-                  </option>
-                </select>
-              </div>
             </div>
           </div>
         )}
@@ -1111,12 +1088,6 @@ export default function EntryForm() {
                 <div className="review-item">
                   <label>Stage of Crop</label>
                   <div>{form.stageOfCrop}</div>
-                </div>
-              )}
-              {form.plotType && (
-                <div className="review-item">
-                  <label>Plot Type</label>
-                  <div>{form.plotType}</div>
                 </div>
               )}
               <div className="review-item">

@@ -205,7 +205,6 @@ export default function EntryDetail() {
             ['Survey Date', fmtDate(entry.surveyDate)],
             ['Center', entry.centerName || '–'],
             ['State', entry.centerState || '–'],
-            ['Plot Type', entry.plotType || '–'],
             ['Submitted By', entry.submittedBy?.name || entry.submittedByName || '–'],
             ['Submitted At', fmtDateTime(entry.submittedAt)],
             ['Surveyor', entry.surveyorName || '–'],
