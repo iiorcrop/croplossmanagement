@@ -205,6 +205,7 @@ export default function EntryDetail() {
             ['Survey Date', fmtDate(entry.surveyDate)],
             ['Center', entry.centerName || '–'],
             ['State', entry.centerState || '–'],
+            ['Plot Type', entry.plotType || '–'],
             ['Submitted By', entry.submittedBy?.name || entry.submittedByName || '–'],
             ['Submitted At', fmtDateTime(entry.submittedAt)],
             ['Surveyor', entry.surveyorName || '–'],
@@ -239,13 +240,13 @@ export default function EntryDetail() {
         </div>
         {obs.length > 0 ? (
           entry.crop === 'castor' && entry.discipline === 'Entomology' ? (
-            <CastorEntomologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+            <CastorEntomologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} defaults={{ plotType: entry.plotType }} />
           ) : entry.crop === 'sunflower' && entry.discipline === 'Entomology' ? (
-            <SunflowerEntomologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+            <SunflowerEntomologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} defaults={{ plotType: entry.plotType }} />
           ) : entry.crop === 'sunflower' && entry.discipline === 'Pathology' ? (
-            <SunflowerPathologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+            <SunflowerPathologyForm rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} defaults={{ plotType: entry.plotType }} />
           ) : (
-            <ObservationTable crop={entry.crop} discipline={entry.discipline} rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} />
+            <ObservationTable crop={entry.crop} discipline={entry.discipline} rows={obs} onChange={() => {}} readOnly={true} state={entry.state} district={entry.district} taluka={entry.taluka} defaults={{ plotType: entry.plotType }} />
           )
         ) : (
           <p style={{ color: 'var(--gray)', fontSize: 13, textAlign: 'center', padding: 20 }}>No observation records.</p>

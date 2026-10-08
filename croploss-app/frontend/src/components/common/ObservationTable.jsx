@@ -9,7 +9,7 @@ export function blankRow(crop, discipline = 'Both', defaults = {}) {
   const row = withFieldDefaults({
     location: '', latitude: '', longitude: '',
     soilType: '', previousCrop: '', variety: '', otherVariety: '',
-    irrigatedRainfed: '', dateOfSowing: '', stageOfCrop: '',
+    irrigatedRainfed: '', dateOfSowing: '', stageOfCrop: '', plotType: '',
     cropDamage: '', remarks: '',
     newDiseaseReported: '',
     newDiseaseDetails: ''
@@ -166,6 +166,7 @@ export default function ObservationTable({
                       )}
                       {r.variety && <span>🌱 <strong>Variety:</strong> {r.variety}</span>}
                       {r.stageOfCrop && <span>🌾 <strong>Stage:</strong> {r.stageOfCrop}</span>}
+                      {r.plotType && <span>📐 <strong>Plot Type:</strong> {r.plotType}</span>}
                       {r.remarks && <span>💬 <strong>Remarks:</strong> {r.remarks}</span>}
                       {r.newDiseaseReported === 'Yes' && (
                         <span style={{ color: '#b91c1c', fontWeight: 600 }}>⚠️ New Disease: {r.newDiseaseDetails || 'Yes'}</span>

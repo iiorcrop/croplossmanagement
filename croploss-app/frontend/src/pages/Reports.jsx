@@ -28,6 +28,7 @@ const CUSTOM_FIELDS = [
   { id: "irrigatedRainfed", label: "Irrig/Rain" },
   { id: "dateOfSowing", label: "Sowing" },
   { id: "stageOfCrop", label: "Stage" },
+  { id: "plotType", label: "Plot Type" },
   { id: "wilt", label: "Wilt %" },
   { id: "rootRot", label: "Root Rot %" },
   { id: "cls", label: "CLS" },

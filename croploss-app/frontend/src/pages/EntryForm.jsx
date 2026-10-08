@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import api, { entriesAPI } from "../utils/api";
 import { Alert, Spinner } from "../components/common";
 import ObservationTable, { blankRow } from "../components/common/ObservationTable";
-import { CROP_EMOJI, CROP_LABEL } from "../utils/constants";
+import { CROP_EMOJI, CROP_LABEL, PLOT_TYPES } from "../utils/constants";
 import CastorEntomologyForm from "../components/castor/CastorEntomologyForm";
 import SunflowerEntomologyForm from "../components/sunflower/SunflowerEntomologyForm";
 import SunflowerPathologyForm from "../components/sunflower/SunflowerPathologyForm";
@@ -55,6 +55,7 @@ export default function EntryForm() {
     irrigatedRainfed: "",
     dateOfSowing: "",
     stageOfCrop: "",
+    plotType: "",
     cultivar: "",
     surveyDate: new Date().toISOString().split("T")[0],
     surveyorName: user?.name || "",
@@ -79,6 +80,7 @@ export default function EntryForm() {
     irrigatedRainfed: [],
     stagesOfCrop: [],
     sowingDates: [],
+    plotTypes: [],
   });
 
   const handleAddNew = (field, customKey) => (e) => {
@@ -95,6 +97,7 @@ export default function EntryForm() {
           irrigatedRainfed: "irrigation",
           stageOfCrop: "crop-stages",
           dateOfSowing: "sowing-dates",
+          plotType: "plot-types",
         };
         const masterKey = masterKeyMap[field];
         if (masterKey) {
@@ -261,6 +264,7 @@ export default function EntryForm() {
           irrigatedRainfed: e.irrigatedRainfed || "Irrigated",
           dateOfSowing: e.dateOfSowing || "",
           stageOfCrop: e.stageOfCrop || "",
+          plotType: e.plotType || "",
           cultivar: e.cultivar || "",
           surveyDate: e.surveyDate ? new Date(e.surveyDate).toISOString().split("T")[0] : "",
           surveyorName: e.surveyorName || "",
@@ -418,6 +422,8 @@ export default function EntryForm() {
       "soil-types": "soilTypes",
       irrigation: "irrigationTypes",
       "crop-stages": "cropStages",
+      "plot-types": "plotTypes",
+      plotTypes: "plotTypes",
       crops: "crops",
       seasons: "seasons",
       disciplines: "disciplines",
@@ -471,6 +477,10 @@ export default function EntryForm() {
   const availablePreviousCrops = getMasterList("previous-crops");
   const availableIrrigationTypes = getMasterList("irrigation");
   const availableCropStages = getMasterList("crop-stages");
+  const availablePlotTypes = (() => {
+    const list = getMasterList("plot-types");
+    return list.length > 0 ? list : PLOT_TYPES;
+  })();
   const availableSowingDates =
     masterData?.sowingDates && masterData.sowingDates.length > 0
       ? masterData.sowingDates
@@ -543,6 +553,7 @@ export default function EntryForm() {
     irrigatedRainfed: form.irrigatedRainfed,
     dateOfSowing: form.dateOfSowing,
     stageOfCrop: form.stageOfCrop,
+    plotType: form.plotType,
   };
   const rowOptions = {
     villages: availableVillages,
@@ -552,6 +563,7 @@ export default function EntryForm() {
     irrigationTypes: availableIrrigationTypes,
     sowingDates: availableSowingDates,
     cropStages: availableCropStages,
+    plotTypes: Array.from(new Set([...availablePlotTypes, ...(customOpts.plotTypes || [])])).filter(Boolean),
   };
 
   return (
@@ -938,6 +950,28 @@ export default function EntryForm() {
                   </option>
                 </select>
               </div>
+              {/* Plot Type */}
+              <div className="form-group">
+                <label className="form-label">Plot Type</label>
+                <select
+                  className="form-control"
+                  value={form.plotType}
+                  onChange={handleAddNew("plotType", "plotTypes")}
+                  disabled={!isEditable}
+                >
+                  <option value="">— Select Plot Type —</option>
+                  {Array.from(new Set([...availablePlotTypes, ...(customOpts.plotTypes || [])]))
+                    .filter(Boolean)
+                    .map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  <option value="__ADD_NEW__" style={{ fontWeight: "bold", color: "var(--g7)" }}>
+                    ➕ Add New Option...
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
         )}
@@ -1077,6 +1111,12 @@ export default function EntryForm() {
                 <div className="review-item">
                   <label>Stage of Crop</label>
                   <div>{form.stageOfCrop}</div>
+                </div>
+              )}
+              {form.plotType && (
+                <div className="review-item">
+                  <label>Plot Type</label>
+                  <div>{form.plotType}</div>
                 </div>
               )}
               <div className="review-item">

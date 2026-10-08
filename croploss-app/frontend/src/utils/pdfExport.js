@@ -24,6 +24,7 @@ const CONTEXT_COLUMNS = [
   { key: 'irrigatedRainfed', label: 'Irrigated/Rainfed' },
   { key: 'dateOfSowing',     label: 'Date of Sowing' },
   { key: 'stageOfCrop',      label: 'Stage of Crop' },
+  { key: 'plotType',         label: 'Plot Type' },
 ];
 
 // Safe filename string
@@ -424,6 +425,7 @@ export const generateCustomPDF = (entries, selectedFields, label = 'Custom') => 
     irrigatedRainfed: 'Irrig.',
     dateOfSowing: 'Sowing',
     stageOfCrop: 'Stage',
+    plotType: 'Plot Type',
     // Aliases for common fields across crops
     wilt: 'Wilt',
     fusariumWilt: 'F. Wilt',

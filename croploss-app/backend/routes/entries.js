@@ -3,7 +3,7 @@ const router = express.Router();
 const CropEntry = require('../models/CropEntry');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
-const { CROPS, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES, SOWING_DATES,
+const { CROPS, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES, PLOT_TYPES, SOWING_DATES,
   CROP_STAGES, PERCENT_OPTIONS, VARIETIES, RAW_COLUMNS, STATUS } = require('../config/constants');
 const {
   notifyNewSubmission, notifyApproved, notifyCorrectionRequested,
@@ -51,7 +51,7 @@ function buildEntryFilter(user, query) {
 router.get('/dropdowns', protect, (req, res) => {
   res.json({
     success: true,
-    data: { CROPS, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES, SOWING_DATES, CROP_STAGES, PERCENT_OPTIONS, VARIETIES, COLUMNS: RAW_COLUMNS },
+    data: { CROPS, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES, PLOT_TYPES, SOWING_DATES, CROP_STAGES, PERCENT_OPTIONS, VARIETIES, COLUMNS: RAW_COLUMNS },
   });
 });
 
@@ -233,7 +233,7 @@ router.put('/:id', protect, authorize('center_user', 'super_admin'), async (req,
       'observations', 'district', 'taluka', 'village', 'surveyDate', 'season', 'year',
       'surveyorName', 'surveyorDesig',
       'latitude', 'longitude', 'soilTypeField', 'previousCrop', 'variety',
-      'irrigatedRainfed', 'dateOfSowing', 'stageOfCrop',
+      'irrigatedRainfed', 'dateOfSowing', 'stageOfCrop', 'plotType',
       'cultivar', 'majorCrops', 'croppingSystem', 'soilType', 'agroEcologicalZone',
     ];
     allowedFields.forEach(f => { if (req.body[f] !== undefined) entry[f] = req.body[f]; });

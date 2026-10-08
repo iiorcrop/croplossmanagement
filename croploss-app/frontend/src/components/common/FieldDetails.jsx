@@ -19,6 +19,7 @@ export const FIELD_DETAILS = [
   { key: 'irrigatedRainfed', label: 'Irrigated/Rainfed', type: 'select',   options: 'irrigationTypes' },
   { key: 'dateOfSowing',     label: 'Date of Sowing',    type: 'select',   options: 'sowingDates' },
   { key: 'stageOfCrop',      label: 'Stage of Crop',     type: 'select',   options: 'cropStages' },
+  { key: 'plotType',         label: 'Plot Type',         type: 'select',   options: 'plotTypes' },
 ];
 
 /** Apply the survey-level defaults to any field the row hasn't filled itself. */
@@ -29,6 +30,10 @@ export const withFieldDefaults = (row = {}, defaults = {}) => {
     if ((v === undefined || v === null || v === '') && defaults[key]) next[key] = defaults[key];
   });
   return next;
+};
+
+const DEFAULT_OPTIONS = {
+  plotTypes: ['Fixed Plot', 'Roving Plot'],
 };
 
 const inputStyle = { width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8, background: '#fff' };
@@ -44,7 +49,10 @@ export default function FieldDetails({ values = {}, onChange, options = {}, read
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 20 }}>
         {FIELD_DETAILS.map(f => {
-          const opts = (options[f.options] || []).filter(Boolean);
+          const rawOpts = (options && options[f.options] && options[f.options].length > 0)
+            ? options[f.options]
+            : (DEFAULT_OPTIONS[f.options] || []);
+          const opts = rawOpts.filter(Boolean);
           const value = values[f.key] ?? '';
           return (
             <div key={f.key} className="form-group">

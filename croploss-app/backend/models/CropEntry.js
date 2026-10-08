@@ -21,6 +21,7 @@ const observationSchema = new mongoose.Schema({
   irrigatedRainfed: { type: String, trim: true, default: '' },
   dateOfSowing:     { type: String, trim: true, default: '' },
   stageOfCrop:      { type: String, trim: true, default: '' },
+  plotType:         { type: String, trim: true, default: '' },
 
   // ── Disease fields (dynamic strings like "1-10%", ">50%") ──────────────────
   wilt: { type: mongoose.Schema.Types.Mixed, default: '-' },
@@ -149,6 +150,7 @@ const cropEntrySchema = new mongoose.Schema({
   irrigatedRainfed: { type: String, trim: true, default: '' }, // master-data driven, see observationSchema
   dateOfSowing:     { type: String, trim: true, default: '' },
   stageOfCrop:      { type: String, trim: true, default: '' },
+  plotType:         { type: String, trim: true, default: '' },
 
   // Zone / crop meta (multi-select from Location step)
   cultivar:           { type: String, trim: true, default: '' },

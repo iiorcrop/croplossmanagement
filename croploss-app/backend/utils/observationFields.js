@@ -74,6 +74,7 @@ const CONTEXT_FIELDS = {
     },
     entry: ['stageOfCrop'],
   },
+  plotType: { obs: ['plotType'], entry: ['plotType'] },
   farmerName: {
     obs: ['farmerName'],
     nested: o => o.sunflowerPathology && o.sunflowerPathology.farmerName,

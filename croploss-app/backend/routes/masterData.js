@@ -9,7 +9,7 @@ router.get('/', protect, async (req, res, next) => {
     let data = await MasterData.findOne();
     if (!data) {
       // Initialize with defaults from constants if not present
-      const { CROPS, SEASONS, DISCIPLINES, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES, SOWING_DATES, CROP_STAGES, PERCENT_OPTIONS, VARIETIES } = require('../config/constants');
+      const { CROPS, SEASONS, DISCIPLINES, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES, PLOT_TYPES, SOWING_DATES, CROP_STAGES, PERCENT_OPTIONS, VARIETIES } = require('../config/constants');
       data = await MasterData.create({
         crops: CROPS,
         seasons: SEASONS,
@@ -17,6 +17,7 @@ router.get('/', protect, async (req, res, next) => {
         soilTypes: SOIL_TYPES,
         previousCrops: PREVIOUS_CROPS,
         irrigationTypes: IRRIGATION_TYPES,
+        plotTypes: PLOT_TYPES,
         sowingDates: SOWING_DATES,
         cropStages: CROP_STAGES,
         percentOptions: PERCENT_OPTIONS,
@@ -48,6 +49,7 @@ const mapKey = (key) => {
     'irrigation': 'irrigationTypes',
     'crop-stages': 'cropStages',
     'sowing-dates': 'sowingDates',
+    'plot-types': 'plotTypes',
     'percent-options': 'percentOptions'
   };
   return mapping[key] || key;
@@ -59,7 +61,7 @@ router.put('/:key', protect, authorize('super_admin'), async (req, res, next) =>
     const rawKey = req.params.key;
     const key = mapKey(rawKey);
     const { value } = req.body; // expect array
-    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions','varieties','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases','rodents','vertebrates','weeds','mites','nematodes'];
+    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','plotTypes','sowingDates','cropStages','percentOptions','varieties','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases','rodents','vertebrates','weeds','mites','nematodes'];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid master data key' });
     let data = await MasterData.findOneAndUpdate({ }, { [key]: value }, { new: true, upsert: true });
     res.json({ success: true, data });
@@ -74,7 +76,7 @@ router.delete('/:key/:value', protect, authorize('super_admin'), async (req, res
     const rawKey = req.params.key;
     const key = mapKey(rawKey);
     const value = req.params.value;
-    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','sowingDates','cropStages','percentOptions','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases','rodents','vertebrates','weeds','mites','nematodes'];
+    const allowedKeys = ['crops','seasons','disciplines','soilTypes','previousCrops','irrigationTypes','plotTypes','sowingDates','cropStages','percentOptions','agroEcologicalZones','analysisMajorCrops','analysisCroppingSystems','analysisSoilTypes','centers','states','locations','years','pests','diseases','rodents','vertebrates','weeds','mites','nematodes'];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid master data key' });
     const update = { $pull: { [key]: value } };
     let data = await MasterData.findOneAndUpdate({}, update, { new: true });
@@ -93,7 +95,7 @@ router.post('/:key/append', protect, async (req, res, next) => {
     const allowedKeys = [
       'centers','states','locations','cultivars','agroEcologicalZones','zonesList','crops','seasons','years',
       'pests','diseases','rodents','vertebrates','weeds','mites','nematodes',
-      'previousCrops','varieties','irrigationTypes','cropStages','soilTypes','sowingDates'
+      'previousCrops','varieties','irrigationTypes','plotTypes','cropStages','soilTypes','sowingDates'
     ];
     if (!allowedKeys.includes(key)) return res.status(400).json({ success: false, message: 'Invalid append key' });
     

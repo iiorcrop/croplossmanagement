@@ -10,6 +10,7 @@ const PREVIOUS_CROPS = ['Castor', 'Cotton', 'Maize', 'Pigeon Pea', 'Groundnut',
   'Sorghum', 'Wheat', 'Rice', 'Soybean', 'Fallow', 'Others'];
 
 const IRRIGATION_TYPES = ['Irrigated', 'Rainfed'];
+const PLOT_TYPES = ['Fixed Plot', 'Roving Plot'];
 
 const SOWING_DATES = [
   '1st Wk Jan', '2nd Wk Jan', '3rd Wk Jan', '4th Wk Jan',
@@ -169,7 +170,7 @@ const STATUS = {
 };
 
 module.exports = {
-  CROPS, ROLES, DISCIPLINES, SEASONS, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES,
+  CROPS, ROLES, DISCIPLINES, SEASONS, SOIL_TYPES, PREVIOUS_CROPS, IRRIGATION_TYPES, PLOT_TYPES,
   SOWING_DATES, CROP_STAGES, PERCENT_OPTIONS, VARIETIES, RAW_COLUMNS, getColumns, STATUS,
   INDIA_STATES_DISTRICTS,
 };

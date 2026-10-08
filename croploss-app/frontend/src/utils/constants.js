@@ -44,6 +44,7 @@ export const PREVIOUS_CROPS = ['Castor','Cotton','Maize','Pigeon Pea','Groundnut
   'Sorghum','Wheat','Rice','Soybean','Fallow','Others'];
 
 export const IRRIGATION_TYPES = ['Irrigated','Rainfed'];
+export const PLOT_TYPES = ['Fixed Plot', 'Roving Plot'];
 
 export const SOWING_DATES = [
   '1st Wk Jun','2nd Wk Jun','3rd Wk Jun','4th Wk Jun',

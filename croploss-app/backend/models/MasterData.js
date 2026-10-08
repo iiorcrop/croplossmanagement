@@ -9,6 +9,7 @@ const masterDataSchema = new mongoose.Schema({
   irrigationTypes: [{ type: mongoose.Schema.Types.Mixed }],
   sowingDates: [{ type: mongoose.Schema.Types.Mixed }],
   cropStages: [{ type: mongoose.Schema.Types.Mixed }],
+  plotTypes: [{ type: mongoose.Schema.Types.Mixed }],
   percentOptions: [{ type: mongoose.Schema.Types.Mixed }],
   varieties: { type: mongoose.Schema.Types.Mixed },
   agroEcologicalZones: [{ type: mongoose.Schema.Types.Mixed }],
