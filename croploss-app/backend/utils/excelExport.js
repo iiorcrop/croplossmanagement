@@ -21,6 +21,17 @@ const TRAILING_COLUMNS = [
   { key: 'cropDamage',          label: 'Crop Damage %' },
   { key: 'diseasesFound',       label: 'Diseases Found?' },
   { key: 'naturalEnemiesFound', label: 'Natural Enemies?' },
+  { key: 'maxTemp',             label: 'Max Temp (°C)' },
+  { key: 'minTemp',             label: 'Min Temp (°C)' },
+  { key: 'meanTemp',            label: 'Mean Temp (°C)' },
+  { key: 'morningRH',           label: 'Morning RH (%)' },
+  { key: 'eveningRH',           label: 'Evening RH (%)' },
+  { key: 'meanRH',              label: 'Mean RH (%)' },
+  { key: 'totalRainfall',       label: 'Total Rainfall (mm)' },
+  { key: 'sunshine',            label: 'Sunshine (hrs/day)' },
+  { key: 'windSpeed',           label: 'Wind Speed (km/hr)' },
+  { key: 'evaporation',         label: 'Evaporation (mm/day)' },
+  { key: 'otherWeatherParams',  label: 'Other Weather Params' },
   { key: 'remarks',             label: 'Remarks' },
 ];
 

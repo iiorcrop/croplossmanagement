@@ -72,6 +72,14 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
               otherPests: [],
               naturalEnemiesFound: "",
               naturalEnemiesDetails: "",
+              weather: {
+                maxTemp: "", minTemp: "", meanTemp: "", morningRH: "",
+                eveningRH: "", meanRH: "", totalRainfall: "", sunshine: "",
+                windSpeed: "", evaporation: "", otherWeatherParams: ""
+              },
+              maxTemp: "", minTemp: "", meanTemp: "", morningRH: "",
+              eveningRH: "", meanRH: "", totalRainfall: "", sunshine: "",
+              windSpeed: "", evaporation: "", otherWeatherParams: "",
               yieldLoss: { method1: "", method2: "", method3: "" },
               images: [],
             },
@@ -113,6 +121,14 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
           otherPests: [],
           naturalEnemiesFound: "",
           naturalEnemiesDetails: "",
+          weather: {
+            maxTemp: "", minTemp: "", meanTemp: "", morningRH: "",
+            eveningRH: "", meanRH: "", totalRainfall: "", sunshine: "",
+            windSpeed: "", evaporation: "", otherWeatherParams: ""
+          },
+          maxTemp: "", minTemp: "", meanTemp: "", morningRH: "",
+          eveningRH: "", meanRH: "", totalRainfall: "", sunshine: "",
+          windSpeed: "", evaporation: "", otherWeatherParams: "",
           yieldLoss: { method1: "", method2: "", method3: "" },
           images: [],
         },
@@ -129,6 +145,39 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
   const handleLocChange = (idx, field, value) => {
     const updated = [...observations];
     updated[idx] = { ...updated[idx], [field]: value };
+    setObservations(updated);
+  };
+
+  const handleWeatherChange = (idx, field, value) => {
+    const updated = [...observations];
+    const currentW = updated[idx].weather || {};
+    const nextW = { ...currentW, [field]: value };
+
+    // Auto-calculate Mean Temp if maxTemp or minTemp change
+    if (field === "maxTemp" || field === "minTemp") {
+      const max = parseFloat(field === "maxTemp" ? value : nextW.maxTemp);
+      const min = parseFloat(field === "minTemp" ? value : nextW.minTemp);
+      if (!isNaN(max) && !isNaN(min)) {
+        nextW.meanTemp = ((max + min) / 2).toFixed(1);
+      }
+    }
+
+    // Auto-calculate Mean RH if morningRH or eveningRH change
+    if (field === "morningRH" || field === "eveningRH") {
+      const m = parseFloat(field === "morningRH" ? value : nextW.morningRH);
+      const e = parseFloat(field === "eveningRH" ? value : nextW.eveningRH);
+      if (!isNaN(m) && !isNaN(e)) {
+        nextW.meanRH = ((m + e) / 2).toFixed(1);
+      }
+    }
+
+    updated[idx] = {
+      ...updated[idx],
+      weather: nextW,
+      [field]: value,
+      meanTemp: nextW.meanTemp,
+      meanRH: nextW.meanRH,
+    };
     setObservations(updated);
   };
 
@@ -602,6 +651,144 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
                   />
                 </div>
               )}
+            </div>
+          </section>
+
+          {/* Weather Parameters */}
+          <section className="group-section">
+            <h5>🌤️ Weather Parameters</h5>
+            <div className="grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+              <div className="field-group">
+                <label>Max Temp (°C)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 34.5"
+                  value={obs.weather?.maxTemp ?? obs.maxTemp ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "maxTemp", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Min Temp (°C)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 21.0"
+                  value={obs.weather?.minTemp ?? obs.minTemp ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "minTemp", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Mean Temp (°C)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 27.8"
+                  value={obs.weather?.meanTemp ?? obs.meanTemp ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "meanTemp", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Morning RH (%)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 85.0"
+                  value={obs.weather?.morningRH ?? obs.morningRH ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "morningRH", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Evening RH (%)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 55.0"
+                  value={obs.weather?.eveningRH ?? obs.eveningRH ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "eveningRH", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Mean RH (%)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 70.0"
+                  value={obs.weather?.meanRH ?? obs.meanRH ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "meanRH", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Total Rainfall (mm)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 12.4"
+                  value={obs.weather?.totalRainfall ?? obs.totalRainfall ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "totalRainfall", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Sunshine (hrs/day)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 7.5"
+                  value={obs.weather?.sunshine ?? obs.sunshine ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "sunshine", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Wind Speed (km/hr)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 8.2"
+                  value={obs.weather?.windSpeed ?? obs.windSpeed ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "windSpeed", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group">
+                <label>Evaporation (mm/day)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="e.g. 4.5"
+                  value={obs.weather?.evaporation ?? obs.evaporation ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "evaporation", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
+              <div className="field-group" style={{ gridColumn: "1 / -1" }}>
+                <label>Any others (Weather parameters)</label>
+                <input
+                  type="text"
+                  placeholder="Specify any other weather observations"
+                  value={obs.weather?.otherWeatherParams ?? obs.otherWeatherParams ?? ""}
+                  onChange={(e) => handleWeatherChange(i, "otherWeatherParams", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                />
+              </div>
             </div>
           </section>
 

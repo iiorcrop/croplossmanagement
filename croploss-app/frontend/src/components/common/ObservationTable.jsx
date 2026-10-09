@@ -182,6 +182,11 @@ export default function ObservationTable({
                           🐞 Natural Enemies: {r.naturalEnemiesFound}{r.naturalEnemiesDetails ? ` (${r.naturalEnemiesDetails})` : ''}
                         </span>
                       )}
+                      {(r.weather?.maxTemp || r.maxTemp || r.weather?.minTemp || r.minTemp || r.weather?.totalRainfall || r.totalRainfall) && (
+                        <span style={{ color: '#0369a1', fontWeight: 600 }}>
+                          🌤️ Weather: Max {r.weather?.maxTemp || r.maxTemp || '—'}°C / Min {r.weather?.minTemp || r.minTemp || '—'}°C / Rain {r.weather?.totalRainfall || r.totalRainfall || '0'}mm
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td style={{ padding: '20px 24px', textAlign: 'right' }}>
@@ -264,6 +269,11 @@ export default function ObservationTable({
                               </span>
                             )}
                             {r.remarks && <span>💬 <strong>Remarks:</strong> {r.remarks}</span>}
+                            {(r.weather?.maxTemp || r.maxTemp || r.weather?.minTemp || r.minTemp || r.weather?.totalRainfall || r.totalRainfall) && (
+                              <span style={{ color: '#0369a1', fontWeight: 600 }}>
+                                🌤️ <strong>Weather:</strong> Max {r.weather?.maxTemp || r.maxTemp || '—'}°C, Min {r.weather?.minTemp || r.minTemp || '—'}°C, Rain {r.weather?.totalRainfall || r.totalRainfall || '0'}mm
+                              </span>
+                            )}
                           </div>
                         </td>
                       </tr>

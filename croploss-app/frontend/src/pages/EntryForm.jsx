@@ -1169,6 +1169,22 @@ export default function EntryForm() {
                             💬 {obs.remarks}
                           </span>
                         )}
+                        {(obs.weather?.maxTemp || obs.maxTemp || obs.weather?.minTemp || obs.minTemp || obs.weather?.totalRainfall || obs.totalRainfall || obs.weather?.morningRH || obs.morningRH) && (
+                          <div style={{ width: '100%', marginTop: 4, display: 'flex', gap: 12, flexWrap: 'wrap', color: '#0369a1', fontSize: 12 }}>
+                            <span>🌤️ <strong>Weather:</strong></span>
+                            {(obs.weather?.maxTemp || obs.maxTemp) && <span>Max: {obs.weather?.maxTemp || obs.maxTemp}°C</span>}
+                            {(obs.weather?.minTemp || obs.minTemp) && <span>Min: {obs.weather?.minTemp || obs.minTemp}°C</span>}
+                            {(obs.weather?.meanTemp || obs.meanTemp) && <span>Mean: {obs.weather?.meanTemp || obs.meanTemp}°C</span>}
+                            {(obs.weather?.morningRH || obs.morningRH) && <span>RH(M): {obs.weather?.morningRH || obs.morningRH}%</span>}
+                            {(obs.weather?.eveningRH || obs.eveningRH) && <span>RH(E): {obs.weather?.eveningRH || obs.eveningRH}%</span>}
+                            {(obs.weather?.meanRH || obs.meanRH) && <span>Mean RH: {obs.weather?.meanRH || obs.meanRH}%</span>}
+                            {(obs.weather?.totalRainfall || obs.totalRainfall) && <span>Rain: {obs.weather?.totalRainfall || obs.totalRainfall}mm</span>}
+                            {(obs.weather?.sunshine || obs.sunshine) && <span>Sunshine: {obs.weather?.sunshine || obs.sunshine}h</span>}
+                            {(obs.weather?.windSpeed || obs.windSpeed) && <span>Wind: {obs.weather?.windSpeed || obs.windSpeed}km/h</span>}
+                            {(obs.weather?.evaporation || obs.evaporation) && <span>Evap: {obs.weather?.evaporation || obs.evaporation}mm/d</span>}
+                            {(obs.weather?.otherWeatherParams || obs.otherWeatherParams) && <span>Other: {obs.weather?.otherWeatherParams || obs.otherWeatherParams}</span>}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -456,6 +456,17 @@ export const generateCustomPDF = (entries, selectedFields, label = 'Custom') => 
     cropDamage: 'Crop Damage',
     diseasesFound: 'Diseases Found',
     naturalEnemiesFound: 'Natural Enemies',
+    maxTemp: 'Max Temp (°C)',
+    minTemp: 'Min Temp (°C)',
+    meanTemp: 'Mean Temp (°C)',
+    morningRH: 'Morning RH (%)',
+    eveningRH: 'Evening RH (%)',
+    meanRH: 'Mean RH (%)',
+    totalRainfall: 'Total Rainfall (mm)',
+    sunshine: 'Sunshine (hrs/day)',
+    windSpeed: 'Wind Speed (km/hr)',
+    evaporation: 'Evaporation (mm/day)',
+    otherWeatherParams: 'Other Weather Params',
     newDiseaseReported: 'New Disease',
     remarks: 'Remarks'
   };
