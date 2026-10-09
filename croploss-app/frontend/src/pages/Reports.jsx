@@ -55,6 +55,8 @@ const CUSTOM_FIELDS = [
   { id: "thrips", label: "Thrips" },
   { id: "aphids", label: "Aphids" },
   // { id: 'cropDamage', label: '% Crop Damage' },
+  { id: "diseasesFound", label: "Diseases Found" },
+  { id: "naturalEnemiesFound", label: "Natural Enemies" },
   { id: "newDiseaseReported", label: "New Disease" },
   { id: "remarks", label: "Remarks" },
 ];

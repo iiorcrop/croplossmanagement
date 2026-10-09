@@ -70,6 +70,8 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
               suckingPests: [],
               rootPests: [],
               otherPests: [],
+              naturalEnemiesFound: "",
+              naturalEnemiesDetails: "",
               yieldLoss: { method1: "", method2: "", method3: "" },
               images: [],
             },
@@ -109,6 +111,8 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
           suckingPests: [],
           rootPests: [],
           otherPests: [],
+          naturalEnemiesFound: "",
+          naturalEnemiesDetails: "",
           yieldLoss: { method1: "", method2: "", method3: "" },
           images: [],
         },
@@ -567,6 +571,39 @@ const CastorEntomologyForm = ({ rows, onChange, readOnly, state, district, taluk
               </div>
             </div>
           </section> */}
+
+          {/* Natural Enemies */}
+          <section className="group-section">
+            <h5>Natural Enemies</h5>
+            <div className="grid-2">
+              <div className="field-group">
+                <label>Any natural enemies found?</label>
+                <select
+                  value={obs.naturalEnemiesFound || ""}
+                  onChange={(e) => handleLocChange(i, "naturalEnemiesFound", e.target.value)}
+                  disabled={readOnly}
+                  className="form-control"
+                >
+                  <option value="">— Select —</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              {obs.naturalEnemiesFound === "Yes" && (
+                <div className="field-group">
+                  <label>If Yes, Enter details</label>
+                  <input
+                    type="text"
+                    value={obs.naturalEnemiesDetails || ""}
+                    onChange={(e) => handleLocChange(i, "naturalEnemiesDetails", e.target.value)}
+                    disabled={readOnly}
+                    placeholder="Enter natural enemies details"
+                    className="form-control"
+                  />
+                </div>
+              )}
+            </div>
+          </section>
 
           {/* Image upload */}
           <section className="group-section">

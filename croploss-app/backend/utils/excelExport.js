@@ -18,9 +18,10 @@ const CONTEXT_COLUMNS = [
 ];
 
 const TRAILING_COLUMNS = [
-  { key: 'cropDamage',         label: 'Crop Damage %' },
-  { key: 'newDiseaseReported', label: 'New Disease?' },
-  { key: 'remarks',            label: 'Remarks' },
+  { key: 'cropDamage',          label: 'Crop Damage %' },
+  { key: 'diseasesFound',       label: 'Diseases Found?' },
+  { key: 'naturalEnemiesFound', label: 'Natural Enemies?' },
+  { key: 'remarks',             label: 'Remarks' },
 ];
 
 async function generateExcelReport(entries, filters = {}) {

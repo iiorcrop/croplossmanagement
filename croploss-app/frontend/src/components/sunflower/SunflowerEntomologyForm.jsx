@@ -36,6 +36,8 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
     dateOfSowing: '',
     stageOfCrop: '',
     plotType: '',
+    naturalEnemiesFound: '',
+    naturalEnemiesDetails: '',
     sunflowerPests: [],
     yieldLoss: { method1: '', method2: '', method3: '' },
     images: [],
@@ -303,6 +305,39 @@ const SunflowerEntomologyForm = ({ rows, onChange, readOnly, state, district, ta
           </div>
 
 
+
+          {/* Natural Enemies */}
+          <div className="sf-section">
+            <h5 className="sf-section-title">🐞 Natural Enemies</h5>
+            <div className="sf-metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+              <div className="sf-field">
+                <label>Any natural enemies found?</label>
+                <select
+                  value={obs.naturalEnemiesFound || ''}
+                  onChange={(e) => handleLocChange(locIdx, 'naturalEnemiesFound', e.target.value)}
+                  disabled={readOnly}
+                  className="sf-input"
+                >
+                  <option value="">— Select —</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              {obs.naturalEnemiesFound === 'Yes' && (
+                <div className="sf-field">
+                  <label>If Yes, Enter details</label>
+                  <input
+                    type="text"
+                    value={obs.naturalEnemiesDetails || ''}
+                    onChange={(e) => handleLocChange(locIdx, 'naturalEnemiesDetails', e.target.value)}
+                    disabled={readOnly}
+                    placeholder="Enter natural enemies details"
+                    className="sf-input"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Image Upload */}
           <div className="sf-section">

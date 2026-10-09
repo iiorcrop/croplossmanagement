@@ -454,6 +454,8 @@ export const generateCustomPDF = (entries, selectedFields, label = 'Custom') => 
     parasitization: 'Parasitization',
     visualScore: 'Visual Score',
     cropDamage: 'Crop Damage',
+    diseasesFound: 'Diseases Found',
+    naturalEnemiesFound: 'Natural Enemies',
     newDiseaseReported: 'New Disease',
     remarks: 'Remarks'
   };

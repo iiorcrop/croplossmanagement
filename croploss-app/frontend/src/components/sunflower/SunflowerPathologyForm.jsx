@@ -49,6 +49,8 @@ const defaultObservation = (defaults = {}) => withFieldDefaults({
     noOfFieldsSurveyed: '',
     diseases: DEFAULT_DISEASES.map(d => defaultDiseaseRow(d)),
   },
+  diseasesFound: '',
+  diseaseDetails: '',
   images: [],
 }, defaults);
 
@@ -198,6 +200,45 @@ const SunflowerPathologyForm = ({ rows, onChange, readOnly, state, district, tal
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Disease Inquiry */}
+            <div className="sfp-section">
+              <h5 className="sfp-section-title">🦠 Disease Assessment</h5>
+              <div className="sfp-metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                <div className="sfp-field">
+                  <label>Are any diseases found?</label>
+                  <select
+                    value={obs.diseasesFound || obs.newDiseaseReported || ''}
+                    onChange={(e) => {
+                      handleLocChange(locIdx, 'diseasesFound', e.target.value);
+                      handleLocChange(locIdx, 'newDiseaseReported', e.target.value);
+                    }}
+                    disabled={readOnly}
+                    className="sfp-input"
+                  >
+                    <option value="">— Select —</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                {(obs.diseasesFound === 'Yes' || obs.newDiseaseReported === 'Yes') && (
+                  <div className="sfp-field">
+                    <label>If Yes, Enter details</label>
+                    <input
+                      type="text"
+                      value={obs.diseaseDetails || obs.newDiseaseDetails || ''}
+                      onChange={(e) => {
+                        handleLocChange(locIdx, 'diseaseDetails', e.target.value);
+                        handleLocChange(locIdx, 'newDiseaseDetails', e.target.value);
+                      }}
+                      disabled={readOnly}
+                      placeholder="Enter disease details"
+                      className="sfp-input"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Image Upload */}

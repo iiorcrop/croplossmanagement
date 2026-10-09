@@ -108,9 +108,12 @@ const observationSchema = new mongoose.Schema({
 
   remarks: { type: String, default: '' },
   otherVariety: { type: String, default: '' },
-  cropDamage: { type: mongoose.Schema.Types.Mixed, default: '-' },
   newDiseaseReported: { type: String, default: '' },
   newDiseaseDetails: { type: String, default: '' },
+  diseasesFound: { type: String, default: '' },
+  diseaseDetails: { type: String, default: '' },
+  naturalEnemiesFound: { type: String, default: '' },
+  naturalEnemiesDetails: { type: String, default: '' },
   images: [{ type: String }],
 }, { _id: true, strict: false });
 

@@ -11,6 +11,10 @@ export function blankRow(crop, discipline = 'Both', defaults = {}) {
     soilType: '', previousCrop: '', variety: '', otherVariety: '',
     irrigatedRainfed: '', dateOfSowing: '', stageOfCrop: '', plotType: '',
     cropDamage: '', remarks: '',
+    diseasesFound: '',
+    diseaseDetails: '',
+    naturalEnemiesFound: '',
+    naturalEnemiesDetails: '',
     newDiseaseReported: '',
     newDiseaseDetails: ''
   }, defaults);
@@ -168,8 +172,15 @@ export default function ObservationTable({
                       {r.stageOfCrop && <span>🌾 <strong>Stage:</strong> {r.stageOfCrop}</span>}
                       {r.plotType && <span>📐 <strong>Plot Type:</strong> {r.plotType}</span>}
                       {r.remarks && <span>💬 <strong>Remarks:</strong> {r.remarks}</span>}
-                      {r.newDiseaseReported === 'Yes' && (
-                        <span style={{ color: '#b91c1c', fontWeight: 600 }}>⚠️ New Disease: {r.newDiseaseDetails || 'Yes'}</span>
+                      {(r.diseasesFound || r.newDiseaseReported) && (
+                        <span style={{ color: (r.diseasesFound === 'Yes' || r.newDiseaseReported === 'Yes') ? '#b91c1c' : '#475569', fontWeight: 600 }}>
+                          🦠 Diseases Found: {r.diseasesFound || r.newDiseaseReported}{(r.diseaseDetails || r.newDiseaseDetails) ? ` (${r.diseaseDetails || r.newDiseaseDetails})` : ''}
+                        </span>
+                      )}
+                      {r.naturalEnemiesFound && (
+                        <span style={{ color: r.naturalEnemiesFound === 'Yes' ? '#15803d' : '#475569', fontWeight: 600 }}>
+                          🐞 Natural Enemies: {r.naturalEnemiesFound}{r.naturalEnemiesDetails ? ` (${r.naturalEnemiesDetails})` : ''}
+                        </span>
                       )}
                     </div>
                   </td>
@@ -305,28 +316,89 @@ export default function ObservationTable({
 
                   {/* Removed Crop Damage field per request */}
 
-                  <div className="form-group">
-                    <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>Any new disease reported?</label>
-                    <select className="p-input" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }} value={formData.newDiseaseReported || ''} onChange={e => setFormData({ ...formData, newDiseaseReported: e.target.value })} disabled={readOnly}>
-                      <option value="">— Select —</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  
-                  {formData.newDiseaseReported === 'Yes' && (
-                    <div className="form-group">
-                      <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>If Yes, Enter details</label>
-                      <input
-                        type="text"
-                        className="p-input"
-                        style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
-                        placeholder="Enter new disease details"
-                        value={formData.newDiseaseDetails || ''}
-                        onChange={e => setFormData({ ...formData, newDiseaseDetails: e.target.value })}
-                        disabled={readOnly}
-                      />
-                    </div>
+                  {/* Discipline-conditional questions */}
+                  {(discipline === 'Pathology' || discipline === 'Both') && (
+                    <>
+                      <div className="form-group">
+                        <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>
+                          Are any diseases found?
+                        </label>
+                        <select
+                          className="p-input"
+                          style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
+                          value={formData.diseasesFound || formData.newDiseaseReported || ''}
+                          onChange={e => setFormData({
+                            ...formData,
+                            diseasesFound: e.target.value,
+                            newDiseaseReported: e.target.value
+                          })}
+                          disabled={readOnly}
+                        >
+                          <option value="">— Select —</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      
+                      {(formData.diseasesFound === 'Yes' || formData.newDiseaseReported === 'Yes') && (
+                        <div className="form-group">
+                          <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>
+                            If Yes, Enter details
+                          </label>
+                          <input
+                            type="text"
+                            className="p-input"
+                            style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
+                            placeholder="Enter disease details"
+                            value={formData.diseaseDetails || formData.newDiseaseDetails || ''}
+                            onChange={e => setFormData({
+                              ...formData,
+                              diseaseDetails: e.target.value,
+                              newDiseaseDetails: e.target.value
+                            })}
+                            disabled={readOnly}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {(discipline === 'Entomology' || discipline === 'Both') && (
+                    <>
+                      <div className="form-group">
+                        <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>
+                          Any natural enemies found?
+                        </label>
+                        <select
+                          className="p-input"
+                          style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
+                          value={formData.naturalEnemiesFound || ''}
+                          onChange={e => setFormData({ ...formData, naturalEnemiesFound: e.target.value })}
+                          disabled={readOnly}
+                        >
+                          <option value="">— Select —</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      
+                      {formData.naturalEnemiesFound === 'Yes' && (
+                        <div className="form-group">
+                          <label className="p-label" style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#64748b' }}>
+                            If Yes, Enter details
+                          </label>
+                          <input
+                            type="text"
+                            className="p-input"
+                            style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: 8 }}
+                            placeholder="Enter natural enemies details"
+                            value={formData.naturalEnemiesDetails || ''}
+                            onChange={e => setFormData({ ...formData, naturalEnemiesDetails: e.target.value })}
+                            disabled={readOnly}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 

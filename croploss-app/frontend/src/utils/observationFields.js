@@ -75,6 +75,8 @@ const CONTEXT_FIELDS = {
     entry: ['stageOfCrop'],
   },
   plotType: { obs: ['plotType'], entry: ['plotType'] },
+  diseasesFound: { obs: ['diseasesFound', 'newDiseaseReported'] },
+  naturalEnemiesFound: { obs: ['naturalEnemiesFound'] },
   farmerName: {
     obs: ['farmerName'],
     nested: o => o.sunflowerPathology && o.sunflowerPathology.farmerName,
@@ -289,7 +291,9 @@ const resolveRemarks = (entry, obs) => {
       if (p && !isBlank(p.observation)) parts.push(`${p.name || 'Other pest'}: ${String(p.observation).trim()}`);
     });
   }
-  if (!isBlank(obs.newDiseaseDetails)) parts.push(`New disease: ${String(obs.newDiseaseDetails).trim()}`);
+  if (!isBlank(obs.diseaseDetails)) parts.push(`Diseases: ${String(obs.diseaseDetails).trim()}`);
+  else if (!isBlank(obs.newDiseaseDetails)) parts.push(`New disease: ${String(obs.newDiseaseDetails).trim()}`);
+  if (!isBlank(obs.naturalEnemiesDetails)) parts.push(`Natural enemies: ${String(obs.naturalEnemiesDetails).trim()}`);
 
   const yl = obs.yieldLoss;
   if (yl) {
