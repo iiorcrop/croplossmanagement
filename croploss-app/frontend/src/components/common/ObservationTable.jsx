@@ -218,15 +218,54 @@ export default function ObservationTable({
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead style={{ background: '#f8fafc' }}>
                     <tr>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>#</th>
-                      <th style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>Observation Data</th>
+                      <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', width: 50 }}>#</th>
+                      <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>Observation Details</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((r, i) => (
                       <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '8px' }}>{i + 1}</td>
-                        <td style={{ padding: '8px' }}>Observation #{i + 1}</td>
+                        <td style={{ padding: '16px', fontWeight: 700, verticalAlign: 'top' }}>{i + 1}</td>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ fontWeight: 700, fontSize: 15, color: '#1e293b', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span>{r.location ? `📍 ${r.location}` : `Location #${i + 1}`}</span>
+                            {r.plotType && (
+                              <span style={{ fontSize: 11, padding: '2px 8px', background: '#e0f2fe', color: '#0369a1', borderRadius: 6 }}>
+                                {r.plotType}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+                            {[...dcols, ...icols]
+                              .filter(c => r[c.key] !== undefined && r[c.key] !== '' && r[c.key] !== '-')
+                              .map(c => (
+                                <div key={c.key} style={{ minWidth: '90px', background: '#f8fafc', padding: '6px 10px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
+                                  <div style={{ fontSize: 9.5, color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>{c.label}</div>
+                                  <div style={{ fontSize: 13, fontWeight: 800, color: r[c.key] === '>50% (Specify)' ? '#ef4444' : '#1e293b', marginTop: 2 }}>
+                                    {r[c.key] === '>50% (Specify)' ? (r[`${c.key}_specify`] || '50+') + '%' : r[c.key]}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 12.5, color: '#475569' }}>
+                            {r.variety && <span>🌱 <strong>Variety:</strong> {r.variety}</span>}
+                            {r.stageOfCrop && <span>🌾 <strong>Stage:</strong> {r.stageOfCrop}</span>}
+                            {(r.latitude || r.longitude) && <span>🧭 <strong>Coords:</strong> {r.latitude || '—'}, {r.longitude || '—'}</span>}
+                            {(r.diseasesFound || r.newDiseaseReported) && (
+                              <span style={{ color: (r.diseasesFound === 'Yes' || r.newDiseaseReported === 'Yes') ? '#b91c1c' : '#475569', fontWeight: 600 }}>
+                                🦠 <strong>Diseases Found:</strong> {r.diseasesFound || r.newDiseaseReported}{(r.diseaseDetails || r.newDiseaseDetails) ? ` (${r.diseaseDetails || r.newDiseaseDetails})` : ''}
+                              </span>
+                            )}
+                            {r.naturalEnemiesFound && (
+                              <span style={{ color: r.naturalEnemiesFound === 'Yes' ? '#15803d' : '#475569', fontWeight: 600 }}>
+                                🐞 <strong>Natural Enemies:</strong> {r.naturalEnemiesFound}{r.naturalEnemiesDetails ? ` (${r.naturalEnemiesDetails})` : ''}
+                              </span>
+                            )}
+                            {r.remarks && <span>💬 <strong>Remarks:</strong> {r.remarks}</span>}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

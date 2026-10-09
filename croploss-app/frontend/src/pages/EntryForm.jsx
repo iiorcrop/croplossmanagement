@@ -1102,6 +1102,80 @@ export default function EntryForm() {
               )}
             </div>
 
+            {/* Recorded Observations Review */}
+            <div style={{ marginTop: 24, marginBottom: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--g7)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>📍</span> Recorded Observations ({observations.length} locations)
+              </div>
+              {observations.length === 0 ? (
+                <div style={{ padding: '16px', background: 'var(--g0)', borderRadius: 8, color: 'var(--gray)', fontSize: 13 }}>
+                  No observations recorded.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {observations.map((obs, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        background: '#fff',
+                        borderRadius: 10,
+                        border: '1px solid var(--gray-b)',
+                        padding: '14px 16px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13.5, color: '#1e293b' }}>
+                          #{idx + 1} {obs.location ? `📍 ${obs.location}` : `Location ${idx + 1}`}
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {obs.plotType && (
+                            <span style={{ fontSize: 11, padding: '2px 8px', background: '#e0f2fe', color: '#0369a1', borderRadius: 6, fontWeight: 600 }}>
+                              {obs.plotType}
+                            </span>
+                          )}
+                          {obs.stageOfCrop && (
+                            <span style={{ fontSize: 11, padding: '2px 8px', background: '#fef3c7', color: '#92400e', borderRadius: 6 }}>
+                              🌾 {obs.stageOfCrop}
+                            </span>
+                          )}
+                          {obs.variety && (
+                            <span style={{ fontSize: 11, padding: '2px 8px', background: '#dcfce7', color: '#166534', borderRadius: 6 }}>
+                              🌱 {obs.variety}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 12.5, padding: '8px 12px', background: '#f8fafc', borderRadius: 6, border: '1px solid #f1f5f9' }}>
+                        {(obs.diseasesFound || obs.newDiseaseReported) && (
+                          <span style={{ fontWeight: 600, color: (obs.diseasesFound === 'Yes' || obs.newDiseaseReported === 'Yes') ? '#b91c1c' : '#475569' }}>
+                            🦠 Diseases Found: {obs.diseasesFound || obs.newDiseaseReported}
+                            {(obs.diseaseDetails || obs.newDiseaseDetails) ? ` (${obs.diseaseDetails || obs.newDiseaseDetails})` : ''}
+                          </span>
+                        )}
+                        {obs.naturalEnemiesFound && (
+                          <span style={{ fontWeight: 600, color: obs.naturalEnemiesFound === 'Yes' ? '#15803d' : '#475569' }}>
+                            🐞 Natural Enemies: {obs.naturalEnemiesFound}
+                            {obs.naturalEnemiesDetails ? ` (${obs.naturalEnemiesDetails})` : ''}
+                          </span>
+                        )}
+                        {(obs.latitude || obs.longitude) && (
+                          <span style={{ color: 'var(--gray)' }}>
+                            🧭 {obs.latitude || '—'}° N, {obs.longitude || '—'}° E
+                          </span>
+                        )}
+                        {obs.remarks && (
+                          <span style={{ color: 'var(--gray)' }}>
+                            💬 {obs.remarks}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Alert type="info" icon="ℹ️">
               By submitting, you confirm that the data is accurate. Notification will be sent to the Crop Head for
               review.
