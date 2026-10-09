@@ -217,19 +217,77 @@ export default function EntryDetail() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginTop: 10 }}>
-          {[
-            ['Total Locations', entry.totalLocations || 0],
-            ['Avg Wilt %', <WiltValue value={entry.avgWilt} />],
-            ['Max Wilt %', <WiltValue value={entry.maxWilt} />],
-            ['Avg Root Rot %', <WiltValue value={entry.avgRootRot} />],
-          ].map(([label, val]) => (
-            <div key={label} style={{ background: 'var(--g0)', borderRadius: 7, padding: '10px 12px' }}>
-              <div style={{ fontSize: 10.5, color: 'var(--gray)' }}>{label}</div>
-              <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>{val}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginTop: 10 }}>
+          <div style={{ background: 'var(--g0)', borderRadius: 7, padding: '10px 12px' }}>
+            <div style={{ fontSize: 10.5, color: 'var(--gray)' }}>Total Locations</div>
+            <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>{entry.totalLocations || obs.length || 0}</div>
+          </div>
+          {entry.discipline !== 'Entomology' && (
+            <>
+              <div style={{ background: 'var(--g0)', borderRadius: 7, padding: '10px 12px' }}>
+                <div style={{ fontSize: 10.5, color: 'var(--gray)' }}>Avg Wilt %</div>
+                <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}><WiltValue value={entry.avgWilt} /></div>
+              </div>
+              <div style={{ background: 'var(--g0)', borderRadius: 7, padding: '10px 12px' }}>
+                <div style={{ fontSize: 10.5, color: 'var(--gray)' }}>Max Wilt %</div>
+                <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}><WiltValue value={entry.maxWilt} /></div>
+              </div>
+              <div style={{ background: 'var(--g0)', borderRadius: 7, padding: '10px 12px' }}>
+                <div style={{ fontSize: 10.5, color: 'var(--gray)' }}>Avg Root Rot %</div>
+                <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}><WiltValue value={entry.avgRootRot} /></div>
+              </div>
+            </>
+          )}
+          {obs.some(o => o.diseasesFound === 'Yes' || o.newDiseaseReported === 'Yes') && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 7, padding: '10px 12px' }}>
+              <div style={{ fontSize: 10.5, color: '#991b1b', fontWeight: 600 }}>Diseases Found</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#b91c1c', marginTop: 2 }}>
+                ⚠️ Yes ({obs.filter(o => o.diseasesFound === 'Yes' || o.newDiseaseReported === 'Yes').length} locs)
+              </div>
             </div>
-          ))}
+          )}
+          {obs.some(o => o.naturalEnemiesFound === 'Yes') && (
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 7, padding: '10px 12px' }}>
+              <div style={{ fontSize: 10.5, color: '#166534', fontWeight: 600 }}>Natural Enemies</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#15803d', marginTop: 2 }}>
+                🐞 Yes ({obs.filter(o => o.naturalEnemiesFound === 'Yes').length} locs)
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Weather Parameters Summary (Castor Entomology / recorded weather) */}
+        {obs.some(o => o.weather?.maxTemp || o.maxTemp || o.weather?.minTemp || o.minTemp || o.weather?.totalRainfall || o.totalRainfall || o.weather?.morningRH || o.morningRH) && (
+          <div style={{ marginTop: 14, background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '12px 16px' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#0369a1', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>🌤️</span> Weather Parameters Summary
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
+              {(() => {
+                const wObs = obs.filter(o => o.weather?.maxTemp || o.maxTemp || o.weather?.minTemp || o.minTemp || o.weather?.totalRainfall || o.totalRainfall);
+                const avgMax = wObs.length ? (wObs.reduce((s, o) => s + (parseFloat(o.weather?.maxTemp ?? o.maxTemp) || 0), 0) / wObs.length).toFixed(1) : null;
+                const avgMin = wObs.length ? (wObs.reduce((s, o) => s + (parseFloat(o.weather?.minTemp ?? o.minTemp) || 0), 0) / wObs.length).toFixed(1) : null;
+                const avgRain = wObs.length ? (wObs.reduce((s, o) => s + (parseFloat(o.weather?.totalRainfall ?? o.totalRainfall) || 0), 0)).toFixed(1) : null;
+                const avgMRH = wObs.length ? (wObs.reduce((s, o) => s + (parseFloat(o.weather?.morningRH ?? o.morningRH) || 0), 0) / wObs.length).toFixed(1) : null;
+                const avgERH = wObs.length ? (wObs.reduce((s, o) => s + (parseFloat(o.weather?.eveningRH ?? o.eveningRH) || 0), 0) / wObs.length).toFixed(1) : null;
+                const avgWind = wObs.length ? (wObs.reduce((s, o) => s + (parseFloat(o.weather?.windSpeed ?? o.windSpeed) || 0), 0) / wObs.length).toFixed(1) : null;
+                return [
+                  avgMax && ['Avg Max Temp', `${avgMax}°C`],
+                  avgMin && ['Avg Min Temp', `${avgMin}°C`],
+                  avgRain && ['Total Rainfall', `${avgRain} mm`],
+                  avgMRH && ['Morning RH', `${avgMRH}%`],
+                  avgERH && ['Evening RH', `${avgERH}%`],
+                  avgWind && ['Avg Wind Speed', `${avgWind} km/h`],
+                ].filter(Boolean).map(([lbl, val]) => (
+                  <div key={lbl} style={{ background: '#fff', padding: '8px 10px', borderRadius: 6, border: '1px solid #e0f2fe' }}>
+                    <div style={{ fontSize: 10, color: '#0284c7', fontWeight: 600 }}>{lbl}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0c4a6e', marginTop: 2 }}>{val}</div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Observation Table */}
